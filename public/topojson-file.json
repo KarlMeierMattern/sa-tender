@@ -1,0 +1,18 @@
+{
+  "type": "Topology",
+  "objects": {
+    "countries": {
+      "type": "GeometryCollection",
+      "geometries": [
+        {
+          "type": "Polygon",
+          "arcs": [[178, 179, 180, 181, 182, 183, 184], [185]],
+          "id": "710",
+          "properties": {
+            "name": "South Africa"
+          }
+        }
+      ]
+    }
+  }
+}

@@ -10,6 +10,7 @@ import {
   TableHead,
   TableCell,
 } from "@/components/ui/table";
+import MapChart from "../saMap.jsx";
 
 export default function TendersPage() {
   const [tenders, setTenders] = useState([]);
@@ -109,35 +110,41 @@ export default function TendersPage() {
         </div>
         <p className="text-sm">Count: {count}</p>
       </div>
+      <div className="h-screen">
+        <div>Total available tenders</div>
+        <div>Total tenders by province</div>
+        <div>Total tenders by category</div>
+        <MapChart />
+      </div>
       <Table className="table-fixed w-full">
         <TableCaption>List of Available Tenders</TableCaption>
         <TableHeader>
           <TableRow>
-            <TableHead className="w-52 whitespace-normal break-words">
+            <TableHead className="w-52 whitespace-normal break-words font-bold">
               Category
             </TableHead>
-            <TableHead className="w-32 whitespace-normal break-words">
+            <TableHead className="w-32 whitespace-normal break-words font-bold">
               Closing
             </TableHead>
-            <TableHead className="w-52 whitespace-normal break-words">
+            <TableHead className="w-52 whitespace-normal break-words font-bold">
               Department
             </TableHead>
-            <TableHead className="w-32 whitespace-normal break-words">
+            <TableHead className="w-32 whitespace-normal break-words font-bold">
               Province
             </TableHead>
-            <TableHead className="w-52 whitespace-normal break-words">
+            <TableHead className="w-52 whitespace-normal break-words font-bold">
               Advertised
             </TableHead>
-            <TableHead className="w-52 whitespace-normal break-words">
+            <TableHead className="w-52 whitespace-normal break-words font-bold">
               Tender Number
             </TableHead>
-            <TableHead className="w-52 whitespace-normal break-words">
+            <TableHead className="w-52 whitespace-normal break-words font-bold">
               Tender Type
             </TableHead>
-            <TableHead className="w-96 whitespace-normal break-words">
+            <TableHead className="w-96 whitespace-normal break-words font-bold">
               Description
             </TableHead>
-            <TableHead className="w-96 whitespace-normal break-words">
+            <TableHead className="w-96 whitespace-normal break-words font-bold">
               Place Services Required
             </TableHead>
           </TableRow>
