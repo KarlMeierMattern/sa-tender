@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import {
   Table,
   TableCaption,
@@ -11,74 +11,94 @@ import {
   TableCell,
 } from "@/components/ui/table";
 
-export default function TendersPage({ filteredTenders }) {
+export default function TenderTable({ tenders }) {
+  const [filteredTenders, setFilteredTenders] = useState(tenders);
+  const [filters, setFilters] = useState({
+    category: "",
+    department: "",
+    province: "",
+  });
+
+  useEffect(() => {
+    const newFiltered = tenders.filter((tender) =>
+      Object.entries(filters).every(
+        ([key, value]) =>
+          !value || tender[key]?.toLowerCase().includes(value.toLowerCase())
+      )
+    );
+    setFilteredTenders(newFiltered);
+  }, [filters, tenders]);
+
+  const handleFilterChange = (e) => {
+    const { name, value } = e.target;
+    setFilters((prev) => ({ ...prev, [name]: value }));
+  };
+
   return (
-    <Table className="table-fixed w-full">
-      <TableCaption>List of Available Tenders</TableCaption>
-      <TableHeader>
-        <TableRow>
-          <TableHead className="w-52 whitespace-normal break-words font-bold">
-            Category
-          </TableHead>
-          <TableHead className="w-32 whitespace-normal break-words font-bold">
-            Closing
-          </TableHead>
-          <TableHead className="w-52 whitespace-normal break-words font-bold">
-            Department
-          </TableHead>
-          <TableHead className="w-32 whitespace-normal break-words font-bold">
-            Province
-          </TableHead>
-          <TableHead className="w-52 whitespace-normal break-words font-bold">
-            Advertised
-          </TableHead>
-          <TableHead className="w-52 whitespace-normal break-words font-bold">
-            Tender Number
-          </TableHead>
-          <TableHead className="w-52 whitespace-normal break-words font-bold">
-            Tender Type
-          </TableHead>
-          <TableHead className="w-96 whitespace-normal break-words font-bold">
-            Description
-          </TableHead>
-          <TableHead className="w-96 whitespace-normal break-words font-bold">
-            Place Services Required
-          </TableHead>
-        </TableRow>
-      </TableHeader>
-      <TableBody>
-        {filteredTenders.map((tender, index) => (
-          <TableRow key={index}>
-            <TableCell className="w-52 whitespace-normal break-words ">
-              {tender.category}
-            </TableCell>
-            <TableCell className="w-32 whitespace-normal break-words">
-              {tender.closing}
-            </TableCell>
-            <TableCell className="w-52 whitespace-normal break-words">
-              {tender.department}
-            </TableCell>
-            <TableCell className="w-32 whitespace-normal break-words">
-              {tender.province}
-            </TableCell>
-            <TableCell className="w-52 whitespace-normal break-words">
-              {tender.advertised}
-            </TableCell>
-            <TableCell className="w-52 whitespace-normal break-words">
-              {tender.tendernumber}
-            </TableCell>
-            <TableCell className="w-52 whitespace-normal break-words">
-              {tender.tendertype}
-            </TableCell>
-            <TableCell className="w-96 whitespace-normal break-words">
-              {tender.description}
-            </TableCell>
-            <TableCell className="w-96 whitespace-normal break-words">
-              {tender.placeServicesRequired}
-            </TableCell>
-          </TableRow>
+    <>
+      <div className="flex flex-row justify-center-safe gap-4 mb-4">
+        {["category", "department", "province"].map((field) => (
+          <div key={field} className="flex items-center gap-2">
+            <p className="text-sm capitalize">Filter by {field}</p>
+            <input
+              type="text"
+              name={field}
+              value={filters[field]}
+              onChange={handleFilterChange}
+              className="w-32 h-6 text-sm border border-gray-300 rounded px-2"
+              placeholder="Filter..."
+            />
+          </div>
         ))}
-      </TableBody>
-    </Table>
+        <p className="text-sm">Count: {filteredTenders.length}</p>
+      </div>
+
+      <Table className="table-fixed w-full">
+        <TableCaption>List of Available Tenders</TableCaption>
+        <TableHeader>
+          <TableRow>
+            {[
+              "Category",
+              "Closing",
+              "Department",
+              "Province",
+              "Advertised",
+              "Tender Number",
+              "Tender Type",
+              "Description",
+              "Place Services Required",
+            ].map((header, i) => (
+              <TableHead
+                key={i}
+                className="whitespace-normal break-words font-bold"
+              >
+                {header}
+              </TableHead>
+            ))}
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {filteredTenders.map((tender, index) => (
+            <TableRow key={index}>
+              {[
+                "category",
+                "closing",
+                "department",
+                "province",
+                "advertised",
+                "tendernumber",
+                "tendertype",
+                "description",
+                "placeServicesRequired",
+              ].map((key, i) => (
+                <TableCell key={i} className="whitespace-normal break-words">
+                  {tender[key]}
+                </TableCell>
+              ))}
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
+    </>
   );
 }
