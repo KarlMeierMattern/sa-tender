@@ -37,10 +37,7 @@ export async function getTenders() {
 
 export async function getTendersDetail() {
   try {
-    // const tenders = await scrapeTendersDetail({
-    //   maxPages: 1,
-    // });
-    await connectDB(); // Ensure the database is connected
+    await connectDB();
     const tenders = await TenderModel.find({});
     return NextResponse.json({ success: true, data: tenders });
   } catch (error) {

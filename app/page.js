@@ -10,7 +10,8 @@ import {
   TableHead,
   TableCell,
 } from "@/components/ui/table";
-import MapChart from "../saMap.jsx";
+// import MapChart from "../saMap.jsx";
+import TenderTable from "./components/TenderTable.js";
 
 export default function TendersPage() {
   const [tenders, setTenders] = useState([]);
@@ -32,6 +33,9 @@ export default function TendersPage() {
           throw new Error("Network response was not ok");
         }
         const data = await response.json();
+        // console.log("Status", response.status);
+        // const text = await response.text();
+        // console.log("Raw response", text);
         if (data.success) {
           setTenders(data.data);
           setFilteredTenders(data.data); // Initialize filtered data
@@ -114,75 +118,9 @@ export default function TendersPage() {
         <div>Total available tenders</div>
         <div>Total tenders by province</div>
         <div>Total tenders by category</div>
-        <MapChart />
+        {/* <MapChart /> */}
       </div>
-      <Table className="table-fixed w-full">
-        <TableCaption>List of Available Tenders</TableCaption>
-        <TableHeader>
-          <TableRow>
-            <TableHead className="w-52 whitespace-normal break-words font-bold">
-              Category
-            </TableHead>
-            <TableHead className="w-32 whitespace-normal break-words font-bold">
-              Closing
-            </TableHead>
-            <TableHead className="w-52 whitespace-normal break-words font-bold">
-              Department
-            </TableHead>
-            <TableHead className="w-32 whitespace-normal break-words font-bold">
-              Province
-            </TableHead>
-            <TableHead className="w-52 whitespace-normal break-words font-bold">
-              Advertised
-            </TableHead>
-            <TableHead className="w-52 whitespace-normal break-words font-bold">
-              Tender Number
-            </TableHead>
-            <TableHead className="w-52 whitespace-normal break-words font-bold">
-              Tender Type
-            </TableHead>
-            <TableHead className="w-96 whitespace-normal break-words font-bold">
-              Description
-            </TableHead>
-            <TableHead className="w-96 whitespace-normal break-words font-bold">
-              Place Services Required
-            </TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {filteredTenders.map((tender, index) => (
-            <TableRow key={index}>
-              <TableCell className="w-52 whitespace-normal break-words ">
-                {tender.category}
-              </TableCell>
-              <TableCell className="w-32 whitespace-normal break-words">
-                {tender.closing}
-              </TableCell>
-              <TableCell className="w-52 whitespace-normal break-words">
-                {tender.department}
-              </TableCell>
-              <TableCell className="w-32 whitespace-normal break-words">
-                {tender.province}
-              </TableCell>
-              <TableCell className="w-52 whitespace-normal break-words">
-                {tender.advertised}
-              </TableCell>
-              <TableCell className="w-52 whitespace-normal break-words">
-                {tender.tendernumber}
-              </TableCell>
-              <TableCell className="w-52 whitespace-normal break-words">
-                {tender.tendertype}
-              </TableCell>
-              <TableCell className="w-96 whitespace-normal break-words">
-                {tender.description}
-              </TableCell>
-              <TableCell className="w-96 whitespace-normal break-words">
-                {tender.placeServicesRequired}
-              </TableCell>
-            </TableRow>
-          ))}
-        </TableBody>
-      </Table>
+      <TenderTable filteredTenders={filteredTenders} />
     </div>
   );
 }
