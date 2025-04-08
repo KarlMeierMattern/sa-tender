@@ -7,6 +7,7 @@ const useTenderFilters = create((set) => ({
     category: "",
     department: "",
     province: "",
+    description: "",
   },
   setFilter: (name, value) =>
     set((state) => ({

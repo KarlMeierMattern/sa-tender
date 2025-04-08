@@ -34,13 +34,13 @@ export default function TenderTable({ tenders }) {
   return (
     <>
       <div className="flex flex-row justify-center-safe gap-4 mb-4">
-        {["category", "department", "province"].map((field) => (
+        {["category", "department", "province", "description"].map((field) => (
           <div key={field} className="flex items-center gap-2">
             <p className="text-sm capitalize">Filter by {field}</p>
             <input
               type="text"
               name={field}
-              value={filters[field]}
+              value={filters[field] ?? ""}
               onChange={handleFilterChange}
               className="w-32 h-6 text-sm border border-gray-300 rounded px-2"
               placeholder="Filter..."
