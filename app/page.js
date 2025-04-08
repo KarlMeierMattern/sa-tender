@@ -1,4 +1,4 @@
-// RSC
+// react server component
 
 import TenderTable from "./components/TenderTable.js"; // client component
 import { unstable_noStore as noStore } from "next/cache"; // prevents caching

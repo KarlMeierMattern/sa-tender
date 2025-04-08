@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
+import useTenderFilters from "../stores/useTenderFilters.js";
 import {
   Table,
   TableCaption,
@@ -12,12 +13,8 @@ import {
 } from "@/components/ui/table";
 
 export default function TenderTable({ tenders }) {
+  const { filters, setFilter } = useTenderFilters();
   const [filteredTenders, setFilteredTenders] = useState(tenders);
-  const [filters, setFilters] = useState({
-    category: "",
-    department: "",
-    province: "",
-  });
 
   useEffect(() => {
     const newFiltered = tenders.filter((tender) =>
@@ -31,7 +28,7 @@ export default function TenderTable({ tenders }) {
 
   const handleFilterChange = (e) => {
     const { name, value } = e.target;
-    setFilters((prev) => ({ ...prev, [name]: value }));
+    setFilter(name, value);
   };
 
   return (
