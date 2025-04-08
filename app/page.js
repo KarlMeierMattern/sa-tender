@@ -1,6 +1,6 @@
 // react server component
 
-import TenderTable from "./components/TenderTable.js"; // client component
+import TenderLayout from "./components/TenderLayout";
 import { unstable_noStore as noStore } from "next/cache"; // prevents caching
 
 export default async function TendersPage() {
@@ -15,12 +15,12 @@ export default async function TendersPage() {
   }
 
   const data = await res.json();
-  const tenders = data?.data || [];
+  const initialTenders = data?.data || [];
 
   return (
     <div className="p-4">
       <h1 className="text-xl font-bold pl-2">Tenders</h1>
-      <TenderTable tenders={tenders} />
+      <TenderLayout initialTenders={initialTenders} />
     </div>
   );
 }
