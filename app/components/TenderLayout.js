@@ -6,6 +6,7 @@ import ProvinceBarChart from "./visualizations/ProvinceBarChart";
 import CategoryPieChart from "./visualizations/CategoryPieChart";
 import DepartmentBarChart from "./visualizations/DepartmentBarChart";
 import TenderTypeDonut from "./visualizations/TenderTypeDonut";
+import ProvinceMapChart from "./visualizations/ProvinceMapChart";
 import TableSkeleton from "./ui/table-skeleton";
 
 // Lazy load the table component
@@ -47,6 +48,9 @@ export default function TenderLayout({ initialTenders }) {
               </div>
               <div className="bg-white rounded-xl p-6 shadow-sm">
                 <TenderTypeDonut tenders={initialTenders} />
+              </div>
+              <div className="col-span-2 bg-white rounded-xl p-6 shadow-sm">
+                <ProvinceMapChart tenders={initialTenders} />
               </div>
             </div>
           </div>

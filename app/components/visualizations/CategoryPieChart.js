@@ -10,18 +10,19 @@ import {
   Tooltip,
 } from "recharts";
 
+// Periwinkle color palette with incrementally lighter shades
 const COLORS = [
-  "#818CF8", // Primary blue
-  "#F472B6", // Pink
-  "#34D399", // Green
-  "#FBBF24", // Yellow
-  "#60A5FA", // Light blue
-  "#A78BFA", // Purple
-  "#F87171", // Red
-  "#4ADE80", // Light green
-  "#FB923C", // Orange
-  "#94A3B8", // Gray
-  "#64748B", // Other - darker gray
+  "#B8C5FF", // Base periwinkle
+  "#C2CDFF",
+  "#CCD5FF",
+  "#D6DDFF",
+  "#E0E5FF",
+  "#EAE9FF",
+  "#F4F1FF",
+  "#F8F7FF",
+  "#FBFAFF",
+  "#FDFCFF", // Lightest periwinkle
+  "#E2E8F0", // Light gray for "Other"
 ];
 
 const CustomTooltip = ({ active, payload }) => {

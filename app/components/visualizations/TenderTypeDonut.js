@@ -3,12 +3,18 @@
 import React from "react";
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from "recharts";
 
+// Periwinkle color palette with incrementally lighter shades
 const COLORS = [
-  "#34D399", // Green
-  "#F472B6", // Pink
-  "#818CF8", // Blue
-  "#FBBF24", // Yellow
-  "#F87171", // Red
+  "#B8C5FF", // Base periwinkle
+  "#C2CDFF",
+  "#CCD5FF",
+  "#D6DDFF",
+  "#E0E5FF",
+  "#EAE9FF",
+  "#F4F1FF",
+  "#F8F7FF",
+  "#FBFAFF",
+  "#FDFCFF", // Lightest periwinkle
 ];
 
 const CustomTooltip = ({ active, payload }) => {

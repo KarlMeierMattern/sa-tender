@@ -11,10 +11,42 @@ import {
   ResponsiveContainer,
 } from "recharts";
 
+// Periwinkle color palette with incrementally lighter shades
+const COLORS = [
+  "#B8C5FF", // Base periwinkle
+  "#C2CDFF",
+  "#CCD5FF",
+  "#D6DDFF",
+  "#E0E5FF",
+  "#EAE9FF",
+  "#F4F1FF",
+  "#F8F7FF",
+  "#FBFAFF",
+  "#FDFCFF", // Lightest periwinkle
+];
+
+const CustomTooltip = ({ active, payload }) => {
+  if (active && payload && payload.length) {
+    const data = payload[0].payload;
+    return (
+      <div className="bg-white p-3 rounded-lg shadow-md border border-gray-200">
+        <p className="font-medium text-gray-900">{data.province}</p>
+        <p className="text-gray-600">{data.count} tenders</p>
+        <p className="text-gray-500 text-sm">
+          {(data.percent * 100).toFixed(1)}% of total
+        </p>
+      </div>
+    );
+  }
+  return null;
+};
+
 export default function ProvinceBarChart({ tenders }) {
   // Process data to get counts per province
   const provinceData = React.useMemo(() => {
     const counts = {};
+    const total = tenders.length;
+
     tenders.forEach((tender) => {
       const province = tender.province || "Unknown";
       counts[province] = (counts[province] || 0) + 1;
@@ -23,6 +55,7 @@ export default function ProvinceBarChart({ tenders }) {
     return Object.entries(counts).map(([province, count]) => ({
       province,
       count,
+      percent: count / total,
     }));
   }, [tenders]);
 
@@ -48,15 +81,8 @@ export default function ProvinceBarChart({ tenders }) {
             tick={{ fill: "#6B7280", fontSize: 12 }}
           />
           <YAxis tick={{ fill: "#6B7280", fontSize: 12 }} />
-          <Tooltip
-            contentStyle={{
-              backgroundColor: "white",
-              border: "1px solid #E5E7EB",
-              borderRadius: "8px",
-              boxShadow: "0 2px 4px rgba(0,0,0,0.1)",
-            }}
-          />
-          <Bar dataKey="count" fill="#818CF8" radius={[4, 4, 0, 0]} />
+          <Tooltip content={<CustomTooltip />} />
+          <Bar dataKey="count" fill={COLORS[0]} radius={[4, 4, 0, 0]} />
         </BarChart>
       </ResponsiveContainer>
     </div>

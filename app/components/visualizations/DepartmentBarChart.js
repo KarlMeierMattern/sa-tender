@@ -11,6 +11,20 @@ import {
   CartesianGrid,
 } from "recharts";
 
+// Periwinkle color palette with incrementally lighter shades
+const COLORS = [
+  "#B8C5FF", // Base periwinkle
+  "#C2CDFF",
+  "#CCD5FF",
+  "#D6DDFF",
+  "#E0E5FF",
+  "#EAE9FF",
+  "#F4F1FF",
+  "#F8F7FF",
+  "#FBFAFF",
+  "#FDFCFF", // Lightest periwinkle
+];
+
 const CustomTooltip = ({ active, payload }) => {
   if (active && payload && payload.length) {
     const data = payload[0].payload;
@@ -81,7 +95,7 @@ export default function DepartmentBarChart({ tenders }) {
               tickLine={{ stroke: "#E5E7EB" }}
             />
             <Tooltip content={<CustomTooltip />} />
-            <Bar dataKey="value" fill="#818CF8" radius={[0, 4, 4, 0]} />
+            <Bar dataKey="value" fill={COLORS[0]} radius={[0, 4, 4, 0]} />
           </BarChart>
         </ResponsiveContainer>
       </div>
