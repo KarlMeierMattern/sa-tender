@@ -1,20 +1,40 @@
 #!/bin/zsh
 
-# Log file path
-LOG_FILE="/Users/alexander/code/tender/app/scripts/logs/tenders-update.log"
-   
+# Set the full path to your project
+PROJECT_DIR="/Users/alexander/code/sa-tender"
+LOG_DIR="$PROJECT_DIR/app/scripts/logs"
+LOG_FILE="$LOG_DIR/tenders-update.log"
 
-# Navigate to your project directory
-cd /Users/alexander/code/tender
+# Ensure we're in the correct directory
+cd "$PROJECT_DIR" || {
+    echo "Failed to change to project directory: $PROJECT_DIR" | tee -a "$LOG_FILE"
+    exit 1
+}
 
 # Check that logs directory exists
-mkdir -p /Users/alexander/code/tender/app/scripts/logs
+mkdir -p "$LOG_DIR" || {
+    echo "Failed to create log directory: $LOG_DIR" | tee -a "$LOG_FILE"
+    exit 1
+}
+
+# Add timestamp and start message
+{
+    echo "============================================"
+    echo "Starting tender update at $(date '+%Y-%m-%d %H:%M:%S')"
+    echo "Current directory: $(pwd)"
+    echo "Node version: $(node --version)"
+    echo "NPM version: $(npm --version)"
+} | tee -a "$LOG_FILE"
 
 # Run the update script and log output
-echo "Starting tender update at $(date '+%Y-%m-%d %H:%M:%S')" >> $LOG_FILE
-node app/scripts/updateTenders.js >> $LOG_FILE 2>&1
-echo "Finished tender update at $(date '+%Y-%m-%d %H:%M:%S')" >> $LOG_FILE
-echo "" >> $LOG_FILE  # Add a blank line for spacing
+if node app/scripts/updateTenders.js 2>&1 | tee -a "$LOG_FILE"; then
+    echo "Update completed successfully at $(date '+%Y-%m-%d %H:%M:%S')" | tee -a "$LOG_FILE"
+else
+    echo "Update failed at $(date '+%Y-%m-%d %H:%M:%S')" | tee -a "$LOG_FILE"
+    exit 1
+fi
+
+echo "" | tee -a "$LOG_FILE"  # Add a blank line for spacing
 
 # Ensure execute permissions: ls -l /Users/alexander/code/tender/app/scripts/update-tenders.sh
 # If not executable, set permissions with: chmod +x /Users/alexander/code/tender/app/scripts/update-tenders.sh

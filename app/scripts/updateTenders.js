@@ -17,6 +17,17 @@ export async function updateTenders() {
     // 1. Get new data from scraping
     const scrapedTenders = await scrapeTendersDetail({ maxPages: Infinity });
 
+    // Log each tender as it's being processed
+    scrapedTenders.forEach((tender, index) => {
+      const pageNum = Math.floor(index / 10) + 1;
+      const itemNum = (index % 10) + 1;
+      console.log(
+        `Scraping tender ${index + 1} (Page ${pageNum}, Item ${itemNum}/10): ${
+          tender.description
+        }`
+      );
+    });
+
     // 2. Format the scraped tenders
     const formattedTenders = scrapedTenders.map((tender) => {
       // Convert DD/MM/YYYY to mongo db recognised format of YYYY-MM-DD
@@ -75,18 +86,19 @@ export async function updateTenders() {
     }
 
     // Update existing tenders
-    for (const tender of updatedTenders) {
-      await TenderModel.findOneAndUpdate(
-        { tendernumber: tender.tendernumber },
-        tender,
-        { new: true }
-      );
+    if (updatedTenders.length > 0) {
+      for (const tender of updatedTenders) {
+        await TenderModel.findOneAndUpdate(
+          { tendernumber: tender.tendernumber },
+          tender,
+          { new: true }
+        );
+      }
+      console.log(`Updated ${updatedTenders.length} existing tenders`);
     }
-    console.log(`Updated ${updatedTenders.length} existing tenders`);
 
     // Remove old tenders
     if (tendersToRemove.length > 0) {
-      // delete any document where the tendernumber is in our tendersToRemove array
       await TenderModel.deleteMany({
         tendernumber: { $in: tendersToRemove },
       });

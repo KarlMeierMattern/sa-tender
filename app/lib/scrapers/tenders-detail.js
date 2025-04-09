@@ -135,8 +135,6 @@ export async function scrapeTendersDetail(options = {}) {
               "email",
               "telephonenumber",
               "specialconditions",
-              "datepublished",
-              "closingdate",
             ];
 
             keysToRemove.forEach((key) => {

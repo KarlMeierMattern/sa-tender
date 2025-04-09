@@ -8,6 +8,7 @@ import { z } from "zod";
 import { TenderModel } from "../model/tenderModel.js";
 import mongoose from "mongoose";
 import dotenv from "dotenv";
+import { scrapeAwardedTenders } from "@/app/lib/scrapers/tenders-awarded";
 dotenv.config();
 
 async function connectDB() {
@@ -112,6 +113,18 @@ export async function getCategorizedTenders() {
     });
 
     return NextResponse.json({ success: true, data: categorizedTenders });
+  } catch (error) {
+    return NextResponse.json(
+      { success: false, error: error.message },
+      { status: StatusCodes.INTERNAL_SERVER_ERROR }
+    );
+  }
+}
+
+export async function getAwardedTenders() {
+  try {
+    const tenders = await scrapeAwardedTenders({ maxPages: 2 });
+    return NextResponse.json({ success: true, data: tenders });
   } catch (error) {
     return NextResponse.json(
       { success: false, error: error.message },
