@@ -10,13 +10,16 @@ export async function scrapeAwardedTenders(options = {}) {
   const MAX_RETRIES = 3;
 
   async function scrapeWithRetry(startPage = 0) {
+    console.log("Starting scraper...");
     const browser = await puppeteer.launch({
       headless: true,
       slowMo: 100,
     });
 
     try {
+      console.log("Opening page...");
       const page = await browser.newPage();
+      console.log("Navigating to URL:", AWARDED_TENDERS_URL);
       await page.goto(AWARDED_TENDERS_URL, {
         waitUntil: "networkidle0",
         timeout: 600000,
@@ -24,6 +27,7 @@ export async function scrapeAwardedTenders(options = {}) {
 
       // If we're not starting from page 1, navigate to the correct page
       if (startPage > 0) {
+        console.log(`Navigating to page ${startPage}...`);
         for (let i = 0; i < startPage; i++) {
           const nextButton = await page.$("a.paginate_button");
           if (nextButton) {
@@ -38,16 +42,19 @@ export async function scrapeAwardedTenders(options = {}) {
       let totalCount = startPage * 10;
 
       while (currentPage < maxPages) {
+        console.log(`Processing page ${currentPage + 1}...`);
         await page.waitForSelector("table.display.dataTable", {
           timeout: 30000,
           visible: true,
         });
 
         // Get basic tender info for current page
+        console.log("Getting basic tender info...");
         const tenders = await page.evaluate(() => {
           const rows = Array.from(
             document.querySelectorAll("table.display.dataTable tbody tr")
           );
+          console.log(`Found ${rows.length} rows on page`);
           return rows.map((row) => ({
             category:
               row.querySelector("td:nth-child(2)")?.textContent?.trim() || "",
@@ -59,6 +66,8 @@ export async function scrapeAwardedTenders(options = {}) {
               row.querySelector("td:nth-child(6)")?.textContent?.trim() || "",
           }));
         });
+
+        console.log(`Found ${tenders.length} tenders on current page`);
 
         // Process each row on the current page
         for (let index = 0; index < tenders.length; index++) {
@@ -75,7 +84,10 @@ export async function scrapeAwardedTenders(options = {}) {
               const buttonCell = document
                 .querySelectorAll("table.display.dataTable tbody tr")
                 [index].querySelector("td:nth-child(1)");
-              if (buttonCell) buttonCell.click();
+              if (buttonCell) {
+                console.log(`Clicking row ${index + 1}`);
+                buttonCell.click();
+              }
             }, index);
 
             // Wait for details to load
@@ -83,6 +95,7 @@ export async function scrapeAwardedTenders(options = {}) {
 
             // Get details including successful bidders
             const details = await page.evaluate((index) => {
+              console.log(`Getting details for row ${index + 1}`);
               const detailRow = document.querySelectorAll(
                 "table.display.dataTable tbody tr"
               )[index].nextElementSibling;
@@ -98,9 +111,6 @@ export async function scrapeAwardedTenders(options = {}) {
                 : [];
 
               // Get successful bidders section
-              const successfulBiddersSection = detailRow?.querySelector(
-                'div[class="SUCCESSFUL BIDDER(S)"]'
-              );
               const biddersTable = detailRow?.querySelector(
                 "table:not(.display)" // Get the second table that's not the main table
               );
@@ -176,11 +186,27 @@ export async function scrapeAwardedTenders(options = {}) {
               });
 
               if (bidder) {
-                successfulBidderName = bidder.name.trim();
-                const amountMatch = bidder.amount.match(/R\s*([\d,]+)/);
-                if (amountMatch) {
-                  const amountStr = amountMatch[1].replace(/,/g, "");
-                  successfulBidderAmount = parseInt(amountStr, 10) || 0;
+                // Extract name by splitting on 'R' and taking the first part
+                successfulBidderName = bidder.name.split("R")[0].trim();
+
+                // Parse amount - handle the format "R951 930,40"
+                if (bidder.amount) {
+                  // Extract just the numeric part after R, preserving the structure
+                  const amountMatch = bidder.amount.match(/R([\d\s]+)(,\d+)?/);
+                  if (amountMatch) {
+                    // Remove spaces and combine the parts
+                    const wholeNumber = amountMatch[1].replace(/\s/g, "");
+                    const decimal = amountMatch[2]
+                      ? amountMatch[2].replace(",", "")
+                      : "00";
+                    const fullNumber = wholeNumber + decimal;
+
+                    // Convert to integer and remove cents (divide by 100)
+                    const amountWithoutCents = Math.round(
+                      parseInt(fullNumber, 10) / 100
+                    );
+                    successfulBidderAmount = amountWithoutCents;
+                  }
                 }
               }
             }
