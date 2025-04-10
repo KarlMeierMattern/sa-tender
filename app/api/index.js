@@ -5,10 +5,10 @@ import { z } from "zod";
 import mongoose from "mongoose";
 import dotenv from "dotenv";
 import { generateObject } from "ai";
-import { scrapeTenders } from "../lib/scrapers/index.js";
-import { scrapeTendersTest } from "../lib/scrapers/index.js";
-import { TenderModel } from "../model/tenderModel.js";
-import { AwardedTenderModel } from "../model/awardedTenderModel.js";
+import { scrapeTenders } from "@/app/lib/scrapers";
+import { scrapeTendersTest } from "@/app/lib/scrapers";
+import { TenderModel } from "@/app/model/tenderModel";
+import { AwardedTenderModel } from "@/app/model/awardedTenderModel";
 dotenv.config();
 
 async function connectDB() {
