@@ -3,24 +3,21 @@
 import TenderLayout from "./components/TenderLayout";
 import { unstable_noStore as noStore } from "next/cache"; // prevents caching
 
+const baseUrl =
+  process.env.NODE_ENV === "development" ? "http://localhost:3000" : "";
+
 export default async function TendersPage() {
   noStore(); // disable caching for fresh data on each request
 
   // Fetch advertised tenders
-  const advertisedRes = await fetch(
-    "http://localhost:3000/api/tenders-detail",
-    {
-      cache: "no-store", // bypasses cache and fetches latest data
-    }
-  );
+  const advertisedRes = await fetch(`${baseUrl}/api/tenders-detail`, {
+    cache: "no-store", // bypasses cache and fetches latest data
+  });
 
   // Fetch awarded tenders
-  const awardedRes = await fetch(
-    "http://localhost:3000/api/tenders-detail-awarded",
-    {
-      cache: "no-store",
-    }
-  );
+  const awardedRes = await fetch(`${baseUrl}/api/tenders-detail-awarded`, {
+    cache: "no-store",
+  });
 
   if (!advertisedRes.ok) {
     throw new Error("Failed to fetch advertised tenders");
