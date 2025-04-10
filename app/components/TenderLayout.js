@@ -6,7 +6,7 @@ import ProvinceBarChart from "./visualizations/ProvinceBarChart";
 import CategoryPieChart from "./visualizations/CategoryPieChart";
 import DepartmentBarChart from "./visualizations/DepartmentBarChart";
 import TenderTypeDonut from "./visualizations/TenderTypeDonut";
-import ProvinceMapChart from "./visualizations/ProvinceMapChart";
+import ProvinceMap from "./visualizations/ProvinceMap";
 import TableSkeleton from "./ui/table-skeleton";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { differenceInDays } from "date-fns";
@@ -14,13 +14,30 @@ import DepartmentValueChart from "./visualizations/awarded/DepartmentValueChart"
 import ValueDistributionChart from "./visualizations/awarded/ValueDistributionChart";
 import TopSuppliersChart from "./visualizations/awarded/TopSuppliersChart";
 import AwardTimingChart from "./visualizations/awarded/AwardTimingChart";
-import AwardedProvinceMap from "./visualizations/awarded/AwardedProvinceMap";
 
 // Lazy load the table component
 const TenderTable = React.lazy(() => import("./TenderTable"));
 
 export default function TenderLayout({ initialTenders, awardedTenders }) {
   const [isPending, startTransition] = React.useTransition();
+  const [selectedYear, setSelectedYear] = React.useState("all");
+
+  // Get unique years from awarded tenders
+  const years = React.useMemo(() => {
+    const uniqueYears = new Set(
+      awardedTenders.map((tender) => new Date(tender.awarded).getFullYear())
+    );
+    return ["all", ...Array.from(uniqueYears).sort((a, b) => b - a)];
+  }, [awardedTenders]);
+
+  // Filter awarded tenders by selected year
+  const filteredAwardedTenders = React.useMemo(() => {
+    if (selectedYear === "all") return awardedTenders;
+    return awardedTenders.filter(
+      (tender) =>
+        new Date(tender.awarded).getFullYear() === parseInt(selectedYear)
+    );
+  }, [awardedTenders, selectedYear]);
 
   // Calculate statistics for advertised tenders
   const today = new Date();
@@ -119,7 +136,7 @@ export default function TenderLayout({ initialTenders, awardedTenders }) {
                     <TenderTypeDonut tenders={initialTenders} />
                   </div>
                   <div className="col-span-2 bg-white rounded-xl p-6 shadow-sm">
-                    <ProvinceMapChart tenders={initialTenders} />
+                    <ProvinceMap tenders={initialTenders} />
                   </div>
                 </div>
               </div>
@@ -136,13 +153,33 @@ export default function TenderLayout({ initialTenders, awardedTenders }) {
           </Tabs>
         </TabsContent>
         <TabsContent value="awarded">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+            <Card>
+              <CardHeader>
+                <CardTitle>Filter by Year</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <select
+                  value={selectedYear}
+                  onChange={(e) => setSelectedYear(e.target.value)}
+                  className="w-full p-2 border rounded-md"
+                >
+                  {years.map((year) => (
+                    <option key={year} value={year}>
+                      {year === "all" ? "All Years" : year}
+                    </option>
+                  ))}
+                </select>
+              </CardContent>
+            </Card>
             <Card>
               <CardHeader>
                 <CardTitle>Total Tenders Awarded</CardTitle>
               </CardHeader>
               <CardContent>
-                <p className="text-3xl font-bold">{awardedTenders.length}</p>
+                <p className="text-3xl font-bold">
+                  {filteredAwardedTenders.length}
+                </p>
               </CardContent>
             </Card>
             <Card>
@@ -152,7 +189,7 @@ export default function TenderLayout({ initialTenders, awardedTenders }) {
               <CardContent>
                 <p className="text-3xl font-bold">
                   R{" "}
-                  {awardedTenders
+                  {filteredAwardedTenders
                     .reduce(
                       (sum, tender) =>
                         sum + (parseFloat(tender.successfulBidderAmount) || 0),
@@ -170,11 +207,11 @@ export default function TenderLayout({ initialTenders, awardedTenders }) {
                 <p className="text-3xl font-bold">
                   R{" "}
                   {(
-                    awardedTenders.reduce(
+                    filteredAwardedTenders.reduce(
                       (sum, tender) =>
                         sum + (parseFloat(tender.successfulBidderAmount) || 0),
                       0
-                    ) / (awardedTenders.length || 1)
+                    ) / (filteredAwardedTenders.length || 1)
                   ).toLocaleString()}
                 </p>
               </CardContent>
@@ -193,19 +230,22 @@ export default function TenderLayout({ initialTenders, awardedTenders }) {
               <div className="mt-8 bg-gray-50 rounded-3xl p-8">
                 <div className="grid grid-cols-2 gap-8">
                   <div className="bg-white rounded-xl p-6 shadow-sm">
-                    <DepartmentValueChart tenders={awardedTenders} />
+                    <DepartmentValueChart tenders={filteredAwardedTenders} />
                   </div>
                   <div className="bg-white rounded-xl p-6 shadow-sm">
-                    <ValueDistributionChart tenders={awardedTenders} />
+                    <ValueDistributionChart tenders={filteredAwardedTenders} />
                   </div>
                   <div className="bg-white rounded-xl p-6 shadow-sm">
-                    <TopSuppliersChart tenders={awardedTenders} />
+                    <TopSuppliersChart tenders={filteredAwardedTenders} />
                   </div>
                   <div className="bg-white rounded-xl p-6 shadow-sm">
-                    <AwardTimingChart tenders={awardedTenders} />
+                    <AwardTimingChart tenders={filteredAwardedTenders} />
                   </div>
                   <div className="col-span-2 bg-white rounded-xl p-6 shadow-sm">
-                    <AwardedProvinceMap tenders={awardedTenders} />
+                    <ProvinceMap
+                      tenders={filteredAwardedTenders}
+                      isAwarded={true}
+                    />
                   </div>
                 </div>
               </div>
@@ -216,7 +256,7 @@ export default function TenderLayout({ initialTenders, awardedTenders }) {
               ) : (
                 <Suspense fallback={<TableSkeleton />}>
                   <TenderTable
-                    initialTenders={awardedTenders}
+                    initialTenders={filteredAwardedTenders}
                     isAwarded={true}
                   />
                 </Suspense>

@@ -114,6 +114,36 @@ export async function scrapeTendersDetail(options = {}) {
               }
             });
 
+            // Parse date strings into Date objects
+            function parseDate(dateStr) {
+              if (!dateStr) return null;
+              // Handle date format: "10 Apr 2025"
+              const parts = dateStr.split(" ");
+              if (parts.length === 3) {
+                const months = {
+                  Jan: 0,
+                  Feb: 1,
+                  Mar: 2,
+                  Apr: 3,
+                  May: 4,
+                  Jun: 5,
+                  Jul: 6,
+                  Aug: 7,
+                  Sep: 8,
+                  Oct: 9,
+                  Nov: 10,
+                  Dec: 11,
+                };
+                const day = parseInt(parts[0]);
+                const month = months[parts[1]];
+                const year = parseInt(parts[2]);
+                if (!isNaN(day) && month !== undefined && !isNaN(year)) {
+                  return new Date(year, month, day);
+                }
+              }
+              return null;
+            }
+
             // Handle special key rename
             if (tenderDetails["placewheregoods,worksorservicesarerequired"]) {
               tenderDetails["placeServicesRequired"] =
@@ -123,18 +153,18 @@ export async function scrapeTendersDetail(options = {}) {
               ];
             }
 
-            // Create complete tender object
+            // Create complete tender object with parsed dates
             const tender = {
               category: tenders[index].category,
               description: tenders[index].description,
-              advertised: tenders[index].advertised,
+              advertised: parseDate(tenders[index].advertised),
               closing: tenders[index].closing,
               tenderNumber: tenderDetails.tendernumber || "",
               department: tenderDetails.department || "",
               tenderType: tenderDetails.tendertype || "",
               province: tenderDetails.province || "",
-              datePublished: tenderDetails.datepublished || "",
-              closingDate: tenderDetails.closingdate || "",
+              datePublished: parseDate(tenderDetails.datepublished),
+              closingDate: parseDate(tenderDetails.closingdate),
               placeServicesRequired: tenderDetails.placeServicesRequired || "",
               ...tenderDetails,
             };
