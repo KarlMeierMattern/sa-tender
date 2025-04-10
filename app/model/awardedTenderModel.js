@@ -1,27 +1,30 @@
 import mongoose from "mongoose";
 
-const tenderSchema = new mongoose.Schema({
+const awardedTenderSchema = new mongoose.Schema({
   category: String,
   description: String,
   advertised: Date,
-  closing: String,
-  datePublished: Date,
-  closingDate: Date,
+  awarded: Date,
   tenderNumber: String,
   department: String,
   tenderType: String,
   province: String,
+  datePublished: Date,
+  closingDate: Date,
   placeServicesRequired: String,
+  specialConditions: String,
+  successfulBidderName: String,
+  successfulBidderAmount: Number,
   createdAt: { type: Date, default: Date.now },
   updatedAt: { type: Date, default: Date.now },
 });
 
 // Update the updatedAt timestamp before saving
-tenderSchema.pre("save", function (next) {
+awardedTenderSchema.pre("save", function (next) {
   this.updatedAt = new Date();
   next();
 });
 
-// Ensures that if the model is already registered (mongoose.models.Tender), it is reused instead of being recompiled.
-export const TenderModel =
-  mongoose.models.Tender || mongoose.model("Tender", tenderSchema);
+export const AwardedTenderModel =
+  mongoose.models.AwardedTender ||
+  mongoose.model("AwardedTender", awardedTenderSchema);

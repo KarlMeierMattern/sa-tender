@@ -1,14 +1,10 @@
-// Performs a single database update when manually executed
-// This file also gets exported to be used by cron job
-// npm run db:update
-
 import mongoose from "mongoose";
-import { TenderModel } from "../model/tenderModel.js";
-import { scrapeTendersDetail } from "../lib/scrapers/tenders-detail.js";
+import { AwardedTenderModel } from "../model/awardedTenderModel.js";
+import { scrapeAwardedTenders } from "../lib/scrapers/tenders-awarded.js";
 import dotenv from "dotenv";
 dotenv.config();
 
-export async function updateTenders() {
+export async function updateAwardedTenders() {
   try {
     // Connect to MongoDB
     await mongoose.connect(process.env.MONGO_URI);
@@ -29,7 +25,7 @@ export async function updateTenders() {
       );
 
       // Scrape current batch of pages
-      const tenders = await scrapeTendersDetail({
+      const tenders = await scrapeAwardedTenders({
         maxPages: BATCH_SIZE,
         startPage: currentBatch * BATCH_SIZE,
       });
@@ -53,26 +49,39 @@ export async function updateTenders() {
     // Format all the scraped tenders
     const formattedTenders = allScrapedTenders.map((tender) => {
       // Convert DD/MM/YYYY to mongo db recognised format of YYYY-MM-DD
-      const [day, month, year] = tender.advertised.split("/");
-      const formattedDate = `${year}-${month}-${day}`;
+      const [advertisedDay, advertisedMonth, advertisedYear] =
+        tender.advertised.split("/");
+      const [awardedDay, awardedMonth, awardedYear] = tender.awarded.split("/");
+      const [publishedDay, publishedMonth, publishedYear] = tender.datePublished
+        .split(" ")[1]
+        .split("/");
 
       return {
         category: tender.category,
         description: tender.description,
-        advertised: new Date(formattedDate), // Convert to Date object
-        closing: tender.closing,
-        tendernumber: tender.tendernumber,
+        advertised: new Date(
+          `${advertisedYear}-${advertisedMonth}-${advertisedDay}`
+        ),
+        awarded: new Date(`${awardedYear}-${awardedMonth}-${awardedDay}`),
+        tenderNumber: tender.tenderNumber,
         department: tender.department,
-        tendertype: tender.tendertype,
+        tenderType: tender.tenderType,
         province: tender.province,
+        datePublished: new Date(
+          `${publishedYear}-${publishedMonth}-${publishedDay}`
+        ),
+        closingDate: tender.closingDate,
         placeServicesRequired: tender.placeServicesRequired,
+        specialConditions: tender.specialConditions,
+        successfulBidderName: tender.successfulBidderName,
+        successfulBidderAmount: tender.successfulBidderAmount,
       };
     });
 
     // Get all existing tender numbers from DB
-    const existingTenders = await TenderModel.find({}, "tendernumber");
+    const existingTenders = await AwardedTenderModel.find({}, "tenderNumber");
     const existingTenderNumbers = new Set(
-      existingTenders.map((t) => t.tendernumber)
+      existingTenders.map((t) => t.tenderNumber)
     );
 
     // Separate scraped tenders into new and existing
@@ -81,9 +90,9 @@ export async function updateTenders() {
     const scrapedTenderNumbers = new Set();
 
     formattedTenders.forEach((tender) => {
-      scrapedTenderNumbers.add(tender.tendernumber);
+      scrapedTenderNumbers.add(tender.tenderNumber);
 
-      if (!existingTenderNumbers.has(tender.tendernumber)) {
+      if (!existingTenderNumbers.has(tender.tenderNumber)) {
         newTenders.push(tender);
       } else {
         updatedTenders.push(tender);
@@ -97,31 +106,31 @@ export async function updateTenders() {
 
     // Perform database operations
     if (newTenders.length > 0) {
-      await TenderModel.insertMany(newTenders);
-      console.log(`Added ${newTenders.length} new tenders`);
+      await AwardedTenderModel.insertMany(newTenders);
+      console.log(`Added ${newTenders.length} new awarded tenders`);
     }
 
     if (updatedTenders.length > 0) {
       for (const tender of updatedTenders) {
-        await TenderModel.findOneAndUpdate(
-          { tendernumber: tender.tendernumber },
+        await AwardedTenderModel.findOneAndUpdate(
+          { tenderNumber: tender.tenderNumber },
           tender,
           { new: true }
         );
       }
-      console.log(`Updated ${updatedTenders.length} existing tenders`);
+      console.log(`Updated ${updatedTenders.length} existing awarded tenders`);
     }
 
     if (tendersToRemove.length > 0) {
-      await TenderModel.deleteMany({
-        tendernumber: { $in: tendersToRemove },
+      await AwardedTenderModel.deleteMany({
+        tenderNumber: { $in: tendersToRemove },
       });
-      console.log(`Removed ${tendersToRemove.length} old tenders`);
+      console.log(`Removed ${tendersToRemove.length} old awarded tenders`);
     }
 
-    console.log("Database update completed successfully");
+    console.log("Awarded tenders database update completed successfully");
   } catch (error) {
-    console.error("Error updating database:", error);
+    console.error("Error updating awarded tenders database:", error);
     throw error;
   } finally {
     await mongoose.connection.close();
@@ -132,14 +141,14 @@ export async function updateTenders() {
 // Only run directly if this file is executed directly (not imported)
 if (import.meta.url === new URL(import.meta.url).href) {
   console.log(
-    "Starting tender database update:",
+    "Starting awarded tender database update:",
     new Date().toLocaleString("en-ZA", {
       timeZone: "Africa/Johannesburg",
       dateStyle: "full",
       timeStyle: "long",
     })
   );
-  updateTenders().catch((error) => {
+  updateAwardedTenders().catch((error) => {
     console.error("Update failed:", error);
     process.exit(1);
   });

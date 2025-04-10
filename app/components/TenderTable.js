@@ -3,7 +3,7 @@
 import React from "react";
 import { useQuery } from "@tanstack/react-query";
 import MultiSelect from "./ui/multi-select";
-import { DateRangePicker } from "./ui/date-range-picker";
+import { DatePicker } from "./ui/date-range-picker";
 import useMultiSelectFilters from "../hooks/useMultiSelectFilters";
 import useTenderFilters from "../stores/useTenderFilters";
 import {
@@ -54,6 +54,17 @@ export default function TenderTable({ initialTenders }) {
     setFilter(name, value);
   };
 
+  // Format date for display
+  const formatDate = (dateString) => {
+    if (!dateString) return "";
+    const date = new Date(dateString);
+    return date.toLocaleDateString("en-GB", {
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+    });
+  };
+
   if (isLoading) return <div>Loading...</div>;
 
   return (
@@ -83,18 +94,14 @@ export default function TenderTable({ initialTenders }) {
           />
         </div>
         <div className="flex flex-row justify-center-safe gap-4">
-          <DateRangePicker
-            dateRange={multiSelectFilters.advertisedDate}
-            onDateRangeChange={(range) =>
-              handleFilterChange("advertisedDate", range)
-            }
+          <DatePicker
+            date={multiSelectFilters.advertisedDate}
+            onDateChange={(date) => handleFilterChange("advertisedDate", date)}
             placeholder="Filter by advertised date"
           />
-          <DateRangePicker
-            dateRange={multiSelectFilters.closingDate}
-            onDateRangeChange={(range) =>
-              handleFilterChange("closingDate", range)
-            }
+          <DatePicker
+            date={multiSelectFilters.closingDate}
+            onDateChange={(date) => handleFilterChange("closingDate", date)}
             placeholder="Filter by closing date"
           />
         </div>
@@ -128,6 +135,7 @@ export default function TenderTable({ initialTenders }) {
               "Department",
               "Province",
               "Advertised",
+              "Closing Date",
               "Tender Number",
               "Tender Type",
               "Description",
@@ -151,13 +159,16 @@ export default function TenderTable({ initialTenders }) {
                 "department",
                 "province",
                 "advertised",
-                "tendernumber",
-                "tendertype",
+                "closingDate",
+                "tenderNumber",
+                "tenderType",
                 "description",
                 "placeServicesRequired",
               ].map((key, i) => (
                 <TableCell key={i} className="whitespace-normal break-words">
-                  {tender[key]}
+                  {key === "advertised" || key === "closingDate"
+                    ? formatDate(tender[key])
+                    : tender[key]}
                 </TableCell>
               ))}
             </TableRow>

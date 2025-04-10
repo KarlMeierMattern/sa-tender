@@ -5,11 +5,11 @@ const AWARDED_TENDERS_URL =
 
 export async function scrapeAwardedTenders(options = {}) {
   // Default to 1 page (10 entries) if not specified
-  const { maxPages = 1 } = options;
+  const { maxPages = 1, startPage = 0 } = options;
   let retryCount = 0;
   const MAX_RETRIES = 3;
 
-  async function scrapeWithRetry(startPage = 0) {
+  async function scrapeWithRetry(currentStartPage) {
     console.log("Starting scraper...");
     const browser = await puppeteer.launch({
       headless: true,
@@ -26,20 +26,27 @@ export async function scrapeAwardedTenders(options = {}) {
       });
 
       // If we're not starting from page 1, navigate to the correct page
-      if (startPage > 0) {
-        console.log(`Navigating to page ${startPage}...`);
-        for (let i = 0; i < startPage; i++) {
-          const nextButton = await page.$("a.paginate_button");
+      if (currentStartPage > 0) {
+        console.log(`Navigating to page ${currentStartPage + 1}...`);
+        for (let i = 0; i < currentStartPage; i++) {
+          const nextButton = await page.$(
+            "a.paginate_button.next:not(.disabled)"
+          );
           if (nextButton) {
             await nextButton.click();
             await new Promise((resolve) => setTimeout(resolve, 2000));
+          } else {
+            console.log(
+              "No more pages available during navigation to start page"
+            );
+            return []; // Return empty array if we can't reach the start page
           }
         }
       }
 
       const allAwardedTenders = [];
       let currentPage = 0;
-      let totalCount = startPage * 10;
+      let totalCount = currentStartPage * 10;
 
       while (currentPage < maxPages) {
         console.log(`Processing page ${currentPage + 1}...`);
@@ -268,15 +275,15 @@ export async function scrapeAwardedTenders(options = {}) {
 
       return allAwardedTenders;
     } catch (error) {
-      console.log(`Scraping error on page ${startPage}:`, error);
+      console.log(`Scraping error on page ${currentStartPage}:`, error);
 
       if (retryCount < MAX_RETRIES) {
         retryCount++;
         console.log(
-          `Retrying from page ${startPage}, attempt ${retryCount}/${MAX_RETRIES}`
+          `Retrying from page ${currentStartPage}, attempt ${retryCount}/${MAX_RETRIES}`
         );
         await browser.close();
-        return scrapeWithRetry(startPage);
+        return scrapeWithRetry(currentStartPage);
       }
 
       throw error;
@@ -284,5 +291,5 @@ export async function scrapeAwardedTenders(options = {}) {
       await browser.close();
     }
   }
-  return scrapeWithRetry(0);
+  return scrapeWithRetry(startPage); // Use the startPage from options
 }

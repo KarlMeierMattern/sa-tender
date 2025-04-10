@@ -30,7 +30,7 @@ export default function useMultiSelectFilters(tenders) {
     };
   }, [tenders]);
 
-  // Filter the tenders based on selected options and date ranges
+  // Filter the tenders based on selected options and dates
   const filteredTenders = useMemo(() => {
     return tenders.filter((tender) => {
       // Check multi-select filters
@@ -42,18 +42,29 @@ export default function useMultiSelectFilters(tenders) {
         }
       );
 
-      // Check date range filters
-      const matchesDateRanges = Object.entries(filters).every(
-        ([key, dateRange]) => {
-          if (key !== "advertisedDate" && key !== "closingDate") return true;
-          if (!dateRange) return true;
+      // Check date filters
+      const matchesDates = Object.entries(filters).every(([key, date]) => {
+        if (key !== "advertisedDate" && key !== "closingDate") return true;
+        if (!date) return true;
 
-          const tenderDate = new Date(tender[key]);
-          return tenderDate >= dateRange.from && tenderDate <= dateRange.to;
+        let tenderDate;
+        if (key === "advertisedDate") {
+          tenderDate = new Date(tender.advertised);
+        } else {
+          tenderDate = new Date(tender.closingDate);
         }
-      );
 
-      return matchesMultiSelect && matchesDateRanges;
+        const filterDate = new Date(date);
+
+        // Compare dates without time component
+        return (
+          tenderDate.getFullYear() === filterDate.getFullYear() &&
+          tenderDate.getMonth() === filterDate.getMonth() &&
+          tenderDate.getDate() === filterDate.getDate()
+        );
+      });
+
+      return matchesMultiSelect && matchesDates;
     });
   }, [tenders, filters]);
 
