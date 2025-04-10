@@ -215,7 +215,10 @@ export default function TenderLayout({ initialTenders, awardedTenders }) {
                 <TableSkeleton />
               ) : (
                 <Suspense fallback={<TableSkeleton />}>
-                  <TenderTable initialTenders={awardedTenders} />
+                  <TenderTable
+                    initialTenders={awardedTenders}
+                    isAwarded={true}
+                  />
                 </Suspense>
               )}
             </TabsContent>

@@ -39,7 +39,7 @@ export default function TenderTypeDonut({ tenders }) {
     const total = tenders.length;
 
     tenders.forEach((tender) => {
-      const type = tender.tendertype || "Unknown";
+      const type = tender.tenderType || "Unknown";
       counts[type] = (counts[type] || 0) + 1;
     });
 

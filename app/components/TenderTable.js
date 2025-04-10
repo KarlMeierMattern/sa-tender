@@ -1,9 +1,8 @@
 "use client";
 
-import React from "react";
-import { useQuery } from "@tanstack/react-query";
+import React, { useState } from "react";
 import MultiSelect from "./ui/multi-select";
-import { DatePicker } from "./ui/date-range-picker";
+import { Calendar } from "@/components/ui/calendar";
 import useMultiSelectFilters from "../hooks/useMultiSelectFilters";
 import useTenderFilters from "../stores/useTenderFilters";
 import {
@@ -15,39 +14,28 @@ import {
   TableHead,
   TableCell,
 } from "@/components/ui/table";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { Button } from "@/components/ui/button";
+import { CalendarIcon } from "lucide-react";
+import { format } from "date-fns";
+import { cn } from "@/lib/utils";
 
-async function fetchTenders() {
-  const res = await fetch("http://localhost:3000/api/tenders-detail", {
-    cache: "no-store",
-  });
-  if (!res.ok) throw new Error("Failed to fetch tenders");
-  return res.json();
-}
-
-export default function TenderTable({ initialTenders }) {
-  const { data, isLoading } = useQuery({
-    queryKey: ["tenders"],
-    queryFn: fetchTenders,
-    initialData: { data: initialTenders },
-  });
+export default function TenderTable({ initialTenders, isAwarded = false }) {
+  // Ensure initialTenders is always an array
+  const tenders = Array.isArray(initialTenders) ? initialTenders : [];
 
   const {
     filters: multiSelectFilters,
     options,
     filteredTenders: multiSelectFiltered,
     handleFilterChange,
-  } = useMultiSelectFilters(data.data);
-  const { filters: textFilters, setFilter } = useTenderFilters();
+  } = useMultiSelectFilters(tenders);
 
-  // Combine both filters
-  const filteredTenders = React.useMemo(() => {
-    return multiSelectFiltered.filter((tender) =>
-      Object.entries(textFilters).every(
-        ([key, value]) =>
-          !value || tender[key]?.toLowerCase().includes(value.toLowerCase())
-      )
-    );
-  }, [multiSelectFiltered, textFilters]);
+  const { filters: textFilters, setFilter } = useTenderFilters();
 
   const handleTextFilterChange = (e) => {
     const { name, value } = e.target;
@@ -58,14 +46,52 @@ export default function TenderTable({ initialTenders }) {
   const formatDate = (dateString) => {
     if (!dateString) return "";
     const date = new Date(dateString);
-    return date.toLocaleDateString("en-GB", {
-      day: "2-digit",
-      month: "2-digit",
-      year: "numeric",
-    });
+    if (isNaN(date)) return dateString;
+    return date.toLocaleDateString("en-ZA");
   };
 
-  if (isLoading) return <div>Loading...</div>;
+  const formatCurrency = (amount) => {
+    if (!amount) return "";
+    return new Intl.NumberFormat("en-ZA", {
+      style: "currency",
+      currency: "ZAR",
+    }).format(amount);
+  };
+
+  // Apply text filters to the multiselect filtered results
+  const finalFilteredTenders = multiSelectFiltered.filter((tender) => {
+    return Object.entries(textFilters).every(([field, value]) => {
+      if (!value) return true; // Skip empty filters
+      const fieldValue = String(tender[field] || "").toLowerCase();
+      return fieldValue.includes(value.toLowerCase());
+    });
+  });
+
+  const advertizedColumns = [
+    { key: "category", label: "Category" },
+    { key: "closing", label: "Closing" },
+    { key: "department", label: "Department" },
+    { key: "province", label: "Province" },
+    { key: "advertised", label: "Advertised" },
+    { key: "closingDate", label: "Closing Date" },
+    { key: "tenderNumber", label: "Tender Number" },
+    { key: "tenderType", label: "Type" },
+    { key: "description", label: "Description" },
+    { key: "placeServicesRequired", label: "Location" },
+  ];
+
+  const awardedColumns = [
+    { key: "tenderNumber", label: "Tender Number" },
+    { key: "description", label: "Description" },
+    { key: "department", label: "Department" },
+    { key: "province", label: "Province" },
+    { key: "advertised", label: "Advertised" },
+    { key: "awarded", label: "Awarded" },
+    { key: "successfulBidderName", label: "Successful Bidder" },
+    { key: "successfulBidderAmount", label: "Award Amount" },
+  ];
+
+  const columns = isAwarded ? awardedColumns : advertizedColumns;
 
   return (
     <>
@@ -94,16 +120,72 @@ export default function TenderTable({ initialTenders }) {
           />
         </div>
         <div className="flex flex-row justify-center-safe gap-4">
-          <DatePicker
-            date={multiSelectFilters.advertisedDate}
-            onDateChange={(date) => handleFilterChange("advertisedDate", date)}
-            placeholder="Filter by advertised date"
-          />
-          <DatePicker
-            date={multiSelectFilters.closingDate}
-            onDateChange={(date) => handleFilterChange("closingDate", date)}
-            placeholder="Filter by closing date"
-          />
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button
+                variant={"outline"}
+                className={cn(
+                  "w-[240px] justify-start text-left font-normal",
+                  !multiSelectFilters.advertisedDate && "text-muted-foreground"
+                )}
+              >
+                <CalendarIcon className="mr-2 h-4 w-4" />
+                {multiSelectFilters.advertisedDate ? (
+                  format(multiSelectFilters.advertisedDate, "PPP")
+                ) : (
+                  <span>Filter by advertised date</span>
+                )}
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-auto p-0" align="start">
+              <Calendar
+                mode="single"
+                selected={multiSelectFilters.advertisedDate}
+                onSelect={(date) => handleFilterChange("advertisedDate", date)}
+                initialFocus
+              />
+            </PopoverContent>
+          </Popover>
+
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button
+                variant={"outline"}
+                className={cn(
+                  "w-[240px] justify-start text-left font-normal",
+                  !multiSelectFilters[isAwarded ? "awarded" : "closingDate"] &&
+                    "text-muted-foreground"
+                )}
+              >
+                <CalendarIcon className="mr-2 h-4 w-4" />
+                {multiSelectFilters[isAwarded ? "awarded" : "closingDate"] ? (
+                  format(
+                    multiSelectFilters[isAwarded ? "awarded" : "closingDate"],
+                    "PPP"
+                  )
+                ) : (
+                  <span>
+                    Filter by {isAwarded ? "awarded" : "closing"} date
+                  </span>
+                )}
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-auto p-0" align="start">
+              <Calendar
+                mode="single"
+                selected={
+                  multiSelectFilters[isAwarded ? "awarded" : "closingDate"]
+                }
+                onSelect={(date) =>
+                  handleFilterChange(
+                    isAwarded ? "awarded" : "closingDate",
+                    date
+                  )
+                }
+                initialFocus
+              />
+            </PopoverContent>
+          </Popover>
         </div>
         <div className="flex flex-row justify-center-safe gap-4">
           {["category", "department", "province", "description"].map(
@@ -122,53 +204,37 @@ export default function TenderTable({ initialTenders }) {
             )
           )}
         </div>
-        <p className="text-sm text-center">Count: {filteredTenders.length}</p>
       </div>
 
       <Table className="table-fixed w-full">
         <TableCaption>List of Available Tenders</TableCaption>
         <TableHeader>
           <TableRow>
-            {[
-              "Category",
-              "Closing",
-              "Department",
-              "Province",
-              "Advertised",
-              "Closing Date",
-              "Tender Number",
-              "Tender Type",
-              "Description",
-              "Place Services Required",
-            ].map((header, i) => (
+            {columns.map((column) => (
               <TableHead
-                key={i}
+                key={column.key}
                 className="whitespace-normal break-words font-bold"
               >
-                {header}
+                {column.label}
               </TableHead>
             ))}
           </TableRow>
         </TableHeader>
         <TableBody>
-          {filteredTenders.map((tender, index) => (
+          {finalFilteredTenders.map((tender, index) => (
             <TableRow key={index}>
-              {[
-                "category",
-                "closing",
-                "department",
-                "province",
-                "advertised",
-                "closingDate",
-                "tenderNumber",
-                "tenderType",
-                "description",
-                "placeServicesRequired",
-              ].map((key, i) => (
-                <TableCell key={i} className="whitespace-normal break-words">
-                  {key === "advertised" || key === "closingDate"
-                    ? formatDate(tender[key])
-                    : tender[key]}
+              {columns.map((column) => (
+                <TableCell
+                  key={column.key}
+                  className="whitespace-normal break-words"
+                >
+                  {column.key === "successfulBidderAmount"
+                    ? formatCurrency(tender[column.key])
+                    : column.key === "advertised" ||
+                      column.key === "awarded" ||
+                      column.key === "closingDate"
+                    ? formatDate(tender[column.key])
+                    : tender[column.key]}
                 </TableCell>
               ))}
             </TableRow>
