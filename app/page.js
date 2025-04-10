@@ -2,34 +2,22 @@
 
 import TenderLayout from "./components/TenderLayout";
 import { unstable_noStore as noStore } from "next/cache"; // prevents caching
-import { headers } from "next/headers";
-
-async function getBaseUrl() {
-  const headersList = headers();
-  const host = headersList.get("host");
-  const proto = process.env.NODE_ENV === "development" ? "http" : "https";
-  return `${proto}://${host}`;
-}
 
 export default async function TendersPage() {
   noStore(); // disable caching for fresh data on each request
-  const baseUrl = await getBaseUrl();
+
+  const baseUrl =
+    process.env.NODE_ENV === "development" ? "http://localhost:3000" : "";
 
   // Fetch advertised tenders
-  const advertisedRes = await fetch(
-    new URL("/api/tenders-detail", baseUrl).toString(),
-    {
-      cache: "no-store", // bypasses cache and fetches latest data
-    }
-  );
+  const advertisedRes = await fetch(`${baseUrl}/api/tenders-detail`, {
+    cache: "no-store", // bypasses cache and fetches latest data
+  });
 
   // Fetch awarded tenders
-  const awardedRes = await fetch(
-    new URL("/api/tenders-detail-awarded", baseUrl).toString(),
-    {
-      cache: "no-store",
-    }
-  );
+  const awardedRes = await fetch(`${baseUrl}/api/tenders-detail-awarded`, {
+    cache: "no-store",
+  });
 
   if (!advertisedRes.ok) {
     throw new Error("Failed to fetch advertised tenders");

@@ -1,4 +1,4 @@
-import { getTendersDetail } from "@/app/api";
+import { getTendersDetail } from "../index.js";
 
 export async function GET() {
   return getTendersDetail();
