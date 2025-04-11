@@ -1,6 +1,11 @@
 import mongoose from "mongoose";
 import { AwardedTenderModel } from "../model/awardedTenderModel.js";
 import { scrapeAwardedTenders } from "../lib/scrapers/tenders-awarded.js";
+import {
+  parseAdvertisedDate,
+  parseDatePublished,
+  parseClosingDate,
+} from "../lib/utils/dateParsers.js";
 import dotenv from "dotenv";
 dotenv.config();
 
@@ -48,29 +53,24 @@ export async function updateAwardedTenders() {
 
     // Format all the scraped tenders
     const formattedTenders = allScrapedTenders.map((tender) => {
-      // Convert DD/MM/YYYY to mongo db recognised format of YYYY-MM-DD
-      const [advertisedDay, advertisedMonth, advertisedYear] =
-        tender.advertised.split("/");
-      const [awardedDay, awardedMonth, awardedYear] = tender.awarded.split("/");
-      const [publishedDay, publishedMonth, publishedYear] = tender.datePublished
-        .split(" ")[1]
-        .split("/");
+      // Use our specific date parsing functions
+      const advertisedDate =
+        parseAdvertisedDate(tender.advertised) || new Date();
+      const awardedDate = parseAdvertisedDate(tender.awarded) || new Date();
+      const datePublished = parseDatePublished(tender.datePublished);
+      const closingDate = parseClosingDate(tender.closingDate);
 
       return {
         category: tender.category,
         description: tender.description,
-        advertised: new Date(
-          `${advertisedYear}-${advertisedMonth}-${advertisedDay}`
-        ),
-        awarded: new Date(`${awardedYear}-${awardedMonth}-${awardedDay}`),
+        advertised: advertisedDate,
+        awarded: awardedDate,
         tenderNumber: tender.tenderNumber,
         department: tender.department,
         tenderType: tender.tenderType,
         province: tender.province,
-        datePublished: new Date(
-          `${publishedYear}-${publishedMonth}-${publishedDay}`
-        ),
-        closingDate: tender.closingDate,
+        datePublished: datePublished,
+        closingDate: closingDate,
         placeServicesRequired: tender.placeServicesRequired,
         specialConditions: tender.specialConditions,
         successfulBidderName: tender.successfulBidderName,

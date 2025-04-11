@@ -1,20 +1,28 @@
 import puppeteer from "puppeteer";
 import { ETENDERS_URL } from "../utils/constants.js";
+import {
+  parseAdvertisedDate,
+  parseDatePublished,
+  parseClosingDate,
+} from "../utils/dateParsers.js";
 
 export async function scrapeTendersDetail(options = {}) {
-  // Default to 1 page (10 entries) if not specified
-  const { maxPages = 1, startPage = 0 } = options;
+  // Default to starting from page 1
+  const { startPage = 0 } = options;
   let retryCount = 0;
   const MAX_RETRIES = 3;
 
-  async function scrapeWithRetry(currentStartPage) {
+  async function scrapeWithRetry(currentStartPage, previousTotalCount = 0) {
+    console.log("Starting scraper...");
     const browser = await puppeteer.launch({
       headless: true,
       slowMo: 100,
     });
 
     try {
+      console.log("Opening page...");
       const page = await browser.newPage();
+      console.log("Navigating to URL:", ETENDERS_URL);
       await page.goto(ETENDERS_URL, {
         waitUntil: "networkidle0",
         timeout: 600000,
@@ -22,7 +30,7 @@ export async function scrapeTendersDetail(options = {}) {
 
       // If we're not starting from page 1, navigate to the correct page
       if (currentStartPage > 0) {
-        console.log(`Navigating to page ${currentStartPage + 1}...`);
+        console.log(`Navigating to page ${currentStartPage}...`);
         for (let i = 0; i < currentStartPage; i++) {
           const nextButton = await page.$(
             "a.paginate_button.next:not(.disabled)"
@@ -41,19 +49,23 @@ export async function scrapeTendersDetail(options = {}) {
 
       const allTenders = [];
       let currentPage = 0;
-      let totalCount = currentStartPage * 10;
+      let totalCount = previousTotalCount; // Continue from previous count
+      let hasMorePages = true;
 
-      while (currentPage < maxPages) {
+      while (hasMorePages) {
+        console.log(`Processing page ${currentPage + 1}...`);
         await page.waitForSelector("table.display.dataTable", {
           timeout: 30000,
           visible: true,
         });
 
         // Get basic tender info for current page
+        console.log("Getting basic tender info...");
         const tenders = await page.evaluate(() => {
           const rows = Array.from(
             document.querySelectorAll("table.display.dataTable tbody tr")
           );
+          console.log(`Found ${rows.length} rows on page`);
           return rows.map((row) => ({
             category:
               row.querySelector("td:nth-child(2)")?.textContent?.trim() || "",
@@ -101,75 +113,50 @@ export async function scrapeTendersDetail(options = {}) {
               );
             }, index);
 
-            // Process details
+            // Process details with improved validation
             const tenderDetails = {};
-            details.forEach((detail) => {
-              const [key, value] = detail;
-              if (key && value) {
-                const formattedKey = key
-                  .replace(/:\s*$/, "")
-                  .replace(/\s+/g, "")
-                  .toLowerCase();
-                tenderDetails[formattedKey] = value;
-              }
-            });
-
-            // Parse date strings into Date objects
-            function parseDate(dateStr) {
-              if (!dateStr) return null;
-              // Handle date format: "10 Apr 2025"
-              const parts = dateStr.split(" ");
-              if (parts.length === 3) {
-                const months = {
-                  Jan: 0,
-                  Feb: 1,
-                  Mar: 2,
-                  Apr: 3,
-                  May: 4,
-                  Jun: 5,
-                  Jul: 6,
-                  Aug: 7,
-                  Sep: 8,
-                  Oct: 9,
-                  Nov: 10,
-                  Dec: 11,
-                };
-                const day = parseInt(parts[0]);
-                const month = months[parts[1]];
-                const year = parseInt(parts[2]);
-                if (!isNaN(day) && month !== undefined && !isNaN(year)) {
-                  return new Date(year, month, day);
+            try {
+              details.forEach((detail) => {
+                const [key, value] = detail;
+                if (key && value) {
+                  const formattedKey = key
+                    .replace(/:\s*$/, "")
+                    .replace(/\s+/g, "")
+                    .toLowerCase();
+                  tenderDetails[formattedKey] = value.trim();
                 }
+              });
+
+              // Handle special key rename with validation
+              if (tenderDetails["placewheregoods,worksorservicesarerequired"]) {
+                tenderDetails["placeServicesRequired"] =
+                  tenderDetails[
+                    "placewheregoods,worksorservicesarerequired"
+                  ].trim();
+                delete tenderDetails[
+                  "placewheregoods,worksorservicesarerequired"
+                ];
               }
-              return null;
+            } catch (error) {
+              console.error("Error processing tender details:", error);
             }
 
-            // Handle special key rename
-            if (tenderDetails["placewheregoods,worksorservicesarerequired"]) {
-              tenderDetails["placeServicesRequired"] =
-                tenderDetails["placewheregoods,worksorservicesarerequired"];
-              delete tenderDetails[
-                "placewheregoods,worksorservicesarerequired"
-              ];
-            }
-
-            // Create complete tender object with parsed dates
+            // Create complete tender object with improved validation
             const tender = {
-              category: tenders[index].category,
-              description: tenders[index].description,
-              advertised: parseDate(tenders[index].advertised),
-              closing: tenders[index].closing,
+              category: tenders[index].category || "",
+              description: tenders[index].description || "",
+              advertised: parseAdvertisedDate(tenders[index].advertised),
+              closing: tenders[index].closing || "",
               tenderNumber: tenderDetails.tendernumber || "",
               department: tenderDetails.department || "",
               tenderType: tenderDetails.tendertype || "",
               province: tenderDetails.province || "",
-              datePublished: parseDate(tenderDetails.datepublished),
-              closingDate: parseDate(tenderDetails.closingdate),
+              datePublished: parseDatePublished(tenderDetails.datepublished),
+              closingDate: parseClosingDate(tenderDetails.closingdate),
               placeServicesRequired: tenderDetails.placeServicesRequired || "",
-              ...tenderDetails,
             };
 
-            // Remove unwanted keys
+            // Remove unwanted keys with validation
             const keysToRemove = [
               "faxnumber",
               "isthereabriefingsession?",
@@ -182,9 +169,15 @@ export async function scrapeTendersDetail(options = {}) {
               "specialconditions",
             ];
 
-            keysToRemove.forEach((key) => {
-              delete tender[key];
-            });
+            try {
+              keysToRemove.forEach((key) => {
+                if (tender.hasOwnProperty(key)) {
+                  delete tender[key];
+                }
+              });
+            } catch (error) {
+              console.error("Error removing unwanted keys:", error);
+            }
 
             allTenders.push(tender);
 
@@ -200,23 +193,20 @@ export async function scrapeTendersDetail(options = {}) {
             await new Promise((resolve) => setTimeout(resolve, 500));
           } catch (error) {
             console.log(`Error processing tender at index ${index}:`, error);
-            // If error occurs, add basic tender info
             allTenders.push(tenders[index]);
           }
         }
 
-        // Move to next page if not on last page
-        currentPage++;
-        if (currentPage < maxPages) {
-          const nextButton = await page.$(
-            "a.paginate_button.next:not(.disabled)"
-          );
-          if (nextButton) {
-            await nextButton.click();
-            await new Promise((resolve) => setTimeout(resolve, 2000));
-          } else {
-            break; // No more pages available
-          }
+        // Check if there's a next page
+        const nextButton = await page.$(
+          "a.paginate_button.next:not(.disabled)"
+        );
+        if (nextButton) {
+          await nextButton.click();
+          await new Promise((resolve) => setTimeout(resolve, 2000));
+          currentPage++;
+        } else {
+          hasMorePages = false;
         }
       }
 
@@ -230,7 +220,7 @@ export async function scrapeTendersDetail(options = {}) {
           `Retrying from page ${currentStartPage}, attempt ${retryCount}/${MAX_RETRIES}`
         );
         await browser.close();
-        return scrapeWithRetry(currentStartPage);
+        return scrapeWithRetry(currentStartPage, totalCount); // Pass totalCount to retry
       }
 
       throw error;
@@ -238,5 +228,5 @@ export async function scrapeTendersDetail(options = {}) {
       await browser.close();
     }
   }
-  return scrapeWithRetry(startPage);
+  return scrapeWithRetry(startPage); // Use the startPage from options
 }

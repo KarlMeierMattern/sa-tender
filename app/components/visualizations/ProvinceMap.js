@@ -2,27 +2,7 @@
 
 import React from "react";
 import { ResponsiveContainer } from "recharts";
-import { getProvinceColor } from "../../lib/provinceGeoData";
-
-// GeoJSON paths for SA provinces
-const provincePaths = {
-  "Western Cape":
-    "M100,320 L70,330 L60,350 L80,370 L110,380 L140,370 L160,350 L130,330 L100,320",
-  "Eastern Cape":
-    "M160,350 L190,360 L230,370 L270,350 L290,320 L270,290 L230,280 L190,300 L160,350",
-  "Northern Cape":
-    "M60,180 L90,210 L130,230 L160,220 L190,240 L210,270 L190,300 L160,350 L130,330 L100,320 L70,330 L50,300 L40,250 L50,200 L60,180",
-  "Free State":
-    "M210,270 L240,260 L270,270 L290,260 L270,290 L230,280 L190,300 L210,270",
-  "KwaZulu-Natal":
-    "M290,260 L320,250 L340,270 L330,300 L290,320 L270,290 L290,260",
-  Gauteng: "M240,220 L260,210 L280,220 L270,240 L250,250 L240,220",
-  Mpumalanga: "M280,220 L300,200 L330,210 L320,250 L290,260 L280,220",
-  Limpopo:
-    "M240,160 L270,150 L310,160 L340,150 L330,180 L300,200 L270,190 L240,160",
-  "North West":
-    "M160,220 L190,200 L220,210 L210,240 L190,260 L160,250 L140,230 L160,220",
-};
+import provinceGeoData from "../../lib/provinceGeoData.json";
 
 const CustomTooltip = ({ active, province, value, isAwarded }) => {
   if (!active || !province) return null;
@@ -74,7 +54,9 @@ export default function ProvinceMap({ tenders, isAwarded = false }) {
 
   const getColor = (province) => {
     const value = provinceData.values[province];
-    return getProvinceColor(value, provinceData.maxValue);
+    if (!value) return "transparent";
+    const opacity = Math.min(0.2 + (value / provinceData.maxValue) * 0.8, 1);
+    return `rgba(129, 140, 248, ${opacity})`;
   };
 
   const handleMouseMove = (e, province) => {
@@ -86,6 +68,7 @@ export default function ProvinceMap({ tenders, isAwarded = false }) {
       province,
       value,
       isAwarded,
+      active: true,
     });
     setTooltipPosition({
       x: e.clientX - rect.left,
@@ -97,6 +80,20 @@ export default function ProvinceMap({ tenders, isAwarded = false }) {
     setTooltipData(null);
   };
 
+  // Convert GeoJSON coordinates to SVG path
+  const geoJSONToSVGPath = (coordinates) => {
+    return (
+      coordinates[0]
+        .map((coord, i) => {
+          // Scale and translate coordinates to fit our viewBox
+          const x = (coord[0] - 16) * 40; // Scale longitude
+          const y = (coord[1] + 35) * -40; // Scale latitude (and flip y-axis)
+          return `${i === 0 ? "M" : "L"}${x},${y}`;
+        })
+        .join(" ") + "Z"
+    );
+  };
+
   return (
     <div className="w-full h-[400px]">
       <h2 className="text-xl font-semibold mb-6">
@@ -106,20 +103,24 @@ export default function ProvinceMap({ tenders, isAwarded = false }) {
       </h2>
       <div className="h-[calc(100%-2rem)] relative">
         <ResponsiveContainer width="100%" height="100%">
-          <svg viewBox="0 0 400 400" className="w-full h-full">
-            <g transform="translate(20, 0) scale(1.1)">
-              {Object.entries(provincePaths).map(([province, path]) => (
-                <path
-                  key={province}
-                  d={path}
-                  fill={getColor(province)}
-                  stroke="#E5E7EB"
-                  strokeWidth="1"
-                  onMouseMove={(e) => handleMouseMove(e, province)}
-                  onMouseLeave={handleMouseLeave}
-                  className="transition-colors duration-200 hover:opacity-80"
-                />
-              ))}
+          <svg viewBox="0 0 800 800" className="w-full h-full">
+            <g transform="translate(100, 700) scale(1)">
+              {provinceGeoData.features.map((feature) => {
+                const province = feature.properties.name;
+                const path = geoJSONToSVGPath(feature.geometry.coordinates);
+                return (
+                  <path
+                    key={province}
+                    d={path}
+                    fill={getColor(province)}
+                    stroke="#818cf8"
+                    strokeWidth="2"
+                    onMouseMove={(e) => handleMouseMove(e, province)}
+                    onMouseLeave={handleMouseLeave}
+                    className="transition-colors duration-200 hover:opacity-80"
+                  />
+                );
+              })}
             </g>
           </svg>
         </ResponsiveContainer>
@@ -131,7 +132,7 @@ export default function ProvinceMap({ tenders, isAwarded = false }) {
               top: tooltipPosition.y - 70,
             }}
           >
-            <CustomTooltip active={true} {...tooltipData} />
+            <CustomTooltip {...tooltipData} />
           </div>
         )}
       </div>

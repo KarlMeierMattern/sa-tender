@@ -1,40 +1,32 @@
-#!/bin/zsh
+#!/bin/bash
 
-# Set the full path to your project
-PROJECT_DIR="/Users/alexander/code/sa-tender"
-LOG_DIR="$PROJECT_DIR/app/scripts/logs"
-LOG_FILE="$LOG_DIR/awarded-tenders-update.log"
+# Set up environment
+export NVM_DIR="$HOME/.nvm"
+[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
+[ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
 
-# Ensure we're in the correct directory
-cd "$PROJECT_DIR" || {
-    echo "Failed to change to project directory: $PROJECT_DIR" | tee -a "$LOG_FILE"
-    exit 1
-}
+# Use the full path to node
+NODE_PATH="/Users/alexander/.nvm/versions/node/v22.9.0/bin/node"
 
-# Check that logs directory exists
-mkdir -p "$LOG_DIR" || {
-    echo "Failed to create log directory: $LOG_DIR" | tee -a "$LOG_FILE"
-    exit 1
-}
+# Log file
+LOG_FILE="logs/awarded-tenders-update.log"
 
-# Add timestamp and start message
-{
-    echo "============================================"
-    echo "Starting awarded tender update at $(date '+%Y-%m-%d %H:%M:%S')"
-    echo "Current directory: $(pwd)"
-    echo "Node version: $(node --version)"
-    echo "NPM version: $(npm --version)"
-} | tee -a "$LOG_FILE"
+# Create logs directory if it doesn't exist
+mkdir -p logs
 
-# Run the update script and log output
-if node app/scripts/updateAwardedTenders.js 2>&1 | tee -a "$LOG_FILE"; then
-    echo "Awarded tender update completed successfully at $(date '+%Y-%m-%d %H:%M:%S')" | tee -a "$LOG_FILE"
-else
-    echo "Awarded tender update failed at $(date '+%Y-%m-%d %H:%M:%S')" | tee -a "$LOG_FILE"
-    exit 1
-fi
+# Log start of update
+echo "============================================" >> "$LOG_FILE"
+echo "Starting awarded tender update at $(date '+%Y-%m-%d %H:%M:%S')" >> "$LOG_FILE"
+echo "Current directory: $(pwd)" >> "$LOG_FILE"
+echo "Node version: $($NODE_PATH --version)" >> "$LOG_FILE"
+echo "NPM version: $($NODE_PATH -e "console.log(require('child_process').execSync('npm --version').toString())")" >> "$LOG_FILE"
 
-echo "" | tee -a "$LOG_FILE"  # Add a blank line for spacing
+# Run the update script
+$NODE_PATH updateAwardedTenders.js >> "$LOG_FILE" 2>&1
+
+# Log completion
+echo "Awarded tender update completed successfully at $(date '+%Y-%m-%d %H:%M:%S')" >> "$LOG_FILE"
+echo "" >> "$LOG_FILE"
 
 # Ensure execute permissions: chmod +x /Users/alexander/code/sa-tender/app/scripts/update-awarded-tenders.sh
 # crontab -e
