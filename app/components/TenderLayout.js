@@ -14,6 +14,7 @@ import DepartmentValueChart from "./visualizations/awarded/DepartmentValueChart"
 import ValueDistributionChart from "./visualizations/awarded/ValueDistributionChart";
 import TopSuppliersChart from "./visualizations/awarded/TopSuppliersChart";
 import AwardTimingChart from "./visualizations/awarded/AwardTimingChart";
+import LowestAwardTimingChart from "./visualizations/awarded/LowestAwardTimingChart";
 
 // Lazy load the table component
 const TenderTable = React.lazy(() => import("./TenderTable"));
@@ -126,17 +127,17 @@ export default function TenderLayout({ initialTenders, awardedTenders }) {
                   <div className="bg-white rounded-xl p-6 shadow-sm">
                     <ProvinceBarChart tenders={initialTenders} />
                   </div>
-                  <div className="bg-white rounded-xl p-6 shadow-sm">
-                    <CategoryPieChart tenders={initialTenders} />
+                  <div className=" bg-white rounded-xl p-6 shadow-sm">
+                    <ProvinceMap tenders={initialTenders} />
                   </div>
                   <div className="bg-white rounded-xl p-6 shadow-sm">
                     <DepartmentBarChart tenders={initialTenders} />
                   </div>
                   <div className="bg-white rounded-xl p-6 shadow-sm">
-                    <TenderTypeDonut tenders={initialTenders} />
+                    <CategoryPieChart tenders={initialTenders} />
                   </div>
-                  <div className="col-span-2 bg-white rounded-xl p-6 shadow-sm">
-                    <ProvinceMap tenders={initialTenders} />
+                  <div className="bg-white rounded-xl p-6 shadow-sm">
+                    <TenderTypeDonut tenders={initialTenders} />
                   </div>
                 </div>
               </div>
@@ -232,6 +233,12 @@ export default function TenderLayout({ initialTenders, awardedTenders }) {
                   <div className="bg-white rounded-xl p-6 shadow-sm">
                     <DepartmentValueChart tenders={filteredAwardedTenders} />
                   </div>
+                  <div className=" bg-white rounded-xl p-6 shadow-sm">
+                    <ProvinceMap
+                      tenders={filteredAwardedTenders}
+                      isAwarded={true}
+                    />
+                  </div>
                   <div className="bg-white rounded-xl p-6 shadow-sm">
                     <ValueDistributionChart tenders={filteredAwardedTenders} />
                   </div>
@@ -241,11 +248,8 @@ export default function TenderLayout({ initialTenders, awardedTenders }) {
                   <div className="bg-white rounded-xl p-6 shadow-sm">
                     <AwardTimingChart tenders={filteredAwardedTenders} />
                   </div>
-                  <div className="col-span-2 bg-white rounded-xl p-6 shadow-sm">
-                    <ProvinceMap
-                      tenders={filteredAwardedTenders}
-                      isAwarded={true}
-                    />
+                  <div className="bg-white rounded-xl p-6 shadow-sm">
+                    <LowestAwardTimingChart tenders={filteredAwardedTenders} />
                   </div>
                 </div>
               </div>

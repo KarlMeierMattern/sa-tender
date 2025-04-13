@@ -21,7 +21,7 @@ ChartJS.register(
   Legend
 );
 
-export default function AwardTimingChart({ tenders }) {
+export default function LowestAwardTimingChart({ tenders }) {
   // Calculate average time from advertisement to award by department
   const departmentTiming = tenders.reduce((acc, tender) => {
     if (!tender.department || !tender.advertised || !tender.awarded) return acc;
@@ -41,14 +41,14 @@ export default function AwardTimingChart({ tenders }) {
     return acc;
   }, {});
 
-  // Calculate averages and sort by highest average
+  // Calculate averages and sort by lowest average
   const departmentAverages = Object.entries(departmentTiming)
     .map(([dept, { total, count }]) => ({
       department: dept,
       average: Math.round(total / count),
     }))
-    .sort((a, b) => b.average - a.average)
-    .slice(0, 10);
+    .sort((a, b) => a.average - b.average) // Sort in ascending order
+    .slice(0, 10); // Get top 10 with lowest average
 
   const data = {
     labels: departmentAverages.map((item) => item.department),
@@ -71,7 +71,7 @@ export default function AwardTimingChart({ tenders }) {
       },
       title: {
         display: true,
-        text: "Top 10 Departments with Highest Days to Award Tender",
+        text: "Top 10 Departments with Lowest Days to Award Tender",
       },
       tooltip: {
         callbacks: {
