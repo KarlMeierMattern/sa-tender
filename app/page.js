@@ -7,7 +7,9 @@ export default async function TendersPage() {
   noStore(); // disable caching for fresh data on each request
 
   const baseUrl =
-    process.env.NODE_ENV === "development" ? "http://localhost:3000" : "";
+    process.env.NODE_ENV === "development"
+      ? "http://localhost:3000"
+      : "https://sa-tender.vercel.app"; // Use your production domain
 
   // Fetch advertised tenders
   const advertisedRes = await fetch(`${baseUrl}/api/tenders-detail`, {
