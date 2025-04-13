@@ -69,22 +69,23 @@ export default function TenderTable({ initialTenders, isAwarded = false }) {
 
   const advertizedColumns = [
     { key: "category", label: "Category" },
-    { key: "closing", label: "Closing" },
     { key: "department", label: "Department" },
     { key: "province", label: "Province" },
-    { key: "advertised", label: "Advertised" },
-    { key: "closingDate", label: "Closing Date" },
-    { key: "tenderNumber", label: "Tender Number" },
-    { key: "tenderType", label: "Type" },
     { key: "description", label: "Description" },
+    { key: "closing", label: "Closing" },
+    { key: "advertised", label: "Advertised" },
+    { key: "tenderNumber", label: "Tender Number" },
+    { key: "closingDate", label: "Closing Date" },
+    { key: "tenderType", label: "Type" },
     { key: "placeServicesRequired", label: "Location" },
   ];
 
   const awardedColumns = [
-    { key: "tenderNumber", label: "Tender Number" },
-    { key: "description", label: "Description" },
+    { key: "category", label: "Category" },
     { key: "department", label: "Department" },
     { key: "province", label: "Province" },
+    { key: "description", label: "Description" },
+    { key: "tenderNumber", label: "Tender Number" },
     { key: "advertised", label: "Advertised" },
     { key: "awarded", label: "Awarded" },
     { key: "successfulBidderName", label: "Successful Bidder" },
