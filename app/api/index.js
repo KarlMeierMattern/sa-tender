@@ -19,7 +19,9 @@ async function connectDB() {
 
 export async function getTendersDetail() {
   try {
+    console.log("Connecting to DB...");
     await connectDB();
+    console.log("Querying active tenders...");
     const tenders = await TenderModel.find({});
     return NextResponse.json({ success: true, data: tenders });
   } catch (error) {
@@ -33,7 +35,9 @@ export async function getTendersDetail() {
 
 export async function getAwardedTenders() {
   try {
+    console.log("Connecting to DB...");
     await connectDB();
+    console.log("Querying awarded tenders...");
     const tenders = await AwardedTenderModel.find({});
     return NextResponse.json({ success: true, data: tenders });
   } catch (error) {

@@ -8,8 +8,8 @@ export default async function TendersPage() {
 
   const baseUrl =
     process.env.NODE_ENV === "development"
-      ? "http://localhost:3000"
-      : "https://sa-tender.vercel.app"; // Use your production domain
+      ? "http://localhost:3000" // development domain
+      : "https://sa-tender.vercel.app"; // production domain
 
   // Fetch advertised tenders
   const advertisedRes = await fetch(`${baseUrl}/api/tenders-detail`, {
