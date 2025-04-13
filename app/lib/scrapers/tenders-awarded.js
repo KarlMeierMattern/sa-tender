@@ -1,9 +1,4 @@
 import puppeteer from "puppeteer";
-import {
-  parseAdvertisedDate,
-  parseDatePublished,
-  parseClosingDate,
-} from "../utils/dateParsers.js";
 
 const AWARDED_TENDERS_URL =
   "https://www.etenders.gov.za/Home/opportunities?id=2#";

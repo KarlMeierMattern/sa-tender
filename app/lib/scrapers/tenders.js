@@ -1,5 +1,5 @@
 import puppeteer from "puppeteer";
-import { ETENDERS_URL } from "@/app/lib/utils/constants";
+const ETENDERS_URL = "https://www.etenders.gov.za/Home/opportunities?id=1#";
 
 export async function scrapeTenders() {
   const browser = await puppeteer.launch({
