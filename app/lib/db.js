@@ -46,25 +46,42 @@ async function connectDB() {
   }
 }
 
+const ITEMS_PER_CHUNK = 100; // Adjust based on your average item size
+
 export async function fetchAdvertisedTenders() {
-  const CACHE_KEY = "advertised_tenders";
+  const CACHE_KEY_PREFIX = "advertised_tenders";
 
   try {
-    // Try to get from cache first
-    const cachedData = await cache.get(CACHE_KEY);
-    if (cachedData) {
-      console.log("Cache hit: Advertised tenders");
-      return cachedData;
+    // Try to get total count from cache
+    const totalCountKey = `${CACHE_KEY_PREFIX}_total`;
+    const cachedTotal = await cache.get(totalCountKey);
+
+    if (cachedTotal) {
+      // Get all chunks and combine
+      const chunks = [];
+      for (let i = 0; i < Math.ceil(cachedTotal / ITEMS_PER_CHUNK); i++) {
+        const chunkData = await cache.get(`${CACHE_KEY_PREFIX}_${i}`);
+        if (chunkData) chunks.push(...chunkData);
+      }
+
+      if (chunks.length === cachedTotal) {
+        console.log("Cache hit: Advertised tenders");
+        return chunks;
+      }
     }
 
-    // If not in cache, fetch from DB
+    // If not in cache or incomplete, fetch from DB
     await connectDB();
     console.log("Fetching advertised tenders...");
-    const tenders = await TenderModel.find({}).lean().exec();
+    const tenders = await TenderModel.find({}).lean().exec(); // lean() tells Mongoose not to create full model instances, improving memory and speed.
     console.log(`Found ${tenders.length} advertised tenders`);
 
-    // Cache the results
-    await cache.set(CACHE_KEY, tenders);
+    // Cache in chunks
+    await cache.set(totalCountKey, tenders.length);
+    for (let i = 0; i < tenders.length; i += ITEMS_PER_CHUNK) {
+      const chunk = tenders.slice(i, i + ITEMS_PER_CHUNK);
+      await cache.set(`${CACHE_KEY_PREFIX}_${i / ITEMS_PER_CHUNK}`, chunk);
+    }
 
     return tenders;
   } catch (error) {
@@ -74,24 +91,39 @@ export async function fetchAdvertisedTenders() {
 }
 
 export async function fetchAwardedTenders() {
-  const CACHE_KEY = "awarded_tenders";
+  const CACHE_KEY_PREFIX = "awarded_tenders";
 
   try {
-    // Try to get from cache first
-    const cachedData = await cache.get(CACHE_KEY);
-    if (cachedData) {
-      console.log("Cache hit: Awarded tenders");
-      return cachedData;
+    // Try to get total count from cache
+    const totalCountKey = `${CACHE_KEY_PREFIX}_total`;
+    const cachedTotal = await cache.get(totalCountKey);
+
+    if (cachedTotal) {
+      // Get all chunks and combine
+      const chunks = [];
+      for (let i = 0; i < Math.ceil(cachedTotal / ITEMS_PER_CHUNK); i++) {
+        const chunkData = await cache.get(`${CACHE_KEY_PREFIX}_${i}`);
+        if (chunkData) chunks.push(...chunkData);
+      }
+
+      if (chunks.length === cachedTotal) {
+        console.log("Cache hit: Awarded tenders");
+        return chunks;
+      }
     }
 
-    // If not in cache, fetch from DB
+    // If not in cache or incomplete, fetch from DB
     await connectDB();
     console.log("Fetching awarded tenders...");
     const tenders = await AwardedTenderModel.find({}).lean().exec();
     console.log(`Found ${tenders.length} awarded tenders`);
 
-    // Cache the results
-    await cache.set(CACHE_KEY, tenders);
+    // Cache in chunks
+    await cache.set(totalCountKey, tenders.length);
+    for (let i = 0; i < tenders.length; i += ITEMS_PER_CHUNK) {
+      const chunk = tenders.slice(i, i + ITEMS_PER_CHUNK);
+      await cache.set(`${CACHE_KEY_PREFIX}_${i / ITEMS_PER_CHUNK}`, chunk);
+    }
 
     return tenders;
   } catch (error) {
