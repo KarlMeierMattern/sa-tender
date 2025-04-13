@@ -12,12 +12,12 @@ export default async function TendersPage() {
 
   // Fetch advertised tenders
   const advertisedRes = await fetch(`${baseUrl}/api/tenders-detail`, {
-    cache: "no-store",
+    cache: "force-cache", // This will use Vercel’s edge caching mechanism to store the response at the edge, reducing latency for repeated requests.
   });
 
   // Fetch awarded tenders
   const awardedRes = await fetch(`${baseUrl}/api/tenders-detail-awarded`, {
-    cache: "no-store",
+    cache: "force-cache",
   });
 
   if (!advertisedRes.ok) {
