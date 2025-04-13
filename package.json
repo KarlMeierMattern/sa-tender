@@ -26,6 +26,7 @@
     "date-fns": "^3.6.0",
     "dotenv": "^16.4.7",
     "http-status-codes": "^2.3.0",
+    "ioredis": "^5.6.1",
     "lucide-react": "^0.487.0",
     "maplibre-gl": "^5.3.0",
     "mongoose": "^8.13.1",

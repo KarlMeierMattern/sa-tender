@@ -1,11 +1,21 @@
-// app/tenders/page.tsx
 import { unstable_noStore as noStore } from "next/cache";
+import { headers } from "next/headers";
 import TenderLayout from "./components/TenderLayout";
 import { fetchAdvertisedTenders, fetchAwardedTenders } from "./lib/db.js";
 import { cleanDocs } from "./lib/cleanDocs.js";
 
 export default async function TendersPage() {
-  noStore();
+  const headersList = await headers();
+
+  // Check various cache control scenarios
+  const shouldSkipCache =
+    headersList.get("x-no-cache") === "true" || // Custom header
+    headersList.get("cache-control") === "no-store"; // Standard cache control
+
+  if (shouldSkipCache) {
+    noStore();
+    console.log("Cache bypassed due to headers");
+  }
 
   const [advertisedRaw, awardedRaw] = await Promise.all([
     fetchAdvertisedTenders(),
