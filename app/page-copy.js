@@ -1,24 +1,23 @@
-// react server component
-
 import TenderLayout from "./components/TenderLayout";
-import { unstable_noStore as noStore } from "next/cache"; // prevents caching
+import { unstable_noStore as noStore } from "next/cache";
 
 export default async function TendersPage() {
-  noStore(); // disable caching for fresh data on each request
+  noStore(); // Ensure fresh data every request
 
-  const baseUrl =
-    process.env.NODE_ENV === "development"
-      ? "http://localhost:3000" // development domain
-      : "https://sa-tender.vercel.app"; // production domain
+  const isProd = process.env.NODE_ENV === "production";
+
+  const baseUrl = isProd
+    ? `https://${process.env.VERCEL_URL}` // ✅ Vercel automatically sets this
+    : "http://localhost:3000"; // ✅ Local dev
 
   // Fetch advertised tenders
   const advertisedRes = await fetch(`${baseUrl}/api/tenders-detail`, {
-    cache: "no-store", // bypasses cache and fetches latest data
+    cache: "force-cache", // This will use Vercel’s edge caching mechanism to store the response at the edge, reducing latency for repeated requests.
   });
 
   // Fetch awarded tenders
   const awardedRes = await fetch(`${baseUrl}/api/tenders-detail-awarded`, {
-    cache: "no-store",
+    cache: "force-cache",
   });
 
   if (!advertisedRes.ok) {

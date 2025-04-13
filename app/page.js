@@ -1,38 +1,19 @@
-import TenderLayout from "./components/TenderLayout";
+// app/tenders/page.tsx
 import { unstable_noStore as noStore } from "next/cache";
+import TenderLayout from "./components/TenderLayout";
+import { fetchAdvertisedTenders, fetchAwardedTenders } from "./lib/db.js";
+import { cleanDocs } from "./lib/cleanDocs.js";
 
 export default async function TendersPage() {
-  noStore(); // Ensure fresh data every request
+  noStore();
 
-  const isProd = process.env.NODE_ENV === "production";
+  const [advertisedRaw, awardedRaw] = await Promise.all([
+    fetchAdvertisedTenders(),
+    fetchAwardedTenders(),
+  ]);
 
-  const baseUrl = isProd
-    ? `https://${process.env.VERCEL_URL}` // ✅ Vercel automatically sets this
-    : "http://localhost:3000"; // ✅ Local dev
-
-  // Fetch advertised tenders
-  const advertisedRes = await fetch(`${baseUrl}/api/tenders-detail`, {
-    cache: "force-cache", // This will use Vercel’s edge caching mechanism to store the response at the edge, reducing latency for repeated requests.
-  });
-
-  // Fetch awarded tenders
-  const awardedRes = await fetch(`${baseUrl}/api/tenders-detail-awarded`, {
-    cache: "force-cache",
-  });
-
-  if (!advertisedRes.ok) {
-    throw new Error("Failed to fetch advertised tenders");
-  }
-
-  if (!awardedRes.ok) {
-    throw new Error("Failed to fetch awarded tenders");
-  }
-
-  const advertisedData = await advertisedRes.json();
-  const awardedData = await awardedRes.json();
-
-  const advertisedTenders = advertisedData?.data || [];
-  const awardedTenders = awardedData?.data || [];
+  const advertisedTenders = cleanDocs(advertisedRaw);
+  const awardedTenders = cleanDocs(awardedRaw);
 
   return (
     <div className="p-4">
