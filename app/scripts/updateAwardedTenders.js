@@ -12,7 +12,7 @@ dotenv.config();
 export async function updateAwardedTenders() {
   try {
     // Connect to MongoDB
-    await mongoose.connect(process.env.MONGO_URI);
+    await mongoose.connect(process.env.MONGODB_URI);
     console.log("Connected to MongoDB");
 
     const BATCH_SIZE = 20; // pages per batch (20 pages = 200 entries)

@@ -16,7 +16,7 @@ dotenv.config();
 export async function updateTenders() {
   try {
     // Connect to MongoDB
-    await mongoose.connect(process.env.MONGO_URI);
+    await mongoose.connect(process.env.MONGODB_URI);
     console.log("Connected to MongoDB");
 
     console.log("Starting tender update...");
