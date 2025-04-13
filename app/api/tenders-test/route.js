@@ -1,4 +1,4 @@
-import { getTendersTest } from "@/app/api";
+import { getTendersTest } from "../index.js";
 
 export async function GET() {
   return getTendersTest();
