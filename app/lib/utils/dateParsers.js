@@ -5,7 +5,8 @@ export function parseAdvertisedDate(dateStr) {
   const [day, month, year] = dateStr.split("/");
   if (!day || !month || !year) return null;
 
-  const date = new Date(year, month - 1, day);
+  // Use UTC to prevent timezone issues
+  const date = new Date(Date.UTC(year, month - 1, day));
   return !isNaN(date.getTime()) ? date : null;
 }
 
@@ -35,7 +36,8 @@ export function parseDatePublished(dateStr) {
   const month = monthMap[monthStr];
   if (month === undefined) return null;
 
-  const date = new Date(year, month, day);
+  // Use UTC to prevent timezone issues
+  const date = new Date(Date.UTC(year, month, day));
   return !isNaN(date.getTime()) ? date : null;
 }
 
@@ -69,6 +71,7 @@ export function parseClosingDate(dateStr) {
   const month = monthMap[monthStr];
   if (month === undefined) return null;
 
-  const date = new Date(year, month, day);
+  // Use UTC to prevent timezone issues
+  const date = new Date(Date.UTC(year, month, day));
   return !isNaN(date.getTime()) ? date : null;
 }

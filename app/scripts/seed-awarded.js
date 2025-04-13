@@ -32,60 +32,67 @@ async function main() {
     console.log("Cleared existing awarded tenders");
 
     console.log("Starting to scrape awarded tenders...");
-    const tenders = await scrapeAwardedTenders({ maxPages: 1 });
+    let totalInserted = 0;
 
-    if (!tenders || tenders.length === 0) {
-      console.log("No tenders found");
-      return;
-    }
+    const tenders = await scrapeAwardedTenders({
+      maxPages: 2204,
+      onBatch: async (batch) => {
+        if (batch.length === 0) return;
 
-    console.log(`Found ${tenders.length} tenders to insert`);
+        // Format the tenders
+        const formattedTenders = batch
+          .map((tender) => {
+            // Ensure all required fields are present
+            if (!tender.tenderNumber || !tender.description) {
+              console.log(
+                `Skipping tender with missing required fields:`,
+                tender
+              );
+              return null;
+            }
 
-    // Format the tenders
-    const formattedTenders = tenders
-      .map((tender) => {
-        // Ensure all required fields are present
-        if (!tender.tenderNumber || !tender.description) {
-          console.log(`Skipping tender with missing required fields:`, tender);
-          return null;
+            const advertisedDate =
+              parseAdvertisedDate(tender.advertised) || new Date();
+            const awardedDate =
+              parseAdvertisedDate(tender.awarded) || new Date();
+            const datePublished = parseDatePublished(tender.datePublished);
+            const closingDate = parseClosingDate(tender.closingDate);
+
+            return {
+              category: tender.category || "",
+              description: tender.description || "",
+              advertised: advertisedDate,
+              awarded: awardedDate,
+              tenderNumber: tender.tenderNumber || "",
+              department: tender.department || "",
+              tenderType: tender.tenderType || "",
+              province: tender.province || "",
+              datePublished: datePublished,
+              closingDate: closingDate,
+              placeServicesRequired: tender.placeServicesRequired || "",
+              specialConditions: tender.specialConditions || "",
+              successfulBidderName: tender.successfulBidderName || "",
+              successfulBidderAmount: tender.successfulBidderAmount || "",
+            };
+          })
+          .filter((tender) => tender !== null);
+
+        if (formattedTenders.length === 0) {
+          console.log("No valid tenders to insert in this batch");
+          return;
         }
 
-        const advertisedDate =
-          parseAdvertisedDate(tender.advertised) || new Date();
-        const awardedDate = parseAdvertisedDate(tender.awarded) || new Date();
-        const datePublished = parseDatePublished(tender.datePublished);
-        const closingDate = parseClosingDate(tender.closingDate);
+        // Save batch to database
+        console.log(
+          `Inserting batch of ${formattedTenders.length} tenders into database...`
+        );
+        const result = await AwardedTenderModel.insertMany(formattedTenders);
+        totalInserted += result.length;
+        console.log(`Successfully inserted ${totalInserted} tenders so far`);
+      },
+    });
 
-        return {
-          category: tender.category || "",
-          description: tender.description || "",
-          advertised: advertisedDate,
-          awarded: awardedDate,
-          tenderNumber: tender.tenderNumber || "",
-          department: tender.department || "",
-          tenderType: tender.tenderType || "",
-          province: tender.province || "",
-          datePublished: datePublished,
-          closingDate: closingDate,
-          placeServicesRequired: tender.placeServicesRequired || "",
-          specialConditions: tender.specialConditions || "",
-          successfulBidderName: tender.successfulBidderName || "",
-          successfulBidderAmount: tender.successfulBidderAmount || "",
-        };
-      })
-      .filter((tender) => tender !== null); // Remove any null entries
-
-    if (formattedTenders.length === 0) {
-      console.log("No valid tenders to insert after formatting");
-      return;
-    }
-
-    // Save to database
-    console.log(
-      `Inserting ${formattedTenders.length} tenders into database...`
-    );
-    const result = await AwardedTenderModel.insertMany(formattedTenders);
-    console.log(`Successfully inserted ${result.length} tenders`);
+    console.log(`Completed scraping. Total tenders inserted: ${totalInserted}`);
   } catch (error) {
     console.error("Error seeding awarded tenders database:", error);
     process.exit(1);

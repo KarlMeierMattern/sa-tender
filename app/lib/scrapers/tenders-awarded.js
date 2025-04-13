@@ -9,7 +9,7 @@ const AWARDED_TENDERS_URL =
   "https://www.etenders.gov.za/Home/opportunities?id=2#";
 
 export async function scrapeAwardedTenders(options = {}) {
-  const { maxPages = 1 } = options; // Default to 1 page if not specified
+  const { maxPages = 1, onBatch } = options; // Add onBatch callback
   console.log("Starting scraper...");
   const browser = await puppeteer.launch({
     headless: true,
@@ -30,6 +30,7 @@ export async function scrapeAwardedTenders(options = {}) {
     let totalCount = 0;
     let hasMorePages = true;
     let pagesProcessed = 0;
+    let batchCount = 0;
 
     while (hasMorePages && pagesProcessed < maxPages) {
       console.log(`Processing page ${currentPage}...`);
@@ -65,6 +66,7 @@ export async function scrapeAwardedTenders(options = {}) {
       for (let index = 0; index < tenders.length; index++) {
         try {
           totalCount++;
+          batchCount++;
           console.log(
             `Scraping awarded tender ${totalCount} (Page ${currentPage}, Item ${
               index + 1
@@ -206,6 +208,13 @@ export async function scrapeAwardedTenders(options = {}) {
           };
           allAwardedTenders.push(tender);
 
+          // Process batch if we've reached 1000 tenders
+          if (batchCount >= 1000 && onBatch) {
+            await onBatch(allAwardedTenders);
+            allAwardedTenders.length = 0; // Clear the array
+            batchCount = 0;
+          }
+
           // Click again to close details
           await page.evaluate((index) => {
             const buttonCell = document
@@ -238,6 +247,11 @@ export async function scrapeAwardedTenders(options = {}) {
       } else {
         hasMorePages = false;
       }
+    }
+
+    // Process any remaining tenders
+    if (allAwardedTenders.length > 0 && onBatch) {
+      await onBatch(allAwardedTenders);
     }
 
     return allAwardedTenders;

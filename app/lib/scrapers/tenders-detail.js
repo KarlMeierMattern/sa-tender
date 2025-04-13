@@ -1,10 +1,5 @@
 import puppeteer from "puppeteer";
 import { ETENDERS_URL } from "../utils/constants.js";
-import {
-  parseAdvertisedDate,
-  parseDatePublished,
-  parseClosingDate,
-} from "../utils/dateParsers.js";
 
 export async function scrapeTendersDetail(options = {}) {
   // Default to starting from page 1
@@ -145,14 +140,14 @@ export async function scrapeTendersDetail(options = {}) {
             const tender = {
               category: tenders[index].category || "",
               description: tenders[index].description || "",
-              advertised: parseAdvertisedDate(tenders[index].advertised),
+              advertised: tenders[index].advertised,
               closing: tenders[index].closing || "",
               tenderNumber: tenderDetails.tendernumber || "",
               department: tenderDetails.department || "",
               tenderType: tenderDetails.tendertype || "",
               province: tenderDetails.province || "",
-              datePublished: parseDatePublished(tenderDetails.datepublished),
-              closingDate: parseClosingDate(tenderDetails.closingdate),
+              datePublished: tenderDetails.datepublished,
+              closingDate: tenderDetails.closingdate,
               placeServicesRequired: tenderDetails.placeServicesRequired || "",
             };
 
