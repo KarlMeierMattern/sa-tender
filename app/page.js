@@ -1,7 +1,12 @@
 import { unstable_noStore as noStore } from "next/cache";
 import { headers } from "next/headers";
 import TenderLayout from "./components/TenderLayout";
-import { fetchAdvertisedTenders, fetchAwardedTenders } from "./lib/db.js";
+import {
+  fetchAdvertisedTenders,
+  fetchAwardedTenders,
+  fetchAllAdvertisedTendersForCharts,
+  fetchAllAwardedTendersForCharts,
+} from "./lib/db.js";
 
 export default async function TendersPage({ searchParams }) {
   const page = parseInt(searchParams.page) || 1;
@@ -17,11 +22,14 @@ export default async function TendersPage({ searchParams }) {
     console.log("Cache bypassed due to headers");
   }
 
-  // Fetch both tender types with pagination
-  const [advertisedData, awardedData] = await Promise.all([
-    fetchAdvertisedTenders(page, limit),
-    fetchAwardedTenders(page, limit),
-  ]);
+  // Fetch both paginated and complete data
+  const [advertisedData, awardedData, allAdvertisedTenders, allAwardedTenders] =
+    await Promise.all([
+      fetchAdvertisedTenders(page, limit),
+      fetchAwardedTenders(page, limit),
+      fetchAllAdvertisedTendersForCharts(),
+      fetchAllAwardedTendersForCharts(),
+    ]);
 
   return (
     <div className="p-4">
@@ -32,8 +40,9 @@ export default async function TendersPage({ searchParams }) {
           awardedTenders={awardedData.tenders}
           advertisedPagination={advertisedData.pagination}
           awardedPagination={awardedData.pagination}
-          advertisedAllTenders={advertisedData.allTenders}
-          awardedAllTenders={awardedData.allTenders}
+          metrics={advertisedData.metrics}
+          allAdvertisedTenders={allAdvertisedTenders}
+          allAwardedTenders={allAwardedTenders}
         />
       </div>
     </div>

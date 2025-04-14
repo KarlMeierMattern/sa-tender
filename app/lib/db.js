@@ -234,31 +234,50 @@ export async function fetchAdvertisedTenders(
 ) {
   try {
     await connectDB();
-
     const query = buildAdvertisedTenderQuery(filters);
+    const today = new Date();
+    const sevenDaysFromNow = new Date(today);
+    sevenDaysFromNow.setDate(today.getDate() + 7);
+    const sevenDaysAgo = new Date(today);
+    sevenDaysAgo.setDate(today.getDate() - 7);
 
-    // Get total count and full dataset for filtering
-    const [total, allTenders] = await Promise.all([
-      TenderModel.countDocuments(query),
-      TenderModel.find(query).lean(),
-    ]);
-
-    // Get paginated data
-    const paginatedTenders = await TenderModel.find(query)
-      .lean()
-      .sort({ advertised: -1 })
-      .skip((page - 1) * limit)
-      .limit(limit);
+    // Get all counts in parallel
+    const [total, closingSoonCount, recentlyAddedCount, paginatedTenders] =
+      await Promise.all([
+        TenderModel.countDocuments(query),
+        TenderModel.countDocuments({
+          ...query,
+          closingDate: {
+            $gte: today,
+            $lte: sevenDaysFromNow,
+          },
+        }),
+        TenderModel.countDocuments({
+          ...query,
+          advertised: {
+            $gte: sevenDaysAgo,
+            $lte: today,
+          },
+        }),
+        TenderModel.find(query)
+          .lean()
+          .sort({ advertised: -1 })
+          .skip((page - 1) * limit)
+          .limit(limit),
+      ]);
 
     return {
-      tenders: paginatedTenders.map(serializeTender), // Serialize paginated data
+      tenders: paginatedTenders.map(serializeTender),
       pagination: {
         total,
         pages: Math.ceil(total / limit),
         currentPage: page,
         perPage: limit,
       },
-      allTenders: allTenders.map(serializeTender), // Serialize all tenders
+      metrics: {
+        closingSoon: closingSoonCount,
+        recentlyAdded: recentlyAddedCount,
+      },
     };
   } catch (error) {
     console.error("Error fetching advertised tenders:", error);
@@ -269,16 +288,12 @@ export async function fetchAdvertisedTenders(
 export async function fetchAwardedTenders(page = 1, limit = 10, filters = {}) {
   try {
     await connectDB();
-
     const query = buildAwardedTenderQuery(filters);
 
-    // Get total count and full dataset for filtering
-    const [total, allTenders] = await Promise.all([
-      AwardedTenderModel.countDocuments(query),
-      AwardedTenderModel.find(query).lean(),
-    ]);
+    // Only get the count, not all tenders
+    const total = await AwardedTenderModel.countDocuments(query);
 
-    // Get paginated data
+    // Get only paginated data
     const paginatedTenders = await AwardedTenderModel.find(query)
       .lean()
       .sort({ awarded: -1 })
@@ -286,17 +301,43 @@ export async function fetchAwardedTenders(page = 1, limit = 10, filters = {}) {
       .limit(limit);
 
     return {
-      tenders: paginatedTenders.map(serializeTender), // Serialize paginated data
+      tenders: paginatedTenders.map(serializeTender),
       pagination: {
         total,
         pages: Math.ceil(total / limit),
         currentPage: page,
         perPage: limit,
       },
-      allTenders: allTenders.map(serializeTender), // Serialize all tenders
     };
   } catch (error) {
     console.error("Error fetching awarded tenders:", error);
+    throw error;
+  }
+}
+
+// Add this new function to fetch all tenders for charts
+export async function fetchAllAdvertisedTendersForCharts() {
+  try {
+    await connectDB();
+    const tenders = await TenderModel.find().lean().sort({ advertised: -1 });
+
+    return tenders.map(serializeTender);
+  } catch (error) {
+    console.error("Error fetching all advertised tenders for charts:", error);
+    throw error;
+  }
+}
+
+export async function fetchAllAwardedTendersForCharts() {
+  try {
+    await connectDB();
+    const tenders = await AwardedTenderModel.find()
+      .lean()
+      .sort({ awarded: -1 });
+
+    return tenders.map(serializeTender);
+  } catch (error) {
+    console.error("Error fetching all awarded tenders for charts:", error);
     throw error;
   }
 }
