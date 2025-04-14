@@ -1,7 +1,6 @@
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import Providers from "./providers";
-import { init } from "./lib/init.js";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -19,8 +18,6 @@ export const metadata = {
 };
 
 export default async function RootLayout({ children }) {
-  await init(); // Cache is warmed before any user requests hit your pages + all pages benefit from the warmed cache since they share the same layout
-
   return (
     <html lang="en">
       <body
