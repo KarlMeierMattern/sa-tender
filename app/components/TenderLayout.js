@@ -19,7 +19,14 @@ import LowestAwardTimingChart from "./visualizations/awarded/LowestAwardTimingCh
 // Lazy load the table component
 const TenderTable = React.lazy(() => import("./TenderTable"));
 
-export default function TenderLayout({ initialTenders, awardedTenders }) {
+export default function TenderLayout({
+  initialTenders,
+  awardedTenders,
+  advertisedPagination,
+  awardedPagination,
+  advertisedAllTenders,
+  awardedAllTenders,
+}) {
   const [isPending, startTransition] = React.useTransition();
   const [selectedYear, setSelectedYear] = React.useState("all");
 
@@ -40,9 +47,9 @@ export default function TenderLayout({ initialTenders, awardedTenders }) {
     );
   }, [awardedTenders, selectedYear]);
 
-  // Calculate statistics for advertised tenders
+  // Update statistics calculations to use full dataset
   const today = new Date();
-  const closingSoon = initialTenders.filter((tender) => {
+  const closingSoon = advertisedAllTenders.filter((tender) => {
     if (!tender.closingDate) return false;
     const daysUntilClosing = differenceInDays(
       new Date(tender.closingDate),
@@ -51,7 +58,7 @@ export default function TenderLayout({ initialTenders, awardedTenders }) {
     return daysUntilClosing >= 0 && daysUntilClosing <= 7;
   }).length;
 
-  const recentlyAdded = initialTenders.filter((tender) => {
+  const recentlyAdded = advertisedAllTenders.filter((tender) => {
     if (!tender.advertised) return false;
     const daysFromAdvertised = differenceInDays(
       today,
@@ -86,7 +93,9 @@ export default function TenderLayout({ initialTenders, awardedTenders }) {
                 <CardTitle>Total Tenders Advertised</CardTitle>
               </CardHeader>
               <CardContent>
-                <p className="text-3xl font-bold">{initialTenders.length}</p>
+                <p className="text-3xl font-bold">
+                  {advertisedAllTenders.length}
+                </p>
               </CardContent>
             </Card>
             <Card>
@@ -125,31 +134,32 @@ export default function TenderLayout({ initialTenders, awardedTenders }) {
               <div className="mt-8 bg-gray-50 rounded-3xl p-8">
                 <div className="grid grid-cols-2 gap-8">
                   <div className="bg-white rounded-xl p-6 shadow-sm">
-                    <ProvinceBarChart tenders={initialTenders} />
+                    <ProvinceBarChart tenders={advertisedAllTenders} />
                   </div>
                   <div className=" bg-white rounded-xl p-6 shadow-sm">
-                    <ProvinceMap tenders={initialTenders} />
+                    <ProvinceMap tenders={advertisedAllTenders} />
                   </div>
                   <div className="bg-white rounded-xl p-6 shadow-sm">
-                    <DepartmentBarChart tenders={initialTenders} />
+                    <DepartmentBarChart tenders={advertisedAllTenders} />
                   </div>
                   <div className="bg-white rounded-xl p-6 shadow-sm">
-                    <CategoryPieChart tenders={initialTenders} />
+                    <CategoryPieChart tenders={advertisedAllTenders} />
                   </div>
                   <div className="bg-white rounded-xl p-6 shadow-sm">
-                    <TenderTypeDonut tenders={initialTenders} />
+                    <TenderTypeDonut tenders={advertisedAllTenders} />
                   </div>
                 </div>
               </div>
             </TabsContent>
             <TabsContent value="table">
-              {isPending ? (
-                <TableSkeleton />
-              ) : (
-                <Suspense fallback={<TableSkeleton />}>
-                  <TenderTable initialTenders={initialTenders} />
-                </Suspense>
-              )}
+              <Suspense fallback={<TableSkeleton />}>
+                <TenderTable
+                  initialTenders={initialTenders}
+                  allTenders={advertisedAllTenders}
+                  pagination={advertisedPagination}
+                  isAwarded={false}
+                />
+              </Suspense>
             </TabsContent>
           </Tabs>
         </TabsContent>
@@ -178,9 +188,7 @@ export default function TenderLayout({ initialTenders, awardedTenders }) {
                 <CardTitle>Total Tenders Awarded</CardTitle>
               </CardHeader>
               <CardContent>
-                <p className="text-3xl font-bold">
-                  {filteredAwardedTenders.length}
-                </p>
+                <p className="text-3xl font-bold">{awardedAllTenders.length}</p>
               </CardContent>
             </Card>
             <Card>
@@ -190,7 +198,7 @@ export default function TenderLayout({ initialTenders, awardedTenders }) {
               <CardContent>
                 <p className="text-3xl font-bold">
                   R{" "}
-                  {filteredAwardedTenders
+                  {awardedAllTenders
                     .reduce(
                       (sum, tender) =>
                         sum + (parseFloat(tender.successfulBidderAmount) || 0),
@@ -208,11 +216,11 @@ export default function TenderLayout({ initialTenders, awardedTenders }) {
                 <p className="text-3xl font-bold">
                   R{" "}
                   {(
-                    filteredAwardedTenders.reduce(
+                    awardedAllTenders.reduce(
                       (sum, tender) =>
                         sum + (parseFloat(tender.successfulBidderAmount) || 0),
                       0
-                    ) / (filteredAwardedTenders.length || 1)
+                    ) / (awardedAllTenders.length || 1)
                   ).toLocaleString()}
                 </p>
               </CardContent>
@@ -231,40 +239,35 @@ export default function TenderLayout({ initialTenders, awardedTenders }) {
               <div className="mt-8 bg-gray-50 rounded-3xl p-8">
                 <div className="grid grid-cols-2 gap-8">
                   <div className="bg-white rounded-xl p-6 shadow-sm">
-                    <DepartmentValueChart tenders={filteredAwardedTenders} />
+                    <DepartmentValueChart tenders={awardedAllTenders} />
                   </div>
                   <div className=" bg-white rounded-xl p-6 shadow-sm">
-                    <ProvinceMap
-                      tenders={filteredAwardedTenders}
-                      isAwarded={true}
-                    />
+                    <ProvinceMap tenders={awardedAllTenders} isAwarded={true} />
                   </div>
                   <div className="bg-white rounded-xl p-6 shadow-sm">
-                    <ValueDistributionChart tenders={filteredAwardedTenders} />
+                    <ValueDistributionChart tenders={awardedAllTenders} />
                   </div>
                   <div className="bg-white rounded-xl p-6 shadow-sm">
-                    <TopSuppliersChart tenders={filteredAwardedTenders} />
+                    <TopSuppliersChart tenders={awardedAllTenders} />
                   </div>
                   <div className="bg-white rounded-xl p-6 shadow-sm">
-                    <AwardTimingChart tenders={filteredAwardedTenders} />
+                    <AwardTimingChart tenders={awardedAllTenders} />
                   </div>
                   <div className="bg-white rounded-xl p-6 shadow-sm">
-                    <LowestAwardTimingChart tenders={filteredAwardedTenders} />
+                    <LowestAwardTimingChart tenders={awardedAllTenders} />
                   </div>
                 </div>
               </div>
             </TabsContent>
             <TabsContent value="table">
-              {isPending ? (
-                <TableSkeleton />
-              ) : (
-                <Suspense fallback={<TableSkeleton />}>
-                  <TenderTable
-                    initialTenders={filteredAwardedTenders}
-                    isAwarded={true}
-                  />
-                </Suspense>
-              )}
+              <Suspense fallback={<TableSkeleton />}>
+                <TenderTable
+                  initialTenders={awardedTenders}
+                  allTenders={awardedAllTenders}
+                  pagination={awardedPagination}
+                  isAwarded={true}
+                />
+              </Suspense>
             </TabsContent>
           </Tabs>
         </TabsContent>

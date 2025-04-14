@@ -48,84 +48,253 @@ async function connectDB() {
 
 const ITEMS_PER_CHUNK = 100; // Adjust based on your average item size
 
-export async function fetchAdvertisedTenders() {
-  const CACHE_KEY_PREFIX = "advertised_tenders";
+// Separate query builders for advertised and awarded tenders
+function buildAdvertisedTenderQuery(filters = {}) {
+  const query = {};
 
+  // Fields from TenderModel
+  if (filters.category?.length) {
+    query.category = { $in: filters.category };
+  }
+  if (filters.department?.length) {
+    query.department = { $in: filters.department };
+  }
+  if (filters.province?.length) {
+    query.province = { $in: filters.province };
+  }
+  if (filters.description) {
+    query.description = { $regex: new RegExp(filters.description, "i") };
+  }
+  if (filters.tenderNumber) {
+    query.tenderNumber = { $regex: new RegExp(filters.tenderNumber, "i") };
+  }
+  if (filters.tenderType) {
+    query.tenderType = { $regex: new RegExp(filters.tenderType, "i") };
+  }
+  if (filters.placeServicesRequired) {
+    query.placeServicesRequired = {
+      $regex: new RegExp(filters.placeServicesRequired, "i"),
+    };
+  }
+  // Date fields
+  if (filters.advertised) {
+    query.advertised = {
+      $gte: new Date(filters.advertised),
+      $lt: new Date(
+        new Date(filters.advertised).setDate(
+          new Date(filters.advertised).getDate() + 1
+        )
+      ),
+    };
+  }
+  if (filters.closingDate) {
+    query.closingDate = {
+      $gte: new Date(filters.closingDate),
+      $lt: new Date(
+        new Date(filters.closingDate).setDate(
+          new Date(filters.closingDate).getDate() + 1
+        )
+      ),
+    };
+  }
+  if (filters.datePublished) {
+    query.datePublished = {
+      $gte: new Date(filters.datePublished),
+      $lt: new Date(
+        new Date(filters.datePublished).setDate(
+          new Date(filters.datePublished).getDate() + 1
+        )
+      ),
+    };
+  }
+  // String field
+  if (filters.closing) {
+    query.closing = { $regex: new RegExp(filters.closing, "i") };
+  }
+
+  return query;
+}
+
+function buildAwardedTenderQuery(filters = {}) {
+  const query = {};
+
+  // Fields from AwardedTenderModel
+  if (filters.category?.length) {
+    query.category = { $in: filters.category };
+  }
+  if (filters.department?.length) {
+    query.department = { $in: filters.department };
+  }
+  if (filters.province?.length) {
+    query.province = { $in: filters.province };
+  }
+  if (filters.description) {
+    query.description = { $regex: new RegExp(filters.description, "i") };
+  }
+  if (filters.tenderNumber) {
+    query.tenderNumber = { $regex: new RegExp(filters.tenderNumber, "i") };
+  }
+  if (filters.tenderType) {
+    query.tenderType = { $regex: new RegExp(filters.tenderType, "i") };
+  }
+  if (filters.placeServicesRequired) {
+    query.placeServicesRequired = {
+      $regex: new RegExp(filters.placeServicesRequired, "i"),
+    };
+  }
+  // Additional fields specific to awarded tenders
+  if (filters.successfulBidderName) {
+    query.successfulBidderName = {
+      $regex: new RegExp(filters.successfulBidderName, "i"),
+    };
+  }
+  if (filters.successfulBidderAmount) {
+    query.successfulBidderAmount = filters.successfulBidderAmount;
+  }
+  if (filters.specialConditions) {
+    query.specialConditions = {
+      $regex: new RegExp(filters.specialConditions, "i"),
+    };
+  }
+  // Date fields
+  if (filters.advertised) {
+    query.advertised = {
+      $gte: new Date(filters.advertised),
+      $lt: new Date(
+        new Date(filters.advertised).setDate(
+          new Date(filters.advertised).getDate() + 1
+        )
+      ),
+    };
+  }
+  if (filters.awarded) {
+    query.awarded = {
+      $gte: new Date(filters.awarded),
+      $lt: new Date(
+        new Date(filters.awarded).setDate(
+          new Date(filters.awarded).getDate() + 1
+        )
+      ),
+    };
+  }
+  if (filters.datePublished) {
+    query.datePublished = {
+      $gte: new Date(filters.datePublished),
+      $lt: new Date(
+        new Date(filters.datePublished).setDate(
+          new Date(filters.datePublished).getDate() + 1
+        )
+      ),
+    };
+  }
+  if (filters.closingDate) {
+    query.closingDate = {
+      $gte: new Date(filters.closingDate),
+      $lt: new Date(
+        new Date(filters.closingDate).setDate(
+          new Date(filters.closingDate).getDate() + 1
+        )
+      ),
+    };
+  }
+
+  return query;
+}
+
+// Add this helper function to clean the MongoDB documents
+function serializeTender(tender) {
+  return {
+    id: tender._id.toString(), // Convert ObjectId to string
+    category: tender.category || "",
+    description: tender.description || "",
+    advertised: tender.advertised ? tender.advertised.toISOString() : null,
+    closing: tender.closing || "",
+    datePublished: tender.datePublished
+      ? tender.datePublished.toISOString()
+      : null,
+    closingDate: tender.closingDate ? tender.closingDate.toISOString() : null,
+    tenderNumber: tender.tenderNumber || "",
+    department: tender.department || "",
+    tenderType: tender.tenderType || "",
+    province: tender.province || "",
+    placeServicesRequired: tender.placeServicesRequired || "",
+    // Add for awarded tenders
+    awarded: tender.awarded ? tender.awarded.toISOString() : null,
+    successfulBidderName: tender.successfulBidderName || "",
+    successfulBidderAmount: tender.successfulBidderAmount || 0,
+    specialConditions: tender.specialConditions || "",
+  };
+}
+
+// Update the fetch functions to use the appropriate query builder
+export async function fetchAdvertisedTenders(
+  page = 1,
+  limit = 10,
+  filters = {}
+) {
   try {
-    // Try to get total count from cache
-    const totalCountKey = `${CACHE_KEY_PREFIX}_total`;
-    const cachedTotal = await cache.get(totalCountKey);
-
-    if (cachedTotal) {
-      // Get all chunks and combine
-      const chunks = [];
-      for (let i = 0; i < Math.ceil(cachedTotal / ITEMS_PER_CHUNK); i++) {
-        const chunkData = await cache.get(`${CACHE_KEY_PREFIX}_${i}`);
-        if (chunkData) chunks.push(...chunkData);
-      }
-
-      if (chunks.length === cachedTotal) {
-        console.log("Cache hit: Advertised tenders");
-        return chunks;
-      }
-    }
-
-    // If not in cache or incomplete, fetch from DB
     await connectDB();
-    console.log("Fetching advertised tenders...");
-    const tenders = await TenderModel.find({}).lean().exec(); // lean() tells Mongoose not to create full model instances, improving memory and speed.
-    console.log(`Found ${tenders.length} advertised tenders`);
 
-    // Cache in chunks
-    await cache.set(totalCountKey, tenders.length);
-    for (let i = 0; i < tenders.length; i += ITEMS_PER_CHUNK) {
-      const chunk = tenders.slice(i, i + ITEMS_PER_CHUNK);
-      await cache.set(`${CACHE_KEY_PREFIX}_${i / ITEMS_PER_CHUNK}`, chunk);
-    }
+    const query = buildAdvertisedTenderQuery(filters);
 
-    return tenders;
+    // Get total count and full dataset for filtering
+    const [total, allTenders] = await Promise.all([
+      TenderModel.countDocuments(query),
+      TenderModel.find(query).lean(),
+    ]);
+
+    // Get paginated data
+    const paginatedTenders = await TenderModel.find(query)
+      .lean()
+      .sort({ advertised: -1 })
+      .skip((page - 1) * limit)
+      .limit(limit);
+
+    return {
+      tenders: paginatedTenders.map(serializeTender), // Serialize paginated data
+      pagination: {
+        total,
+        pages: Math.ceil(total / limit),
+        currentPage: page,
+        perPage: limit,
+      },
+      allTenders: allTenders.map(serializeTender), // Serialize all tenders
+    };
   } catch (error) {
     console.error("Error fetching advertised tenders:", error);
     throw error;
   }
 }
 
-export async function fetchAwardedTenders() {
-  const CACHE_KEY_PREFIX = "awarded_tenders";
-
+export async function fetchAwardedTenders(page = 1, limit = 10, filters = {}) {
   try {
-    // Try to get total count from cache
-    const totalCountKey = `${CACHE_KEY_PREFIX}_total`;
-    const cachedTotal = await cache.get(totalCountKey);
-
-    if (cachedTotal) {
-      // Get all chunks and combine
-      const chunks = [];
-      for (let i = 0; i < Math.ceil(cachedTotal / ITEMS_PER_CHUNK); i++) {
-        const chunkData = await cache.get(`${CACHE_KEY_PREFIX}_${i}`);
-        if (chunkData) chunks.push(...chunkData);
-      }
-
-      if (chunks.length === cachedTotal) {
-        console.log("Cache hit: Awarded tenders");
-        return chunks;
-      }
-    }
-
-    // If not in cache or incomplete, fetch from DB
     await connectDB();
-    console.log("Fetching awarded tenders...");
-    const tenders = await AwardedTenderModel.find({}).lean().exec();
-    console.log(`Found ${tenders.length} awarded tenders`);
 
-    // Cache in chunks
-    await cache.set(totalCountKey, tenders.length);
-    for (let i = 0; i < tenders.length; i += ITEMS_PER_CHUNK) {
-      const chunk = tenders.slice(i, i + ITEMS_PER_CHUNK);
-      await cache.set(`${CACHE_KEY_PREFIX}_${i / ITEMS_PER_CHUNK}`, chunk);
-    }
+    const query = buildAwardedTenderQuery(filters);
 
-    return tenders;
+    // Get total count and full dataset for filtering
+    const [total, allTenders] = await Promise.all([
+      AwardedTenderModel.countDocuments(query),
+      AwardedTenderModel.find(query).lean(),
+    ]);
+
+    // Get paginated data
+    const paginatedTenders = await AwardedTenderModel.find(query)
+      .lean()
+      .sort({ awarded: -1 })
+      .skip((page - 1) * limit)
+      .limit(limit);
+
+    return {
+      tenders: paginatedTenders.map(serializeTender), // Serialize paginated data
+      pagination: {
+        total,
+        pages: Math.ceil(total / limit),
+        currentPage: page,
+        perPage: limit,
+      },
+      allTenders: allTenders.map(serializeTender), // Serialize all tenders
+    };
   } catch (error) {
     console.error("Error fetching awarded tenders:", error);
     throw error;
