@@ -21,26 +21,63 @@ import ValueDistributionChart from "./visualizations/awarded/ValueDistributionCh
 import TopSuppliersChart from "./visualizations/awarded/TopSuppliersChart";
 import AwardTimingChart from "./visualizations/awarded/AwardTimingChart";
 import LowestAwardTimingChart from "./visualizations/awarded/LowestAwardTimingChart";
+import { useQuery } from "@tanstack/react-query";
+import { useSearchParams } from "next/navigation";
 
 // Lazy load the table component
 const TenderTable = React.lazy(() => import("./TenderTable"));
 
-export default function TenderLayout({
-  initialTenders,
-  awardedTenders,
-  advertisedPagination,
-  awardedPagination,
-  metrics,
-  allAdvertisedTenders,
-  allAwardedTenders,
-}) {
+export default function TenderLayout({ initialPage }) {
   const [isPending, startTransition] = React.useTransition();
   const [selectedYear, setSelectedYear] = React.useState("all");
+  const searchParams = useSearchParams();
+  const page = parseInt(searchParams.get("page")) || initialPage || 1;
+  const limit = 10;
 
-  // Get unique years from awarded tenders
+  const { data, isLoading } = useQuery({
+    queryKey: ["tenders"],
+    queryFn: async () => {
+      const [activeTendersRes, awardedTendersRes] = await Promise.all([
+        fetch("/api/tenders-detail"),
+        fetch("/api/tenders-detail-awarded"),
+      ]);
+
+      const [advertisedResponse, awardedResponse] = await Promise.all([
+        activeTendersRes.json(),
+        awardedTendersRes.json(),
+      ]);
+
+      // Extract data from the success/data structure
+      return {
+        advertisedData: advertisedResponse.success
+          ? advertisedResponse.data
+          : [],
+        awardedData: awardedResponse.success ? awardedResponse.data : [],
+      };
+    },
+    staleTime: 1000 * 60 * 5, // 5 minutes
+  });
+
+  // Safely access data with defaults
+  const advertisedTenders = data?.advertisedData || [];
+  const awardedTenders = data?.awardedData || [];
+
+  // Client-side pagination
+  const paginatedAdvertised = advertisedTenders.slice(
+    (page - 1) * limit,
+    page * limit
+  );
+  const paginatedAwarded = awardedTenders.slice(
+    (page - 1) * limit,
+    page * limit
+  );
+
+  // Update the years calculation
   const years = React.useMemo(() => {
     const uniqueYears = new Set(
-      awardedTenders.map((tender) => new Date(tender.awarded).getFullYear())
+      awardedTenders
+        .filter((tender) => tender.awarded)
+        .map((tender) => new Date(tender.awarded).getFullYear())
     );
     return ["all", ...Array.from(uniqueYears).sort((a, b) => b - a)];
   }, [awardedTenders]);
@@ -50,19 +87,33 @@ export default function TenderLayout({
     if (selectedYear === "all") return awardedTenders;
     return awardedTenders.filter(
       (tender) =>
+        tender.awarded &&
         new Date(tender.awarded).getFullYear() === parseInt(selectedYear)
     );
   }, [awardedTenders, selectedYear]);
 
-  // Update statistics calculations to use pagination totals
+  if (isLoading) {
+    return <TableSkeleton />;
+  }
+
+  // Calculate pagination
+  const advertisedPagination = {
+    total: advertisedTenders.length,
+    pages: Math.ceil(advertisedTenders.length / limit),
+    currentPage: page,
+    perPage: limit,
+  };
+
+  const awardedPagination = {
+    total: awardedTenders.length,
+    pages: Math.ceil(awardedTenders.length / limit),
+    currentPage: page,
+    perPage: limit,
+  };
+
+  // Calculate metrics
   const today = new Date();
-
-  // Use pagination totals for card statistics
-  const totalAdvertised = advertisedPagination.total;
-  const totalAwarded = awardedPagination.total;
-
-  // Calculate closingSoon and recentlyAdded from current page data
-  const closingSoon = initialTenders.filter((tender) => {
+  const closingSoon = advertisedTenders.filter((tender) => {
     if (!tender.closingDate) return false;
     const daysUntilClosing = differenceInDays(
       new Date(tender.closingDate),
@@ -71,7 +122,7 @@ export default function TenderLayout({
     return daysUntilClosing >= 0 && daysUntilClosing <= 7;
   }).length;
 
-  const recentlyAdded = initialTenders.filter((tender) => {
+  const recentlyAdded = advertisedTenders.filter((tender) => {
     if (!tender.advertised) return false;
     const daysFromAdvertised = differenceInDays(
       today,
@@ -80,22 +131,22 @@ export default function TenderLayout({
     return daysFromAdvertised >= 0 && daysFromAdvertised <= 7;
   }).length;
 
-  // Add these checks at the start of the component
-  if (!initialTenders || !awardedTenders) {
-    return <TableSkeleton />;
-  }
+  const metrics = {
+    closingSoon,
+    recentlyAdded,
+  };
 
   // Add console logs to help debug
   console.log("Advertised Tenders:", {
-    initial: initialTenders.length,
-    all: allAdvertisedTenders.length,
-    pagination: advertisedPagination,
+    initial: data?.advertisedData?.length || 0,
+    all: data?.advertisedData?.length || 0,
+    pagination: data?.advertisedData || [],
   });
 
   console.log("Awarded Tenders:", {
-    initial: awardedTenders.length,
-    all: allAwardedTenders.length,
-    pagination: awardedPagination,
+    initial: data?.awardedData?.length || 0,
+    all: data?.awardedData?.length || 0,
+    pagination: data?.awardedData || [],
   });
 
   // Add these helper functions at the top of your TenderLayout component
@@ -184,19 +235,19 @@ export default function TenderLayout({
               <div className="mt-8 bg-gray-50 rounded-3xl p-8">
                 <div className="grid grid-cols-2 gap-8">
                   <div className="bg-white rounded-xl p-6 shadow-sm">
-                    <ProvinceBarChart tenders={allAdvertisedTenders} />
+                    <ProvinceBarChart tenders={advertisedTenders} />
                   </div>
                   <div className=" bg-white rounded-xl p-6 shadow-sm">
-                    <ProvinceMap tenders={allAdvertisedTenders} />
+                    <ProvinceMap tenders={advertisedTenders} />
                   </div>
                   <div className="bg-white rounded-xl p-6 shadow-sm">
-                    <DepartmentBarChart tenders={allAdvertisedTenders} />
+                    <DepartmentBarChart tenders={advertisedTenders} />
                   </div>
                   <div className="bg-white rounded-xl p-6 shadow-sm">
-                    <CategoryPieChart tenders={allAdvertisedTenders} />
+                    <CategoryPieChart tenders={advertisedTenders} />
                   </div>
                   <div className="bg-white rounded-xl p-6 shadow-sm">
-                    <TenderTypeDonut tenders={allAdvertisedTenders} />
+                    <TenderTypeDonut tenders={advertisedTenders} />
                   </div>
                 </div>
               </div>
@@ -204,8 +255,8 @@ export default function TenderLayout({
             <TabsContent value="table">
               <Suspense fallback={<TableSkeleton />}>
                 <TenderTable
-                  initialTenders={initialTenders}
-                  allTenders={allAdvertisedTenders}
+                  initialTenders={paginatedAdvertised}
+                  allTenders={advertisedTenders}
                   pagination={advertisedPagination}
                   isAwarded={false}
                 />
@@ -238,7 +289,7 @@ export default function TenderLayout({
                 <CardTitle>Total Tenders Awarded</CardTitle>
               </CardHeader>
               <CardContent>
-                <p className="text-3xl font-bold">{totalAwarded}</p>
+                <p className="text-3xl font-bold">{awardedPagination.total}</p>
               </CardContent>
             </Card>
             <Card>
@@ -247,7 +298,7 @@ export default function TenderLayout({
               </CardHeader>
               <CardContent>
                 <p className="text-3xl font-bold">
-                  R {calculateTotalValue(allAwardedTenders).toLocaleString()}
+                  R {calculateTotalValue(awardedTenders).toLocaleString()}
                 </p>
               </CardContent>
             </Card>
@@ -257,7 +308,7 @@ export default function TenderLayout({
               </CardHeader>
               <CardContent>
                 <p className="text-3xl font-bold">
-                  R {calculateAverageValue(allAwardedTenders).toLocaleString()}
+                  R {calculateAverageValue(awardedTenders).toLocaleString()}
                 </p>
               </CardContent>
             </Card>
@@ -275,22 +326,25 @@ export default function TenderLayout({
               <div className="mt-8 bg-gray-50 rounded-3xl p-8">
                 <div className="grid grid-cols-2 gap-8">
                   <div className="bg-white rounded-xl p-6 shadow-sm">
-                    <DepartmentValueChart tenders={allAwardedTenders} />
+                    <DepartmentValueChart tenders={filteredAwardedTenders} />
                   </div>
                   <div className=" bg-white rounded-xl p-6 shadow-sm">
-                    <ProvinceMap tenders={allAwardedTenders} isAwarded={true} />
+                    <ProvinceMap
+                      tenders={filteredAwardedTenders}
+                      isAwarded={true}
+                    />
                   </div>
                   <div className="bg-white rounded-xl p-6 shadow-sm">
-                    <ValueDistributionChart tenders={allAwardedTenders} />
+                    <ValueDistributionChart tenders={filteredAwardedTenders} />
                   </div>
                   <div className="bg-white rounded-xl p-6 shadow-sm">
-                    <TopSuppliersChart tenders={allAwardedTenders} />
+                    <TopSuppliersChart tenders={filteredAwardedTenders} />
                   </div>
                   <div className="bg-white rounded-xl p-6 shadow-sm">
-                    <AwardTimingChart tenders={allAwardedTenders} />
+                    <AwardTimingChart tenders={filteredAwardedTenders} />
                   </div>
                   <div className="bg-white rounded-xl p-6 shadow-sm">
-                    <LowestAwardTimingChart tenders={allAwardedTenders} />
+                    <LowestAwardTimingChart tenders={filteredAwardedTenders} />
                   </div>
                 </div>
               </div>
@@ -298,8 +352,8 @@ export default function TenderLayout({
             <TabsContent value="table">
               <Suspense fallback={<TableSkeleton />}>
                 <TenderTable
-                  initialTenders={awardedTenders}
-                  allTenders={allAwardedTenders}
+                  initialTenders={paginatedAwarded}
+                  allTenders={awardedTenders}
                   pagination={awardedPagination}
                   isAwarded={true}
                 />
