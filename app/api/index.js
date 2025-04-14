@@ -17,46 +17,70 @@ async function connectDB() {
   }
 }
 
-export async function getTendersDetail() {
+export async function getTendersDetail(page = 1, limit = 10) {
   try {
-    console.log("Connecting to DB...");
     await connectDB();
-    console.log("Querying active tenders...");
-    const tenders = await TenderModel.find({});
-    return NextResponse.json({ success: true, data: tenders });
+    const skip = (page - 1) * limit;
+
+    const [tenders, total] = await Promise.all([
+      TenderModel.find({}).skip(skip).limit(limit),
+      TenderModel.countDocuments({}),
+    ]);
+
+    return NextResponse.json({
+      success: true,
+      data: tenders,
+      pagination: {
+        total,
+        pages: Math.ceil(total / limit),
+        currentPage: page,
+        perPage: limit,
+      },
+    });
   } catch (error) {
-    console.error("Error fetching tenders:", error);
     return NextResponse.json(
       { success: false, error: error.message },
-      { status: StatusCodes.INTERNAL_SERVER_ERROR }
+      { status: 500 }
     );
   }
 }
 
-export async function getAwardedTenders() {
+export async function getAwardedTenders(page = 1, limit = 10, year = "all") {
   try {
-    console.log("Connecting to DB...");
     await connectDB();
-    console.log("Querying awarded tenders...");
-    const tenders = await AwardedTenderModel.find({});
-    return NextResponse.json({ success: true, data: tenders });
-  } catch (error) {
-    console.error("Error fetching awarded tenders:", error);
-    return NextResponse.json(
-      { success: false, error: error.message },
-      { status: StatusCodes.INTERNAL_SERVER_ERROR }
-    );
-  }
-}
 
-export async function getTenders() {
-  try {
-    const tenders = await scrapeTenders();
-    return NextResponse.json({ success: true, data: tenders });
+    let query = {};
+    if (year && year !== "all") {
+      query.awarded = {
+        $gte: new Date(`${year}-01-01`),
+        $lt: new Date(`${parseInt(year) + 1}-01-01`),
+      };
+    }
+
+    const skip = (page - 1) * limit;
+    const [data, total] = await Promise.all([
+      AwardedTenderModel.find(query)
+        .sort({ awarded: -1 })
+        .skip(skip)
+        .limit(limit),
+      AwardedTenderModel.countDocuments(query),
+    ]);
+
+    return NextResponse.json({
+      success: true,
+      data,
+      pagination: {
+        total,
+        pages: Math.ceil(total / limit),
+        currentPage: page,
+        perPage: limit,
+      },
+    });
   } catch (error) {
+    console.error("Error in getAwardedTenders:", error);
     return NextResponse.json(
       { success: false, error: error.message },
-      { status: StatusCodes.INTERNAL_SERVER_ERROR }
+      { status: 500 }
     );
   }
 }

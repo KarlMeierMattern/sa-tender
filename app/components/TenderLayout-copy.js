@@ -26,30 +26,17 @@ import { useQuery } from "@tanstack/react-query";
 import { useRouter, useSearchParams } from "next/navigation";
 
 // Lazy load the table component
+// const TenderTable = React.lazy(() => import("./TenderTable"));
 const TenderTable = dynamic(() => import("./TenderTable"), { ssr: false });
 
 export default function TenderLayout({ initialPage }) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const page = parseInt(searchParams.get("page")) || initialPage || 1;
-  const currentView = searchParams.get("view") || "visualizations";
-  const currentTab = searchParams.get("tab") || "awarded";
+  const currentView = searchParams.get("view") || "visualizations"; // Get current view from URL
+  const currentTab = searchParams.get("tab") || "awarded"; // Get current tab from URL
   const [selectedYear, setSelectedYear] = useState("all");
   const [availableYears, setAvailableYears] = useState([]);
-  const [advertizedFilters, setAdvertizedFilters] = useState({});
-  const [awardedFilters, setAwardedFilters] = useState({});
-
-  // Function to build query string from filters
-  const buildFilterQuery = (filters) => {
-    if (!filters) return "";
-    const query = {
-      categories: filters.categories,
-      departments: filters.departments,
-      provinces: filters.provinces,
-      date: filters.date ? new Date(filters.date).toISOString() : undefined,
-    };
-    return encodeURIComponent(JSON.stringify(query));
-  };
 
   // Add function to update URL params without reload
   const updateUrlParams = (newParams) => {
@@ -85,17 +72,38 @@ export default function TenderLayout({ initialPage }) {
     fetchYears();
   }, []);
 
-  // Fetch all data at once
-  const { data: allAdvertised, isLoading: isLoadingAdvertised } = useQuery({
-    queryKey: ["advertised-tenders-all"],
-    queryFn: async () => {
-      const res = await fetch("/api/tenders-detail?limit=999999");
-      return res.json();
-    },
-    staleTime: 1000 * 60 * 5,
-  });
+  // Split into separate queries
+  const { data: paginatedAdvertised, isLoading: isLoadingPaginatedAdvertised } =
+    useQuery({
+      queryKey: ["advertised-tenders", page],
+      queryFn: async () => {
+        const res = await fetch(`/api/tenders-detail?page=${page}`);
+        return res.json();
+      },
+    });
 
-  const { data: allAwarded, isLoading: isLoadingAwarded } = useQuery({
+  const { data: paginatedAwarded, isLoading: isLoadingPaginatedAwarded } =
+    useQuery({
+      queryKey: ["awarded-tenders", page, selectedYear],
+      queryFn: async () => {
+        const res = await fetch(
+          `/api/tenders-detail-awarded?page=${page}&year=${selectedYear}`
+        );
+        return res.json();
+      },
+    });
+
+  const { data: chartAdvertised, isLoading: isLoadingChartAdvertised } =
+    useQuery({
+      queryKey: ["advertised-tenders-all"],
+      queryFn: async () => {
+        const res = await fetch("/api/tenders-detail?limit=999999");
+        return res.json();
+      },
+      staleTime: 1000 * 60 * 5, // 5 minutes
+    });
+
+  const { data: chartAwarded, isLoading: isLoadingChartAwarded } = useQuery({
     queryKey: ["awarded-tenders-all", selectedYear],
     queryFn: async () => {
       const res = await fetch(
@@ -103,14 +111,28 @@ export default function TenderLayout({ initialPage }) {
       );
       return res.json();
     },
-    staleTime: 1000 * 60 * 5,
+    staleTime: 1000 * 60 * 5, // 5 minutes
   });
 
-  const isLoading = isLoadingAdvertised || isLoadingAwarded;
+  // Combine data for components that expect the old structure
+  const paginatedData = {
+    advertised: paginatedAdvertised,
+    awarded: paginatedAwarded,
+  };
+
+  const chartData = {
+    advertised: chartAdvertised,
+    awarded: chartAwarded,
+  };
+
+  const isLoading =
+    isLoadingPaginatedAdvertised ||
+    isLoadingPaginatedAwarded ||
+    isLoadingChartAdvertised ||
+    isLoadingChartAwarded;
 
   if (isLoading) return <TableSkeleton />;
 
-  // Calculate metrics from full dataset
   const calculateTotalValue = (tenders) => {
     return tenders.reduce(
       (sum, tender) => sum + (parseFloat(tender.successfulBidderAmount) || 0),
@@ -161,7 +183,7 @@ export default function TenderLayout({ initialPage }) {
               </CardHeader>
               <CardContent>
                 <p className="text-3xl font-bold">
-                  {allAdvertised?.pagination?.total}
+                  {paginatedData?.advertised?.pagination?.total}
                 </p>
               </CardContent>
             </Card>
@@ -172,7 +194,7 @@ export default function TenderLayout({ initialPage }) {
               </CardHeader>
               <CardContent>
                 <p className="text-3xl font-bold">
-                  {calculateClosingSoon(allAdvertised?.data || [])}
+                  {calculateClosingSoon(chartData?.advertised?.data || [])}
                 </p>
               </CardContent>
             </Card>
@@ -185,11 +207,13 @@ export default function TenderLayout({ initialPage }) {
                 <p className="text-3xl font-bold">
                   {(() => {
                     console.log("Chart Data Structure in Card:", {
-                      hasData: !!allAdvertised?.data,
-                      dataLength: allAdvertised?.data?.length,
-                      firstItem: allAdvertised?.data?.[0],
+                      hasData: !!chartData?.advertised?.data,
+                      dataLength: chartData?.advertised?.data?.length,
+                      firstItem: chartData?.advertised?.data?.[0],
                     });
-                    return calculateRecentlyAdded(allAdvertised?.data || []);
+                    return calculateRecentlyAdded(
+                      chartData?.advertised?.data || []
+                    );
                   })()}
                 </p>
               </CardContent>
@@ -209,19 +233,27 @@ export default function TenderLayout({ initialPage }) {
               <div className="mt-8 bg-gray-50 rounded-3xl p-8">
                 <div className="grid grid-cols-2 gap-8">
                   <div className="bg-white rounded-xl p-6 shadow-sm">
-                    <ProvinceBarChart tenders={allAdvertised?.data || []} />
+                    <ProvinceBarChart
+                      tenders={chartData?.advertised?.data || []}
+                    />
                   </div>
                   <div className=" bg-white rounded-xl p-6 shadow-sm">
-                    <ProvinceMap tenders={allAdvertised?.data || []} />
+                    <ProvinceMap tenders={chartData?.advertised?.data || []} />
                   </div>
                   <div className="bg-white rounded-xl p-6 shadow-sm">
-                    <DepartmentBarChart tenders={allAdvertised?.data || []} />
+                    <DepartmentBarChart
+                      tenders={chartData?.advertised?.data || []}
+                    />
                   </div>
                   <div className="bg-white rounded-xl p-6 shadow-sm">
-                    <CategoryPieChart tenders={allAdvertised?.data || []} />
+                    <CategoryPieChart
+                      tenders={chartData?.advertised?.data || []}
+                    />
                   </div>
                   <div className="bg-white rounded-xl p-6 shadow-sm">
-                    <TenderTypeDonut tenders={allAdvertised?.data || []} />
+                    <TenderTypeDonut
+                      tenders={chartData?.advertised?.data || []}
+                    />
                   </div>
                 </div>
               </div>
@@ -230,8 +262,8 @@ export default function TenderLayout({ initialPage }) {
             <TabsContent value="table">
               <Suspense fallback={<TableSkeleton />}>
                 <TenderTable
-                  allTenders={allAdvertised?.data || []}
-                  currentPage={page}
+                  initialTenders={paginatedData?.advertised?.data || []}
+                  pagination={paginatedData?.advertised?.pagination}
                   isAwarded={false}
                 />
               </Suspense>
@@ -268,7 +300,7 @@ export default function TenderLayout({ initialPage }) {
               </CardHeader>
               <CardContent>
                 <p className="text-3xl font-bold">
-                  {allAwarded?.pagination?.total}
+                  {paginatedData?.awarded?.pagination?.total}
                 </p>
               </CardContent>
             </Card>
@@ -279,7 +311,9 @@ export default function TenderLayout({ initialPage }) {
               <CardContent>
                 <p className="text-3xl font-bold">
                   R{" "}
-                  {calculateTotalValue(allAwarded?.data || []).toLocaleString()}
+                  {calculateTotalValue(
+                    chartData?.awarded?.data || []
+                  ).toLocaleString()}
                 </p>
               </CardContent>
             </Card>
@@ -291,7 +325,7 @@ export default function TenderLayout({ initialPage }) {
                 <p className="text-3xl font-bold">
                   R{" "}
                   {calculateAverageValue(
-                    allAwarded?.data || []
+                    chartData?.awarded?.data || []
                   ).toLocaleString()}
                 </p>
               </CardContent>
@@ -311,25 +345,35 @@ export default function TenderLayout({ initialPage }) {
               <div className="mt-8 bg-gray-50 rounded-3xl p-8">
                 <div className="grid grid-cols-2 gap-8">
                   <div className="bg-white rounded-xl p-6 shadow-sm">
-                    <DepartmentValueChart tenders={allAwarded?.data || []} />
+                    <DepartmentValueChart
+                      tenders={chartData?.awarded?.data || []}
+                    />
                   </div>
                   <div className=" bg-white rounded-xl p-6 shadow-sm">
                     <ProvinceMap
-                      tenders={allAwarded?.data || []}
+                      tenders={chartData?.awarded?.data || []}
                       isAwarded={true}
                     />
                   </div>
                   <div className="bg-white rounded-xl p-6 shadow-sm">
-                    <ValueDistributionChart tenders={allAwarded?.data || []} />
+                    <ValueDistributionChart
+                      tenders={chartData?.awarded?.data || []}
+                    />
                   </div>
                   <div className="bg-white rounded-xl p-6 shadow-sm">
-                    <TopSuppliersChart tenders={allAwarded?.data || []} />
+                    <TopSuppliersChart
+                      tenders={chartData?.awarded?.data || []}
+                    />
                   </div>
                   <div className="bg-white rounded-xl p-6 shadow-sm">
-                    <AwardTimingChart tenders={allAwarded?.data || []} />
+                    <AwardTimingChart
+                      tenders={chartData?.awarded?.data || []}
+                    />
                   </div>
                   <div className="bg-white rounded-xl p-6 shadow-sm">
-                    <LowestAwardTimingChart tenders={allAwarded?.data || []} />
+                    <LowestAwardTimingChart
+                      tenders={chartData?.awarded?.data || []}
+                    />
                   </div>
                 </div>
               </div>
@@ -338,8 +382,8 @@ export default function TenderLayout({ initialPage }) {
             <TabsContent value="table">
               <Suspense fallback={<TableSkeleton />}>
                 <TenderTable
-                  allTenders={allAwarded?.data || []}
-                  currentPage={page}
+                  initialTenders={paginatedData?.awarded?.data || []}
+                  pagination={paginatedData?.awarded?.pagination}
                   isAwarded={true}
                 />
               </Suspense>

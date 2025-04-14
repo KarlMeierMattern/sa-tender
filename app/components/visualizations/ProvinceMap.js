@@ -10,9 +10,9 @@ const CustomTooltip = ({ province, value, isAwarded }) => (
   <div className="bg-white p-3 rounded-lg shadow-md border border-gray-200">
     <p className="font-medium text-gray-900">{province}</p>
     {isAwarded ? (
-      <p className="text-gray-600">R {value.toLocaleString()}</p>
+      <p className="text-gray-600">R {(value || 0).toLocaleString()}</p>
     ) : (
-      <p className="text-gray-600">{value} tenders</p>
+      <p className="text-gray-600">{value || 0} tenders</p>
     )}
   </div>
 );

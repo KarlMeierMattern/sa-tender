@@ -1,10 +1,8 @@
 "use client";
 
-import React, { useState, useMemo } from "react";
+import React from "react";
 import MultiSelect from "./ui/multi-select";
 import { Calendar } from "@/components/ui/calendar";
-import useMultiSelectFilters from "../hooks/useMultiSelectFilters";
-import useTenderFilters from "../stores/useTenderFilters";
 import {
   Table,
   TableCaption,
@@ -26,120 +24,78 @@ import { cn } from "@/lib/utils";
 import { useRouter, useSearchParams } from "next/navigation";
 import Pagination from "./Pagination";
 
-export default function TenderTable({
-  initialTenders,
-  allTenders, // Full dataset for filtering
-  pagination,
-  isAwarded = false,
-}) {
+export default function TenderTable({ allTenders, currentPage, isAwarded }) {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const [currentPage, setCurrentPage] = useState(pagination.currentPage);
+  const [selectedAdvertisedDate, setSelectedAdvertisedDate] = React.useState();
+  const [selectedSecondDate, setSelectedSecondDate] = React.useState();
+  const [selectedCategories, setSelectedCategories] = React.useState([]);
+  const [selectedDepartments, setSelectedDepartments] = React.useState([]);
+  const [selectedProvinces, setSelectedProvinces] = React.useState([]);
+  const ITEMS_PER_PAGE = 10;
 
-  // Your existing filter hooks
-  const {
-    filters: multiSelectFilters,
-    options,
-    handleFilterChange,
-  } = useMultiSelectFilters(allTenders); // Use full dataset for filters
+  // Get unique values for filters
+  const categories = [
+    ...new Set(allTenders.map((tender) => tender.category)),
+  ].filter(Boolean);
+  const departments = [
+    ...new Set(allTenders.map((tender) => tender.department)),
+  ].filter(Boolean);
+  const provinces = [
+    ...new Set(allTenders.map((tender) => tender.province)),
+  ].filter(Boolean);
 
-  const { filters: textFilters, setFilter } = useTenderFilters();
+  // Apply filters to all tenders
+  const filteredTenders = allTenders.filter((tender) => {
+    const matchesCategory =
+      selectedCategories.length === 0 ||
+      selectedCategories.includes(tender.category);
+    const matchesDepartment =
+      selectedDepartments.length === 0 ||
+      selectedDepartments.includes(tender.department);
+    const matchesProvince =
+      selectedProvinces.length === 0 ||
+      selectedProvinces.includes(tender.province);
 
-  // Apply filters to full dataset
-  const filteredTenders = useMemo(() => {
-    return allTenders.filter((tender) => {
-      // Apply multiselect filters
-      const multiSelectMatch = Object.entries(multiSelectFilters).every(
-        ([field, selected]) => {
-          // Date field handling
-          if (
-            field === "advertised" ||
-            field === "closingDate" ||
-            field === "awarded"
-          ) {
-            if (!selected) return true;
+    // First date filter always checks 'advertised' field
+    const matchesAdvertisedDate =
+      !selectedAdvertisedDate ||
+      format(new Date(tender.advertised), "yyyy-MM-dd") ===
+        format(selectedAdvertisedDate, "yyyy-MM-dd");
 
-            // Map the filter field names to tender field names
-            const tenderFieldMap = {
-              advertised: "advertised",
-              closingDate: "closingDate",
-              awarded: "awarded",
-            };
+    // Second date filter checks either 'closingDate' or 'awarded' based on isAwarded
+    const matchesSecondDate =
+      !selectedSecondDate ||
+      format(
+        new Date(isAwarded ? tender.awarded : tender.closingDate),
+        "yyyy-MM-dd"
+      ) === format(selectedSecondDate, "yyyy-MM-dd");
 
-            const tenderField = tenderFieldMap[field];
-            const tenderDate = tender[tenderField];
+    return (
+      matchesCategory &&
+      matchesDepartment &&
+      matchesProvince &&
+      matchesAdvertisedDate &&
+      matchesSecondDate
+    );
+  });
 
-            if (!tenderDate) return false;
+  // Calculate pagination
+  const totalItems = filteredTenders.length;
+  const totalPages = Math.ceil(totalItems / ITEMS_PER_PAGE);
+  const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+  const paginatedTenders = filteredTenders.slice(
+    startIndex,
+    startIndex + ITEMS_PER_PAGE
+  );
 
-            // Add debug logging
-            console.log("Date comparison:", {
-              field,
-              tenderField,
-              tenderDate,
-              selectedDate: selected,
-              tenderDateISO: new Date(tenderDate).toISOString().split("T")[0],
-              selectedDateISO: selected.toISOString().split("T")[0],
-            });
-
-            return (
-              new Date(tenderDate).toISOString().split("T")[0] ===
-              selected.toISOString().split("T")[0]
-            );
-          }
-
-          // Handle empty or undefined selections
-          if (!selected || (Array.isArray(selected) && selected.length === 0)) {
-            return true;
-          }
-
-          // Handle array of objects from MultiSelect
-          if (Array.isArray(selected)) {
-            const selectedValues = selected.map((item) =>
-              typeof item === "object" && item !== null ? item.value : item
-            );
-            return selectedValues.includes(tender[field]);
-          }
-
-          return selected === tender[field];
-        }
-      );
-
-      // Apply text filters
-      const textMatch = Object.entries(textFilters).every(([field, value]) => {
-        if (!value) return true;
-        return String(tender[field] || "")
-          .toLowerCase()
-          .includes(value.toLowerCase());
-      });
-
-      return multiSelectMatch && textMatch;
-    });
-  }, [allTenders, multiSelectFilters, textFilters]);
-
-  // Get current page data
-  const currentPageData = useMemo(() => {
-    const start = (currentPage - 1) * pagination.perPage;
-    return filteredTenders.slice(start, start + pagination.perPage);
-  }, [filteredTenders, currentPage, pagination.perPage]);
-
-  // Handle page change
   const handlePageChange = (newPage) => {
-    setCurrentPage(newPage);
-
-    // Create new URLSearchParams
     const params = new URLSearchParams(searchParams);
     params.set("page", newPage.toString());
-
-    // Update URL without full page reload
     router.push(`?${params.toString()}`, { scroll: false });
   };
 
-  const handleTextFilterChange = (e) => {
-    const { name, value } = e.target;
-    setFilter(name, value);
-  };
-
-  // Format date for display
+  // Format helpers
   const formatDate = (dateString) => {
     if (!dateString) return "";
     const date = new Date(dateString);
@@ -155,144 +111,112 @@ export default function TenderTable({
     }).format(amount);
   };
 
-  const advertizedColumns = [
-    { key: "category", label: "Category" },
-    { key: "department", label: "Department" },
-    { key: "province", label: "Province" },
-    { key: "description", label: "Description" },
-    { key: "closing", label: "Closing" },
-    { key: "advertised", label: "Advertised" },
-    { key: "tenderNumber", label: "Tender Number" },
-    { key: "closingDate", label: "Closing Date" },
-    { key: "tenderType", label: "Type" },
-    { key: "placeServicesRequired", label: "Location" },
-  ];
-
-  const awardedColumns = [
-    { key: "category", label: "Category" },
-    { key: "department", label: "Department" },
-    { key: "province", label: "Province" },
-    { key: "description", label: "Description" },
-    { key: "tenderNumber", label: "Tender Number" },
-    { key: "advertised", label: "Advertised" },
-    { key: "awarded", label: "Awarded" },
-    { key: "successfulBidderName", label: "Successful Bidder" },
-    { key: "successfulBidderAmount", label: "Award Amount" },
-  ];
-
-  const columns = isAwarded ? awardedColumns : advertizedColumns;
+  const columns = isAwarded
+    ? [
+        { key: "category", label: "Category" },
+        { key: "department", label: "Department" },
+        { key: "province", label: "Province" },
+        { key: "description", label: "Description" },
+        { key: "tenderNumber", label: "Tender Number" },
+        { key: "advertised", label: "Advertised" },
+        { key: "awarded", label: "Awarded" },
+        { key: "successfulBidderName", label: "Successful Bidder" },
+        { key: "successfulBidderAmount", label: "Award Amount" },
+      ]
+    : [
+        { key: "category", label: "Category" },
+        { key: "department", label: "Department" },
+        { key: "province", label: "Province" },
+        { key: "description", label: "Description" },
+        { key: "tenderNumber", label: "Tender Number" },
+        { key: "advertised", label: "Advertised" },
+        { key: "closingDate", label: "Closing Date" },
+        { key: "tenderType", label: "Type" },
+        { key: "placeServicesRequired", label: "Location" },
+      ];
 
   return (
     <>
-      <div className="flex flex-col gap-4 mb-4">
-        <div className="flex flex-row justify-center-safe gap-4">
-          <MultiSelect
-            label="Category"
-            options={options.category}
-            selected={multiSelectFilters.category}
-            onSelect={(selected) => handleFilterChange("category", selected)}
-            placeholder="Filter by category"
-          />
-          <MultiSelect
-            label="Department"
-            options={options.department}
-            selected={multiSelectFilters.department}
-            onSelect={(selected) => handleFilterChange("department", selected)}
-            placeholder="Filter by department"
-          />
-          <MultiSelect
-            label="Province"
-            options={options.province}
-            selected={multiSelectFilters.province}
-            onSelect={(selected) => handleFilterChange("province", selected)}
-            placeholder="Filter by province"
-          />
-        </div>
-        <div className="flex flex-row justify-center-safe gap-4">
-          <Popover>
-            <PopoverTrigger asChild>
-              <Button
-                variant={"outline"}
-                className={cn(
-                  "w-[240px] justify-start text-left font-normal",
-                  !multiSelectFilters.advertised && "text-muted-foreground"
-                )}
-              >
-                <CalendarIcon className="mr-2 h-4 w-4" />
-                {multiSelectFilters.advertised ? (
-                  format(multiSelectFilters.advertised, "PPP")
-                ) : (
-                  <span>Filter by advertised date</span>
-                )}
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-auto p-0" align="start">
-              <Calendar
-                mode="single"
-                selected={multiSelectFilters.advertised}
-                onSelect={(date) => handleFilterChange("advertised", date)}
-                initialFocus
-              />
-            </PopoverContent>
-          </Popover>
+      <div className="flex flex-wrap gap-4 mb-6">
+        <MultiSelect
+          label="Category"
+          options={categories}
+          selected={selectedCategories}
+          onSelect={setSelectedCategories}
+          placeholder="Select Category"
+        />
+        <MultiSelect
+          label="Department"
+          options={departments}
+          selected={selectedDepartments}
+          onSelect={setSelectedDepartments}
+          placeholder="Select Department"
+        />
+        <MultiSelect
+          label="Province"
+          options={provinces}
+          selected={selectedProvinces}
+          onSelect={setSelectedProvinces}
+          placeholder="Select Province"
+        />
 
-          <Popover>
-            <PopoverTrigger asChild>
-              <Button
-                variant={"outline"}
-                className={cn(
-                  "w-[240px] justify-start text-left font-normal",
-                  !multiSelectFilters[isAwarded ? "awarded" : "closingDate"] &&
-                    "text-muted-foreground"
-                )}
-              >
-                <CalendarIcon className="mr-2 h-4 w-4" />
-                {multiSelectFilters[isAwarded ? "awarded" : "closingDate"] ? (
-                  format(
-                    multiSelectFilters[isAwarded ? "awarded" : "closingDate"],
-                    "PPP"
-                  )
-                ) : (
-                  <span>
-                    Filter by {isAwarded ? "awarded" : "closing"} date
-                  </span>
-                )}
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-auto p-0" align="start">
-              <Calendar
-                mode="single"
-                selected={
-                  multiSelectFilters[isAwarded ? "awarded" : "closingDate"]
-                }
-                onSelect={(date) =>
-                  handleFilterChange(
-                    isAwarded ? "awarded" : "closingDate",
-                    date
-                  )
-                }
-                initialFocus
-              />
-            </PopoverContent>
-          </Popover>
-        </div>
-        <div className="flex flex-row justify-center-safe gap-4">
-          {["category", "department", "province", "description"].map(
-            (field) => (
-              <div key={field} className="flex items-center gap-2">
-                <p className="text-sm capitalize">Search {field}</p>
-                <input
-                  type="text"
-                  name={field}
-                  value={textFilters[field] ?? ""}
-                  onChange={handleTextFilterChange}
-                  className="w-32 h-6 text-sm border border-gray-300 rounded px-2"
-                  placeholder="Search..."
-                />
-              </div>
-            )
-          )}
-        </div>
+        <Popover>
+          <PopoverTrigger asChild>
+            <Button
+              variant={"outline"}
+              className={cn(
+                "w-[240px] justify-start text-left font-normal",
+                !selectedAdvertisedDate && "text-muted-foreground"
+              )}
+            >
+              <CalendarIcon className="mr-2 h-4 w-4" />
+              {selectedAdvertisedDate
+                ? format(selectedAdvertisedDate, "PPP")
+                : "Filter by Advertised Date"}
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent className="w-auto p-0" align="start">
+            <Calendar
+              mode="single"
+              selected={selectedAdvertisedDate}
+              onSelect={setSelectedAdvertisedDate}
+              initialFocus
+            />
+          </PopoverContent>
+        </Popover>
+
+        <Popover>
+          <PopoverTrigger asChild>
+            <Button
+              variant={"outline"}
+              className={cn(
+                "w-[240px] justify-start text-left font-normal",
+                !selectedSecondDate && "text-muted-foreground"
+              )}
+            >
+              <CalendarIcon className="mr-2 h-4 w-4" />
+              {selectedSecondDate
+                ? format(selectedSecondDate, "PPP")
+                : isAwarded
+                ? "Filter by Award Date"
+                : "Filter by Closing Date"}
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent className="w-auto p-0" align="start">
+            <Calendar
+              mode="single"
+              selected={selectedSecondDate}
+              onSelect={setSelectedSecondDate}
+              initialFocus
+            />
+          </PopoverContent>
+        </Popover>
+      </div>
+
+      <div className="text-sm text-muted-foreground mb-4">
+        Showing {startIndex + 1} to{" "}
+        {Math.min(startIndex + ITEMS_PER_PAGE, totalItems)} of {totalItems}{" "}
+        results
       </div>
 
       <Table className="table-fixed w-full">
@@ -310,8 +234,8 @@ export default function TenderTable({
           </TableRow>
         </TableHeader>
         <TableBody>
-          {currentPageData.map((tender, index) => (
-            <TableRow key={index}>
+          {paginatedTenders.map((tender, index) => (
+            <TableRow key={tender._id || index}>
               {columns.map((column) => (
                 <TableCell
                   key={column.key}
@@ -333,15 +257,8 @@ export default function TenderTable({
 
       <Pagination
         currentPage={currentPage}
-        totalPages={Math.ceil(filteredTenders.length / pagination.perPage)}
-        onPageChange={(page) => {
-          setCurrentPage(page);
-
-          // Update URL
-          const params = new URLSearchParams(searchParams);
-          params.set("page", page.toString());
-          router.push(`?${params.toString()}`, { scroll: false });
-        }}
+        totalPages={totalPages}
+        onPageChange={handlePageChange}
       />
     </>
   );

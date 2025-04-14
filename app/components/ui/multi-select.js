@@ -12,31 +12,37 @@ import { ChevronDown } from "lucide-react";
 
 export default function MultiSelect({
   label,
-  options,
-  selected,
+  options = [],
+  selected = [],
   onSelect,
   placeholder = "Select...",
 }) {
+  // Ensure arrays are defined
+  const safeOptions = Array.isArray(options) ? options : [];
+  const safeSelected = Array.isArray(selected) ? selected : [];
+
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <Button variant="outline" className="w-[200px] justify-between">
-          {selected.length > 0 ? `${selected.length} selected` : placeholder}
+          {safeSelected.length > 0
+            ? `${safeSelected.length} selected`
+            : placeholder}
           <ChevronDown className="ml-2 h-4 w-4" />
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent className="w-[200px]">
         <div className="max-h-[300px] overflow-y-auto p-1">
-          {options.map((option) => (
+          {safeOptions.map((option) => (
             <div key={option} className="flex items-center space-x-2 p-2">
               <Checkbox
                 id={option}
-                checked={selected.includes(option)}
+                checked={safeSelected.includes(option)}
                 onCheckedChange={(checked) => {
                   if (checked) {
-                    onSelect([...selected, option]);
+                    onSelect([...safeSelected, option]);
                   } else {
-                    onSelect(selected.filter((item) => item !== option));
+                    onSelect(safeSelected.filter((item) => item !== option));
                   }
                 }}
               />
