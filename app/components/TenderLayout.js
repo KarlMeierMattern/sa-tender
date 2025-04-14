@@ -80,6 +80,47 @@ export default function TenderLayout({
     return daysFromAdvertised >= 0 && daysFromAdvertised <= 7;
   }).length;
 
+  // Add these checks at the start of the component
+  if (!initialTenders || !awardedTenders) {
+    return <TableSkeleton />;
+  }
+
+  // Add console logs to help debug
+  console.log("Advertised Tenders:", {
+    initial: initialTenders.length,
+    all: allAdvertisedTenders.length,
+    pagination: advertisedPagination,
+  });
+
+  console.log("Awarded Tenders:", {
+    initial: awardedTenders.length,
+    all: allAwardedTenders.length,
+    pagination: awardedPagination,
+  });
+
+  // Add these helper functions at the top of your TenderLayout component
+  const calculateTotalValue = (tenders) => {
+    try {
+      return tenders.reduce(
+        (sum, tender) => sum + (parseFloat(tender.successfulBidderAmount) || 0),
+        0
+      );
+    } catch (error) {
+      console.error("Error calculating total value:", error);
+      return 0;
+    }
+  };
+
+  const calculateAverageValue = (tenders) => {
+    try {
+      const total = calculateTotalValue(tenders);
+      return total / (tenders.length || 1);
+    } catch (error) {
+      console.error("Error calculating average value:", error);
+      return 0;
+    }
+  };
+
   return (
     <div className="p-4">
       <Tabs
@@ -164,7 +205,7 @@ export default function TenderLayout({
               <Suspense fallback={<TableSkeleton />}>
                 <TenderTable
                   initialTenders={initialTenders}
-                  allTenders={initialTenders}
+                  allTenders={allAdvertisedTenders}
                   pagination={advertisedPagination}
                   isAwarded={false}
                 />
@@ -206,14 +247,7 @@ export default function TenderLayout({
               </CardHeader>
               <CardContent>
                 <p className="text-3xl font-bold">
-                  R{" "}
-                  {awardedTenders
-                    .reduce(
-                      (sum, tender) =>
-                        sum + (parseFloat(tender.successfulBidderAmount) || 0),
-                      0
-                    )
-                    .toLocaleString()}
+                  R {calculateTotalValue(allAwardedTenders).toLocaleString()}
                 </p>
               </CardContent>
             </Card>
@@ -223,14 +257,7 @@ export default function TenderLayout({
               </CardHeader>
               <CardContent>
                 <p className="text-3xl font-bold">
-                  R{" "}
-                  {(
-                    awardedTenders.reduce(
-                      (sum, tender) =>
-                        sum + (parseFloat(tender.successfulBidderAmount) || 0),
-                      0
-                    ) / (awardedTenders.length || 1)
-                  ).toLocaleString()}
+                  R {calculateAverageValue(allAwardedTenders).toLocaleString()}
                 </p>
               </CardContent>
             </Card>
@@ -272,7 +299,7 @@ export default function TenderLayout({
               <Suspense fallback={<TableSkeleton />}>
                 <TenderTable
                   initialTenders={awardedTenders}
-                  allTenders={awardedTenders}
+                  allTenders={allAwardedTenders}
                   pagination={awardedPagination}
                   isAwarded={true}
                 />
