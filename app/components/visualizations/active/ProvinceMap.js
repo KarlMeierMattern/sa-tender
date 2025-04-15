@@ -4,7 +4,7 @@ import React, { useRef, useEffect } from "react";
 import maplibregl from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
 import ReactDOMServer from "react-dom/server";
-import provinceGeoData from "../../lib/provinceGeoData.json";
+import provinceGeoData from "./provinceGeoData.json";
 
 const CustomTooltip = ({ province, value, isAwarded }) => (
   <div className="bg-white p-3 rounded-lg shadow-md border border-gray-200">

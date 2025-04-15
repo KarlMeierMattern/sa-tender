@@ -1,13 +1,11 @@
 "use client";
 
 import React, { Suspense, useState, useEffect } from "react";
-import dynamic from "next/dynamic";
+import { useQuery } from "@tanstack/react-query";
+import { useRouter, useSearchParams } from "next/navigation";
+import { differenceInDays } from "date-fns";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import ProvinceBarChart from "./visualizations/ProvinceBarChart";
-import CategoryPieChart from "./visualizations/CategoryPieChart";
-import DepartmentBarChart from "./visualizations/DepartmentBarChart";
-import TenderTypeDonut from "./visualizations/TenderTypeDonut";
-import ProvinceMap from "./visualizations/ProvinceMap";
+import dynamic from "next/dynamic";
 import TableSkeleton from "./ui/table-skeleton";
 import {
   Card,
@@ -16,14 +14,20 @@ import {
   CardTitle,
   CardDescription,
 } from "@/components/ui/card";
-import { differenceInDays } from "date-fns";
-import DepartmentValueChart from "./visualizations/awarded/DepartmentValueChart";
-import ValueDistributionChart from "./visualizations/awarded/ValueDistributionChart";
-import TopSuppliersChart from "./visualizations/awarded/TopSuppliersChart";
-import AwardTimingChart from "./visualizations/awarded/AwardTimingChart";
-import LowestAwardTimingChart from "./visualizations/awarded/LowestAwardTimingChart";
-import { useQuery } from "@tanstack/react-query";
-import { useRouter, useSearchParams } from "next/navigation";
+import {
+  ProvinceMap,
+  ProvinceBarChart,
+  CategoryPieChart,
+  DepartmentBarChart,
+  TenderTypeDonut,
+} from "./visualizations/active";
+import {
+  DepartmentValueChart,
+  ValueDistributionChart,
+  TopSuppliersChart,
+  AwardTimingChart,
+  LowestAwardTimingChart,
+} from "./visualizations/awarded";
 
 // Lazy load the table component
 const TenderTable = dynamic(() => import("./TenderTable"), { ssr: false });
