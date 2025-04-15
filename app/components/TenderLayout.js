@@ -42,6 +42,9 @@ export default function TenderLayout({ initialPage }) {
   const [availableYears, setAvailableYears] = useState([]);
 
   // Function to update URL params without reload
+  // Browser URL Parameters (http://localhost:3000/?tab=awarded&view=table&page=3):
+  // Used for UI state
+  // Don't directly affect API calls
   const updateUrlParams = (newParams) => {
     const params = new URLSearchParams(searchParams); // The URLSearchParams class maintains all parameters
     Object.entries(newParams).forEach(([key, value]) => {
@@ -50,6 +53,7 @@ export default function TenderLayout({ initialPage }) {
     router.push(`?${params.toString()}`, { scroll: false });
   };
 
+  // Fetch all years from the awarded tenders
   useEffect(() => {
     async function fetchYears() {
       try {
@@ -75,7 +79,8 @@ export default function TenderLayout({ initialPage }) {
     fetchYears();
   }, []);
 
-  // Fetch all data at once
+  // React Query will fetch the advertised tenders data from the API and cache it for 5 minutes
+  // API URL Parameters (http://localhost:3000/api/tenders-detail?limit=999999)
   const { data: allAdvertised, isLoading: isLoadingAdvertised } = useQuery({
     queryKey: ["advertised-tenders-all"],
     queryFn: async () => {
@@ -85,6 +90,7 @@ export default function TenderLayout({ initialPage }) {
     staleTime: 1000 * 60 * 5,
   });
 
+  // React Query will fetch the awarded tenders data from the API and cache it for 5 minutes
   const { data: allAwarded, isLoading: isLoadingAwarded } = useQuery({
     queryKey: ["awarded-tenders-all", selectedYear],
     queryFn: async () => {
@@ -96,8 +102,8 @@ export default function TenderLayout({ initialPage }) {
     staleTime: 1000 * 60 * 5,
   });
 
+  // React Query will show a loading state if the data is still loading
   const isLoading = isLoadingAdvertised || isLoadingAwarded;
-
   if (isLoading) return <TableSkeleton />;
 
   // Calculate metrics from full dataset
@@ -108,11 +114,13 @@ export default function TenderLayout({ initialPage }) {
     );
   };
 
+  // Calculate the average value of the tenders
   const calculateAverageValue = (tenders) => {
     const total = calculateTotalValue(tenders);
     return tenders.length ? total / tenders.length : 0;
   };
 
+  // Calculate the number of tenders closing in the next 7 days
   const calculateClosingSoon = (tenders) => {
     const now = new Date();
     return tenders.filter((tender) => {
@@ -122,6 +130,7 @@ export default function TenderLayout({ initialPage }) {
     }).length;
   };
 
+  // Calculate the number of tenders added in the last 7 days
   const calculateRecentlyAdded = (tenders) => {
     const now = new Date();
     return tenders.filter((tender) => {

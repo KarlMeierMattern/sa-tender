@@ -1,4 +1,5 @@
 // .route.js handles HTTP request parsing and response handling
+// receives request from TenderLayout.js
 
 import { getTendersDetail } from "../index.js";
 
