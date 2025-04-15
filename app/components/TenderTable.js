@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { Suspense } from "react";
 import MultiSelect from "./ui/multi-select";
 import { Calendar } from "@/components/ui/calendar";
 import {
@@ -23,8 +23,15 @@ import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import { useRouter, useSearchParams } from "next/navigation";
 import Pagination from "./Pagination";
+import TableSkeleton from "./ui/table-skeleton";
 
-export default function TenderTable({ allTenders, currentPage, isAwarded }) {
+export default function TenderTable({
+  allTenders = [],
+  currentPage,
+  isAwarded,
+  isLoading,
+  totalItems,
+}) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [selectedAdvertisedDate, setSelectedAdvertisedDate] = React.useState();
@@ -33,6 +40,10 @@ export default function TenderTable({ allTenders, currentPage, isAwarded }) {
   const [selectedDepartments, setSelectedDepartments] = React.useState([]);
   const [selectedProvinces, setSelectedProvinces] = React.useState([]);
   const ITEMS_PER_PAGE = 10;
+
+  if (isLoading) {
+    return <TableSkeleton />;
+  }
 
   // Get unique values for filters
   const categories = [
@@ -45,7 +56,7 @@ export default function TenderTable({ allTenders, currentPage, isAwarded }) {
     ...new Set(allTenders.map((tender) => tender.province)),
   ].filter(Boolean);
 
-  // Apply filters to all tenders
+  // Apply filters to current page data
   const filteredTenders = allTenders.filter((tender) => {
     const matchesCategory =
       selectedCategories.length === 0 ||
@@ -80,14 +91,8 @@ export default function TenderTable({ allTenders, currentPage, isAwarded }) {
     );
   });
 
-  // Calculate pagination
-  const totalItems = filteredTenders.length;
+  // Calculate total pages from total items
   const totalPages = Math.ceil(totalItems / ITEMS_PER_PAGE);
-  const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
-  const paginatedTenders = filteredTenders.slice(
-    startIndex,
-    startIndex + ITEMS_PER_PAGE
-  );
 
   const handlePageChange = (newPage) => {
     const params = new URLSearchParams(searchParams);
@@ -214,8 +219,8 @@ export default function TenderTable({ allTenders, currentPage, isAwarded }) {
       </div>
 
       <div className="text-sm text-muted-foreground mb-4">
-        Showing {startIndex + 1} to{" "}
-        {Math.min(startIndex + ITEMS_PER_PAGE, totalItems)} of {totalItems}{" "}
+        Showing {(currentPage - 1) * ITEMS_PER_PAGE + 1} to{" "}
+        {Math.min(currentPage * ITEMS_PER_PAGE, totalItems)} of {totalItems}{" "}
         results
       </div>
 
@@ -234,7 +239,7 @@ export default function TenderTable({ allTenders, currentPage, isAwarded }) {
           </TableRow>
         </TableHeader>
         <TableBody>
-          {paginatedTenders.map((tender, index) => (
+          {filteredTenders.map((tender, index) => (
             <TableRow key={tender._id || index}>
               {columns.map((column) => (
                 <TableCell
@@ -255,11 +260,13 @@ export default function TenderTable({ allTenders, currentPage, isAwarded }) {
         </TableBody>
       </Table>
 
-      <Pagination
-        currentPage={currentPage}
-        totalPages={totalPages}
-        onPageChange={handlePageChange}
-      />
+      {totalPages > 1 && (
+        <Pagination
+          currentPage={currentPage}
+          totalPages={totalPages}
+          onPageChange={handlePageChange}
+        />
+      )}
     </>
   );
 }

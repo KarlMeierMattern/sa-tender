@@ -20,8 +20,10 @@ import {
 import { differenceInDays } from "date-fns";
 import TableSkeleton from "./ui/table-skeleton";
 
-// Lazy load the table view component
-const TenderTableView = dynamic(() => import("./TenderTableView"), {
+const ITEMS_PER_PAGE = 10;
+
+// Lazy load the table component
+const TenderTable = dynamic(() => import("./TenderTable"), {
   loading: () => <TableSkeleton />,
   ssr: false,
 });
@@ -31,15 +33,41 @@ export default function AdvertisedTenders({
   currentView,
   updateUrlParams,
 }) {
-  // Fetch advertised tenders data
-  const { data: allAdvertised, isLoading } = useQuery({
-    queryKey: ["advertised-tenders-all"],
+  // Single query to fetch all data
+  const { data: fullData, isLoading } = useQuery({
+    queryKey: ["advertised-tenders-full"],
     queryFn: async () => {
       const res = await fetch("/api/tenders-detail?limit=999999");
       return res.json();
     },
-    staleTime: 1000 * 60 * 5,
+    staleTime: 1000 * 60 * 5, // 5 minutes
   });
+
+  // Get the current page of data
+  const getCurrentPageData = () => {
+    if (!fullData?.data) return [];
+    const start = (page - 1) * ITEMS_PER_PAGE;
+    const end = start + ITEMS_PER_PAGE;
+    return fullData.data.slice(start, end);
+  };
+
+  // Get total count
+  const getTotalCount = () => {
+    return fullData?.pagination?.total || 0;
+  };
+
+  // Use full data for charts, but paginated data for table
+  const allAdvertised =
+    currentView === "table"
+      ? {
+          data: getCurrentPageData(),
+          pagination: {
+            total: getTotalCount(),
+            page: page,
+            limit: ITEMS_PER_PAGE,
+          },
+        }
+      : fullData;
 
   // Calculate metrics
   const calculateClosingSoon = (tenders) => {
@@ -130,10 +158,12 @@ export default function AdvertisedTenders({
       </TabsContent>
 
       <TabsContent value="table">
-        <TenderTableView
-          allTenders={allAdvertised?.data || []}
-          page={page}
+        <TenderTable
+          allTenders={getCurrentPageData()}
+          currentPage={page}
           isAwarded={false}
+          isLoading={isLoading}
+          totalItems={getTotalCount()}
         />
       </TabsContent>
     </Tabs>

@@ -15,11 +15,13 @@ import {
 import { ProvinceMap } from "./visualizations/active";
 import TableSkeleton from "./ui/table-skeleton";
 
-// Lazy load the table view component
-const TenderTableView = dynamic(() => import("./TenderTableView"), {
+// Lazy load the table component
+const TenderTable = dynamic(() => import("./TenderTable"), {
   loading: () => <TableSkeleton />,
   ssr: false,
 });
+
+const ITEMS_PER_PAGE = 10;
 
 export default function AwardedTenders({ page, currentView, updateUrlParams }) {
   const [selectedYear, setSelectedYear] = useState("all");
@@ -51,17 +53,49 @@ export default function AwardedTenders({ page, currentView, updateUrlParams }) {
     fetchYears();
   }, []);
 
-  // Fetch awarded tenders data based on selected year
-  const { data: allAwarded, isLoading } = useQuery({
-    queryKey: ["awarded-tenders-all", selectedYear],
+  // Single query to fetch all data
+  const { data: fullData, isLoading } = useQuery({
+    queryKey: [
+      "awarded-tenders-full",
+      currentView === "visualizations" ? selectedYear : "all",
+    ],
     queryFn: async () => {
+      const yearParam = currentView === "visualizations" ? selectedYear : "all";
       const res = await fetch(
-        `/api/tenders-detail-awarded?limit=999999&year=${selectedYear}`
+        `/api/tenders-detail-awarded?limit=999999&year=${yearParam}`
       );
       return res.json();
     },
-    staleTime: 1000 * 60 * 5,
+    staleTime: 1000 * 60 * 5, // 5 minutes
   });
+
+  // Get the current page of data
+  const getCurrentPageData = () => {
+    if (!fullData?.data) return [];
+    const start = (page - 1) * ITEMS_PER_PAGE;
+    const end = start + ITEMS_PER_PAGE;
+    return fullData.data.slice(start, end);
+  };
+
+  // Get total count
+  const getTotalCount = () => {
+    return fullData?.pagination?.total || 0;
+  };
+
+  // Use full data for charts, but paginated data for table
+  const allAwarded =
+    currentView === "table"
+      ? {
+          data: getCurrentPageData(),
+          pagination: {
+            total: getTotalCount(),
+            page: page,
+            limit: ITEMS_PER_PAGE,
+          },
+        }
+      : fullData;
+
+  if (isLoading) return <TableSkeleton />;
 
   // Calculate metrics
   const calculateTotalValue = (tenders) => {
@@ -75,8 +109,6 @@ export default function AwardedTenders({ page, currentView, updateUrlParams }) {
     const total = calculateTotalValue(tenders);
     return tenders.length ? total / tenders.length : 0;
   };
-
-  if (isLoading) return <TableSkeleton />;
 
   return (
     <Tabs
@@ -102,6 +134,7 @@ export default function AwardedTenders({ page, currentView, updateUrlParams }) {
                   setSelectedYear(e.target.value);
                 }}
                 className="w-full p-2 border rounded-md"
+                disabled={currentView !== "visualizations"}
               >
                 <option value="all">All Years</option>
                 {availableYears.map((year) => (
@@ -169,10 +202,12 @@ export default function AwardedTenders({ page, currentView, updateUrlParams }) {
       </TabsContent>
 
       <TabsContent value="table">
-        <TenderTableView
-          allTenders={allAwarded?.data || []}
-          page={page}
+        <TenderTable
+          allTenders={getCurrentPageData()}
+          currentPage={page}
           isAwarded={true}
+          isLoading={isLoading}
+          totalItems={getTotalCount()}
         />
       </TabsContent>
     </Tabs>

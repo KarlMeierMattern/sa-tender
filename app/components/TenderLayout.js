@@ -35,7 +35,7 @@ export default function TenderLayout() {
   };
 
   return (
-    <div className="container mx-auto py-10">
+    <div className="p-4">
       <Tabs
         defaultValue={currentTab}
         className="w-full"
