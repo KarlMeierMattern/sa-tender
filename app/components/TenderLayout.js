@@ -40,24 +40,10 @@ export default function TenderLayout({ initialPage }) {
   const currentTab = searchParams.get("tab") || "awarded";
   const [selectedYear, setSelectedYear] = useState("all");
   const [availableYears, setAvailableYears] = useState([]);
-  const [advertizedFilters, setAdvertizedFilters] = useState({});
-  const [awardedFilters, setAwardedFilters] = useState({});
 
-  // Function to build query string from filters
-  const buildFilterQuery = (filters) => {
-    if (!filters) return "";
-    const query = {
-      categories: filters.categories,
-      departments: filters.departments,
-      provinces: filters.provinces,
-      date: filters.date ? new Date(filters.date).toISOString() : undefined,
-    };
-    return encodeURIComponent(JSON.stringify(query));
-  };
-
-  // Add function to update URL params without reload
+  // Function to update URL params without reload
   const updateUrlParams = (newParams) => {
-    const params = new URLSearchParams(searchParams);
+    const params = new URLSearchParams(searchParams); // The URLSearchParams class maintains all parameters
     Object.entries(newParams).forEach(([key, value]) => {
       params.set(key, value);
     });

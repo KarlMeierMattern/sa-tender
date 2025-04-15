@@ -1,4 +1,7 @@
-import redis from "./redisClient";
+// Used in ../middleware.js for rate limiting
+// Used in ../api/index.js for caching
+
+import redis from "./redisClient.js";
 
 const DEFAULT_CACHE_TIME = 3600; // 1 hour in seconds
 
