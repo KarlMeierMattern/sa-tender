@@ -33,25 +33,43 @@ export async function getTendersDetail(page = 1, limit = 10) {
     await connectDB();
     const skip = (page - 1) * limit;
 
+    // Only select necessary fields to reduce data size
+    const projection = {
+      category: 1,
+      description: 1,
+      advertised: 1,
+      closingDate: 1,
+      tenderNumber: 1,
+      department: 1,
+      tenderType: 1,
+      province: 1,
+      placeServicesRequired: 1,
+    };
+
     const [tenders, total] = await Promise.all([
-      TenderModel.find({}).skip(skip).limit(limit),
+      TenderModel.find({}, projection).skip(skip).limit(limit).lean(), // Use lean() to get plain objects instead of Mongoose documents
       TenderModel.countDocuments({}),
     ]);
 
     const response = {
       success: true,
-      data: tenders, // array of tenders
+      data: tenders,
       pagination: {
-        total, // total number of tenders
-        pages: Math.ceil(total / limit), // total number of pages
-        currentPage: page, // current page
-        perPage: limit, // number of tenders per page
+        total,
+        pages: Math.ceil(total / limit),
+        currentPage: page,
+        perPage: limit,
       },
     };
 
-    // 3. Store in Redis cache for 5 minutes
-    await cache.set(cacheKey, response, 300);
-    console.log("Cached data for", cacheKey);
+    // 3. Store in Redis cache for 5 minutes, with error handling
+    try {
+      await cache.set(cacheKey, response, 300);
+      console.log("Cached data for", cacheKey);
+    } catch (cacheError) {
+      console.error("Cache set error:", cacheError);
+      // Continue even if caching fails
+    }
 
     return NextResponse.json(response);
   } catch (error) {
@@ -86,11 +104,26 @@ export async function getAwardedTenders(page = 1, limit = 10, year = "all") {
     }
 
     const skip = (page - 1) * limit;
+
+    // Only select necessary fields to reduce data size
+    const projection = {
+      category: 1,
+      description: 1,
+      advertised: 1,
+      awarded: 1,
+      tenderNumber: 1,
+      department: 1,
+      province: 1,
+      successfulBidderName: 1,
+      successfulBidderAmount: 1,
+    };
+
     const [data, total] = await Promise.all([
-      AwardedTenderModel.find(query)
+      AwardedTenderModel.find(query, projection)
         .sort({ awarded: -1 })
         .skip(skip)
-        .limit(limit),
+        .limit(limit)
+        .lean(), // Use lean() to get plain objects instead of Mongoose documents
       AwardedTenderModel.countDocuments(query),
     ]);
 
@@ -105,9 +138,14 @@ export async function getAwardedTenders(page = 1, limit = 10, year = "all") {
       },
     };
 
-    // 3. Store in Redis cache for 5 minutes
-    await cache.set(cacheKey, response, 300);
-    console.log("Cached data for", cacheKey);
+    // 3. Store in Redis cache for 5 minutes, with error handling
+    try {
+      await cache.set(cacheKey, response, 300);
+      console.log("Cached data for", cacheKey);
+    } catch (cacheError) {
+      console.error("Cache set error:", cacheError);
+      // Continue even if caching fails
+    }
 
     return NextResponse.json(response);
   } catch (error) {

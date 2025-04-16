@@ -6,12 +6,10 @@ import { useSearchParams, useRouter } from "next/navigation";
 
 // Lazy load the components
 const AdvertisedTenders = dynamic(() => import("./AdvertisedTenders"), {
-  loading: () => <div>Loading...</div>,
   ssr: false,
 });
 
 const AwardedTenders = dynamic(() => import("./AwardedTenders"), {
-  loading: () => <div>Loading...</div>,
   ssr: false,
 });
 
