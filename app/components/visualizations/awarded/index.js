@@ -3,6 +3,7 @@ import ValueDistributionChart from "./ValueDistributionChart";
 import TopSuppliersChart from "./TopSuppliersChart";
 import AwardTimingChart from "./AwardTimingChart";
 import LowestAwardTimingChart from "./LowestAwardTimingChart";
+import ProvinceMap from "./ProvinceMap";
 
 export {
   DepartmentValueChart,
@@ -10,4 +11,5 @@ export {
   TopSuppliersChart,
   AwardTimingChart,
   LowestAwardTimingChart,
+  ProvinceMap,
 };

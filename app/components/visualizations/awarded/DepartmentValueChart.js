@@ -20,43 +20,34 @@ ChartJS.register(
   Legend
 );
 
-export default function DepartmentValueChart({ tenders }) {
-  // Group and sum tender values by department
-  const departmentValues = tenders.reduce((acc, tender) => {
-    if (!tender.department || !tender.successfulBidderAmount) return acc;
+export default function DepartmentValueChart({ data }) {
+  if (!data) return null;
 
-    const value = parseFloat(tender.successfulBidderAmount) || 0;
-    acc[tender.department] = (acc[tender.department] || 0) + value;
-    return acc;
-  }, {});
-
-  // Sort departments by value and get top 10
-  const sortedDepartments = Object.entries(departmentValues)
-    .sort(([, a], [, b]) => b - a)
-    .slice(0, 10);
-
-  const data = {
-    labels: sortedDepartments.map(([dept]) => dept),
+  const chartData = {
+    labels: data.map((item) => item.department),
     datasets: [
       {
-        label: "Total Awarded Value (R)",
-        data: sortedDepartments.map(([, value]) => value),
-        backgroundColor: "#B8C5FF", // Base periwinkle
-        borderColor: "#C2CDFF",
-        borderWidth: 1,
+        label: "Total Value",
+        data: data.map((item) => item.totalValue),
+        backgroundColor: "#B8C5FF",
       },
     ],
   };
 
   const options = {
     responsive: true,
+    maintainAspectRatio: false,
     plugins: {
       legend: {
         position: "top",
       },
       title: {
         display: true,
-        text: "Top Departments by Awarded Tender Value",
+        text: "Department by Total Value Awarded",
+        font: {
+          size: 16,
+          weight: "bold",
+        },
       },
       tooltip: {
         callbacks: {
@@ -78,8 +69,8 @@ export default function DepartmentValueChart({ tenders }) {
   };
 
   return (
-    <div>
-      <Bar data={data} options={options} />
+    <div className="w-full h-[400px]">
+      <Bar data={chartData} options={options} />
     </div>
   );
 }

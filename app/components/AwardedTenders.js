@@ -11,9 +11,10 @@ import {
   TopSuppliersChart,
   AwardTimingChart,
   LowestAwardTimingChart,
+  ProvinceMap,
 } from "./visualizations/awarded";
-import { ProvinceMap } from "./visualizations/active";
 import TableSkeleton from "./ui/table-skeleton";
+import { useAwardedCharts } from "../hooks/useAwardedCharts.js";
 
 // Lazy load the table component
 const TenderTable = dynamic(() => import("./TenderTable"), {
@@ -53,16 +54,15 @@ export default function AwardedTenders({ page, currentView, updateUrlParams }) {
     fetchYears();
   }, []);
 
-  // Single query to fetch all data
-  const { data: fullData, isLoading } = useQuery({
-    queryKey: [
-      "awarded-tenders-full",
-      currentView === "visualizations" ? selectedYear : "all",
-    ],
+  // Fetch chart data
+  const chartQueries = useAwardedCharts(selectedYear);
+
+  // Fetch table data
+  const { data: tableData, isLoading } = useQuery({
+    queryKey: ["awarded-tenders-table", page],
     queryFn: async () => {
-      const yearParam = currentView === "visualizations" ? selectedYear : "all";
       const res = await fetch(
-        `/api/tenders-detail-awarded?limit=999999&year=${yearParam}`
+        `/api/tenders-detail-awarded?page=${page}&limit=${ITEMS_PER_PAGE}`
       );
       return res.json();
     },
@@ -71,15 +71,14 @@ export default function AwardedTenders({ page, currentView, updateUrlParams }) {
 
   // Get the current page of data
   const getCurrentPageData = () => {
-    if (!fullData?.data) return [];
-    const start = (page - 1) * ITEMS_PER_PAGE;
-    const end = start + ITEMS_PER_PAGE;
-    return fullData.data.slice(start, end);
+    if (!tableData?.data) return [];
+    const paginatedData = tableData?.data || [];
+    return paginatedData;
   };
 
   // Get total count
   const getTotalCount = () => {
-    return fullData?.pagination?.total || 0;
+    return tableData?.pagination?.total || 0;
   };
 
   // Use full data for charts, but paginated data for table
@@ -93,7 +92,7 @@ export default function AwardedTenders({ page, currentView, updateUrlParams }) {
             limit: ITEMS_PER_PAGE,
           },
         }
-      : fullData;
+      : tableData;
 
   if (isLoading) return <TableSkeleton />;
 
@@ -180,22 +179,28 @@ export default function AwardedTenders({ page, currentView, updateUrlParams }) {
         <div className="mt-8 bg-gray-50 rounded-3xl p-8">
           <div className="grid grid-cols-2 gap-8">
             <div className="bg-white rounded-xl p-6 shadow-sm">
-              <DepartmentValueChart tenders={allAwarded?.data || []} />
+              <DepartmentValueChart
+                data={chartQueries.departmentValue.data?.data}
+              />
             </div>
             <div className="bg-white rounded-xl p-6 shadow-sm">
-              <ProvinceMap tenders={allAwarded?.data || []} isAwarded={true} />
+              <ProvinceMap data={chartQueries.provinceValue.data?.data} />
             </div>
             <div className="bg-white rounded-xl p-6 shadow-sm">
-              <ValueDistributionChart tenders={allAwarded?.data || []} />
+              <ValueDistributionChart
+                data={chartQueries.valueDistribution.data?.data}
+              />
             </div>
             <div className="bg-white rounded-xl p-6 shadow-sm">
-              <TopSuppliersChart tenders={allAwarded?.data || []} />
+              <TopSuppliersChart data={chartQueries.topSuppliers.data?.data} />
             </div>
             <div className="bg-white rounded-xl p-6 shadow-sm">
-              <AwardTimingChart tenders={allAwarded?.data || []} />
+              <AwardTimingChart data={chartQueries.awardTiming.data?.data} />
             </div>
             <div className="bg-white rounded-xl p-6 shadow-sm">
-              <LowestAwardTimingChart tenders={allAwarded?.data || []} />
+              <LowestAwardTimingChart
+                data={chartQueries.lowestAwardTiming.data?.data}
+              />
             </div>
           </div>
         </div>
@@ -203,11 +208,11 @@ export default function AwardedTenders({ page, currentView, updateUrlParams }) {
 
       <TabsContent value="table">
         <TenderTable
-          allTenders={getCurrentPageData()}
+          allTenders={tableData?.data || []}
           currentPage={page}
           isAwarded={true}
           isLoading={isLoading}
-          totalItems={getTotalCount()}
+          totalItems={tableData?.pagination?.total || 0}
         />
       </TabsContent>
     </Tabs>

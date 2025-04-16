@@ -6,10 +6,13 @@ import "maplibre-gl/dist/maplibre-gl.css";
 import ReactDOMServer from "react-dom/server";
 import provinceGeoData from "../provinceGeoData.json";
 
-const CustomTooltip = ({ province, value }) => (
+const CustomTooltip = ({ province, value, count }) => (
   <div className="bg-white p-3 rounded-lg shadow-md border border-gray-200">
     <p className="font-medium text-gray-900">{province}</p>
-    <p className="text-gray-600">R {(value || 0).toLocaleString()}</p>
+    <p className="text-gray-600">
+      Total Value: R {(value || 0).toLocaleString()}
+    </p>
+    <p className="text-gray-600">Number of Tenders: {count || 0}</p>
   </div>
 );
 
@@ -19,25 +22,19 @@ export default function ProvinceMap({ data }) {
   const popup = useRef(null);
 
   const provinceData = React.useMemo(() => {
-    if (!data) return { values: {}, maxValue: 0 };
+    if (!data) return { values: {}, counts: {} };
 
     const values = {};
-    let maxValue = 0;
+    const counts = {};
 
     data.forEach((item) => {
-      values[item.province] = item.totalValue;
-      maxValue = Math.max(maxValue, item.totalValue);
+      const province = item.province;
+      values[province] = item.totalValue;
+      counts[province] = item.count;
     });
 
-    return { values, maxValue };
+    return { values, counts };
   }, [data]);
-
-  const getColor = (province) => {
-    const value = provinceData.values[province];
-    if (!value) return "rgba(129, 140, 248, 0.1)";
-    const opacity = Math.min(0.2 + (value / provinceData.maxValue) * 0.8, 1);
-    return `rgba(129, 140, 248, ${opacity})`;
-  };
 
   useEffect(() => {
     if (map.current) return;
@@ -140,13 +137,14 @@ export default function ProvinceMap({ data }) {
         const feature = e.features[0];
         const province = feature.properties.name;
         const value = provinceData.values[province];
+        const count = provinceData.counts[province] || 0;
 
         // Show popup
         popup.current
           .setLngLat(e.lngLat)
           .setHTML(
             ReactDOMServer.renderToString(
-              <CustomTooltip province={province} value={value} />
+              <CustomTooltip province={province} value={value} count={count} />
             )
           )
           .addTo(map.current);

@@ -10,7 +10,6 @@ import {
   Tooltip,
   Legend,
 } from "chart.js";
-import { differenceInDays } from "date-fns";
 
 ChartJS.register(
   CategoryScale,
@@ -21,41 +20,17 @@ ChartJS.register(
   Legend
 );
 
-export default function LowestAwardTimingChart({ tenders }) {
-  // Calculate average time from advertisement to award by department
-  const departmentTiming = tenders.reduce((acc, tender) => {
-    if (!tender.department || !tender.advertised || !tender.awarded) return acc;
+export default function LowestAwardTimingChart({ data }) {
+  if (!data) {
+    return <div>Loading...</div>;
+  }
 
-    const daysToAward = differenceInDays(
-      new Date(tender.awarded),
-      new Date(tender.advertised)
-    );
-
-    if (!acc[tender.department]) {
-      acc[tender.department] = { total: 0, count: 0 };
-    }
-
-    acc[tender.department].total += daysToAward;
-    acc[tender.department].count += 1;
-
-    return acc;
-  }, {});
-
-  // Calculate averages and sort by lowest average
-  const departmentAverages = Object.entries(departmentTiming)
-    .map(([dept, { total, count }]) => ({
-      department: dept,
-      average: Math.round(total / count),
-    }))
-    .sort((a, b) => a.average - b.average) // Sort in ascending order
-    .slice(0, 10); // Get top 10 with lowest average
-
-  const data = {
-    labels: departmentAverages.map((item) => item.department),
+  const chartData = {
+    labels: data.map((item) => item.department),
     datasets: [
       {
         label: "Average Days to Award",
-        data: departmentAverages.map((item) => item.average),
+        data: data.map((item) => item.averageDays),
         backgroundColor: "#B8C5FF",
         borderColor: "#C2CDFF",
         borderWidth: 1,
@@ -76,8 +51,11 @@ export default function LowestAwardTimingChart({ tenders }) {
       tooltip: {
         callbacks: {
           label: (context) => {
-            const value = context.raw;
-            return `${value} days`;
+            const item = data[context.dataIndex];
+            return [
+              `Average Days: ${item.averageDays}`,
+              `Number of Tenders: ${item.count}`,
+            ];
           },
         },
       },
@@ -95,7 +73,7 @@ export default function LowestAwardTimingChart({ tenders }) {
 
   return (
     <div>
-      <Bar data={data} options={options} />
+      <Bar data={chartData} options={options} />
     </div>
   );
 }

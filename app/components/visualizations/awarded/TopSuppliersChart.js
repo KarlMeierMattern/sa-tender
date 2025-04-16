@@ -20,29 +20,17 @@ ChartJS.register(
   Legend
 );
 
-export default function TopSuppliersChart({ tenders }) {
-  // Group and sum tender values by supplier
-  const supplierValues = tenders.reduce((acc, tender) => {
-    if (!tender.successfulBidderName || !tender.successfulBidderAmount)
-      return acc;
+export default function TopSuppliersChart({ data }) {
+  if (!data) {
+    return <div>Loading...</div>;
+  }
 
-    const value = parseFloat(tender.successfulBidderAmount) || 0;
-    acc[tender.successfulBidderName] =
-      (acc[tender.successfulBidderName] || 0) + value;
-    return acc;
-  }, {});
-
-  // Sort suppliers by value and get top 10
-  const sortedSuppliers = Object.entries(supplierValues)
-    .sort(([, a], [, b]) => b - a)
-    .slice(0, 10);
-
-  const data = {
-    labels: sortedSuppliers.map(([supplier]) => supplier),
+  const chartData = {
+    labels: data.map((item) => item.supplier),
     datasets: [
       {
         label: "Total Awarded Value (R)",
-        data: sortedSuppliers.map(([, value]) => value),
+        data: data.map((item) => item.totalValue),
         backgroundColor: "#B8C5FF", // Base periwinkle
         borderColor: "#C2CDFF",
         borderWidth: 1,
@@ -64,8 +52,11 @@ export default function TopSuppliersChart({ tenders }) {
       tooltip: {
         callbacks: {
           label: (context) => {
-            const value = context.raw;
-            return `R ${value.toLocaleString()}`;
+            const item = data[context.dataIndex];
+            return [
+              `Total Value: R ${item.totalValue.toLocaleString()}`,
+              `Number of Tenders: ${item.count}`,
+            ];
           },
         },
       },
@@ -82,7 +73,7 @@ export default function TopSuppliersChart({ tenders }) {
 
   return (
     <div>
-      <Bar data={data} options={options} />
+      <Bar data={chartData} options={options} />
     </div>
   );
 }

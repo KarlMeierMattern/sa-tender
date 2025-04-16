@@ -156,3 +156,489 @@ export async function getAwardedTenders(page = 1, limit = 10, year = "all") {
     );
   }
 }
+
+// Department Value Awarded
+export async function getDepartmentValueAwarded(year = "all") {
+  try {
+    // 1. Check redis cache first
+    const cacheKey = `department-value-awarded:${year}`;
+    const cachedData = await cache.get(cacheKey);
+
+    if (cachedData) {
+      console.log("Cache hit for", cacheKey);
+      return NextResponse.json(cachedData);
+    }
+
+    await connectDB();
+
+    // Build match stage based on year
+    const matchStage = {
+      department: { $exists: true },
+      successfulBidderAmount: { $exists: true, $ne: 0 },
+    };
+
+    // Add year filter if specified
+    if (year && year !== "all") {
+      matchStage.awarded = {
+        $gte: new Date(`${year}-01-01`),
+        $lt: new Date(`${parseInt(year) + 1}-01-01`),
+      };
+    }
+
+    const data = await AwardedTenderModel.aggregate([
+      {
+        $match: matchStage,
+      },
+      {
+        $group: {
+          _id: "$department",
+          totalValue: { $sum: "$successfulBidderAmount" },
+          count: { $sum: 1 },
+        },
+      },
+      {
+        $project: {
+          _id: 0,
+          department: "$_id",
+          totalValue: 1,
+          count: 1,
+        },
+      },
+      { $sort: { totalValue: -1 } },
+      { $limit: 10 },
+    ]);
+
+    const response = {
+      success: true,
+      data,
+    };
+
+    // Store in Redis cache for 5 minutes, with error handling
+    try {
+      await cache.set(cacheKey, response, 300);
+      console.log("Cached data for", cacheKey);
+    } catch (cacheError) {
+      console.error("Cache set error:", cacheError);
+      // Continue even if caching fails
+    }
+
+    return NextResponse.json(response);
+  } catch (error) {
+    console.error("Error in getDepartmentValueAwarded:", error);
+    return NextResponse.json(
+      { success: false, error: error.message },
+      { status: 500 }
+    );
+  }
+}
+
+// Province Value Awarded
+export async function getProvinceValueAwarded(year = "all") {
+  try {
+    // 1. Check redis cache first
+    const cacheKey = `province-value-awarded:${year}`;
+    const cachedData = await cache.get(cacheKey);
+
+    if (cachedData) {
+      console.log("Cache hit for", cacheKey);
+      return NextResponse.json(cachedData);
+    }
+
+    await connectDB();
+
+    // Build match stage based on year
+    const matchStage = {
+      province: { $exists: true },
+      successfulBidderAmount: { $exists: true, $ne: 0 },
+    };
+
+    // Add year filter if specified
+    if (year && year !== "all") {
+      matchStage.awarded = {
+        $gte: new Date(`${year}-01-01`),
+        $lt: new Date(`${parseInt(year) + 1}-01-01`),
+      };
+    }
+
+    const data = await AwardedTenderModel.aggregate([
+      {
+        $match: matchStage,
+      },
+      {
+        $group: {
+          _id: "$province",
+          totalValue: { $sum: "$successfulBidderAmount" },
+          count: { $sum: 1 },
+        },
+      },
+      {
+        $project: {
+          _id: 0,
+          province: "$_id",
+          totalValue: 1,
+          count: 1,
+        },
+      },
+      { $sort: { totalValue: -1 } },
+    ]);
+
+    const response = {
+      success: true,
+      data,
+    };
+
+    // Store in Redis cache for 5 minutes, with error handling
+    try {
+      await cache.set(cacheKey, response, 300);
+      console.log("Cached data for", cacheKey);
+    } catch (cacheError) {
+      console.error("Cache set error:", cacheError);
+      // Continue even if caching fails
+    }
+
+    return NextResponse.json(response);
+  } catch (error) {
+    console.error("Error in getProvinceValueAwarded:", error);
+    return NextResponse.json(
+      { success: false, error: error.message },
+      { status: 500 }
+    );
+  }
+}
+
+// Value Distribution
+export async function getValueDistribution(year = "all") {
+  try {
+    // 1. Check redis cache first
+    const cacheKey = `value-distribution:${year}`;
+    const cachedData = await cache.get(cacheKey);
+
+    if (cachedData) {
+      console.log("Cache hit for", cacheKey);
+      return NextResponse.json(cachedData);
+    }
+
+    await connectDB();
+
+    // Build match stage based on year
+    const matchStage = {
+      successfulBidderAmount: { $exists: true, $ne: 0 },
+    };
+
+    // Add year filter if specified
+    if (year && year !== "all") {
+      matchStage.awarded = {
+        $gte: new Date(`${year}-01-01`),
+        $lt: new Date(`${parseInt(year) + 1}-01-01`),
+      };
+    }
+
+    const data = await AwardedTenderModel.aggregate([
+      {
+        $match: matchStage,
+      },
+      {
+        $bucket: {
+          groupBy: "$successfulBidderAmount",
+          boundaries: [0, 1000000, 5000000, 10000000, 50000000, Infinity],
+          default: "Other",
+          output: {
+            count: { $sum: 1 },
+            totalValue: { $sum: "$successfulBidderAmount" },
+          },
+        },
+      },
+      {
+        $project: {
+          _id: 0,
+          range: {
+            $switch: {
+              branches: [
+                { case: { $eq: ["$_id", 0] }, then: "< R1M" },
+                { case: { $eq: ["$_id", 1000000] }, then: "R1M - R5M" },
+                { case: { $eq: ["$_id", 5000000] }, then: "R5M - R10M" },
+                { case: { $eq: ["$_id", 10000000] }, then: "R10M - R50M" },
+                { case: { $eq: ["$_id", 50000000] }, then: "> R50M" },
+              ],
+              default: "Other",
+            },
+          },
+          count: 1,
+          totalValue: 1,
+        },
+      },
+      { $sort: { _id: 1 } },
+    ]);
+
+    const response = {
+      success: true,
+      data,
+    };
+
+    // Store in Redis cache for 5 minutes
+    try {
+      await cache.set(cacheKey, response, 300);
+      console.log("Cached data for", cacheKey);
+    } catch (cacheError) {
+      console.error("Cache set error:", cacheError);
+      // Continue even if caching fails
+    }
+
+    return NextResponse.json(response);
+  } catch (error) {
+    console.error("Error in getValueDistribution:", error);
+    return NextResponse.json(
+      { success: false, error: error.message },
+      { status: 500 }
+    );
+  }
+}
+
+// Top Suppliers
+export async function getTopSuppliers(year = "all") {
+  try {
+    // 1. Check redis cache first
+    const cacheKey = `top-suppliers:${year}`;
+    const cachedData = await cache.get(cacheKey);
+
+    if (cachedData) {
+      console.log("Cache hit for", cacheKey);
+      return NextResponse.json(cachedData);
+    }
+
+    await connectDB();
+
+    // Build match stage based on year
+    const matchStage = {
+      successfulBidderName: { $exists: true, $ne: null },
+      successfulBidderAmount: { $exists: true, $ne: 0 },
+    };
+
+    // Add year filter if specified
+    if (year && year !== "all") {
+      matchStage.awarded = {
+        $gte: new Date(`${year}-01-01`),
+        $lt: new Date(`${parseInt(year) + 1}-01-01`),
+      };
+    }
+
+    const data = await AwardedTenderModel.aggregate([
+      {
+        $match: matchStage,
+      },
+      {
+        $group: {
+          _id: "$successfulBidderName",
+          totalValue: { $sum: "$successfulBidderAmount" },
+          count: { $sum: 1 },
+        },
+      },
+      {
+        $project: {
+          _id: 0,
+          supplier: "$_id",
+          totalValue: 1,
+          count: 1,
+        },
+      },
+      { $sort: { totalValue: -1 } },
+      { $limit: 10 },
+    ]);
+
+    const response = {
+      success: true,
+      data,
+    };
+
+    // Store in Redis cache for 5 minutes
+    try {
+      await cache.set(cacheKey, response, 300);
+      console.log("Cached data for", cacheKey);
+    } catch (cacheError) {
+      console.error("Cache set error:", cacheError);
+      // Continue even if caching fails
+    }
+
+    return NextResponse.json(response);
+  } catch (error) {
+    console.error("Error in getTopSuppliers:", error);
+    return NextResponse.json(
+      { success: false, error: error.message },
+      { status: 500 }
+    );
+  }
+}
+
+// Award Timing
+export async function getAwardTiming(year = "all") {
+  try {
+    // 1. Check redis cache first
+    const cacheKey = `award-timing:${year}`;
+    const cachedData = await cache.get(cacheKey);
+
+    if (cachedData) {
+      console.log("Cache hit for", cacheKey);
+      return NextResponse.json(cachedData);
+    }
+
+    await connectDB();
+
+    // Build match stage based on year
+    const matchStage = {
+      department: { $exists: true, $ne: null },
+      advertised: { $exists: true },
+      awarded: { $exists: true },
+    };
+
+    // Add year filter if specified
+    if (year && year !== "all") {
+      matchStage.awarded = {
+        $gte: new Date(`${year}-01-01`),
+        $lt: new Date(`${parseInt(year) + 1}-01-01`),
+      };
+    }
+
+    const data = await AwardedTenderModel.aggregate([
+      {
+        $match: matchStage,
+      },
+      {
+        $project: {
+          department: 1,
+          daysToAward: {
+            $divide: [
+              { $subtract: ["$awarded", "$advertised"] },
+              1000 * 60 * 60 * 24, // Convert milliseconds to days
+            ],
+          },
+        },
+      },
+      {
+        $group: {
+          _id: "$department",
+          averageDays: { $avg: "$daysToAward" },
+          count: { $sum: 1 },
+        },
+      },
+      {
+        $project: {
+          _id: 0,
+          department: "$_id",
+          averageDays: { $round: ["$averageDays", 0] },
+          count: 1,
+        },
+      },
+      { $sort: { averageDays: -1 } },
+      { $limit: 10 },
+    ]);
+
+    const response = {
+      success: true,
+      data,
+    };
+
+    // Store in Redis cache for 5 minutes
+    try {
+      await cache.set(cacheKey, response, 300);
+      console.log("Cached data for", cacheKey);
+    } catch (cacheError) {
+      console.error("Cache set error:", cacheError);
+      // Continue even if caching fails
+    }
+
+    return NextResponse.json(response);
+  } catch (error) {
+    console.error("Error in getAwardTiming:", error);
+    return NextResponse.json(
+      { success: false, error: error.message },
+      { status: 500 }
+    );
+  }
+}
+
+// Lowest Award Timing
+export async function getLowestAwardTiming(year = "all") {
+  try {
+    // 1. Check redis cache first
+    const cacheKey = `lowest-award-timing:${year}`;
+    const cachedData = await cache.get(cacheKey);
+
+    if (cachedData) {
+      console.log("Cache hit for", cacheKey);
+      return NextResponse.json(cachedData);
+    }
+
+    await connectDB();
+
+    // Build match stage based on year
+    const matchStage = {
+      department: { $exists: true, $ne: null },
+      advertised: { $exists: true },
+      awarded: { $exists: true },
+    };
+
+    // Add year filter if specified
+    if (year && year !== "all") {
+      matchStage.awarded = {
+        $gte: new Date(`${year}-01-01`),
+        $lt: new Date(`${parseInt(year) + 1}-01-01`),
+      };
+    }
+
+    const data = await AwardedTenderModel.aggregate([
+      {
+        $match: matchStage,
+      },
+      {
+        $project: {
+          department: 1,
+          daysToAward: {
+            $divide: [
+              { $subtract: ["$awarded", "$advertised"] },
+              1000 * 60 * 60 * 24, // Convert milliseconds to days
+            ],
+          },
+        },
+      },
+      {
+        $group: {
+          _id: "$department",
+          averageDays: { $avg: "$daysToAward" },
+          count: { $sum: 1 },
+        },
+      },
+      {
+        $project: {
+          _id: 0,
+          department: "$_id",
+          averageDays: { $round: ["$averageDays", 0] },
+          count: 1,
+        },
+      },
+      { $sort: { averageDays: 1 } }, // Sort in ascending order for lowest days
+      { $limit: 10 },
+    ]);
+
+    const response = {
+      success: true,
+      data,
+    };
+
+    // Store in Redis cache for 5 minutes
+    try {
+      await cache.set(cacheKey, response, 300);
+      console.log("Cached data for", cacheKey);
+    } catch (cacheError) {
+      console.error("Cache set error:", cacheError);
+      // Continue even if caching fails
+    }
+
+    return NextResponse.json(response);
+  } catch (error) {
+    console.error("Error in getLowestAwardTiming:", error);
+    return NextResponse.json(
+      { success: false, error: error.message },
+      { status: 500 }
+    );
+  }
+}

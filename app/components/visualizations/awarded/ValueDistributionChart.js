@@ -5,37 +5,16 @@ import { Chart as ChartJS, ArcElement, Tooltip, Legend, Title } from "chart.js";
 
 ChartJS.register(ArcElement, Tooltip, Legend, Title);
 
-export default function ValueDistributionChart({ tenders }) {
-  // Group tenders by value ranges
-  const ranges = {
-    "< R1M": 0,
-    "R1M - R5M": 0,
-    "R5M - R10M": 0,
-    "R10M - R50M": 0,
-    "> R50M": 0,
-  };
+export default function ValueDistributionChart({ data }) {
+  if (!data) {
+    return <div>Loading...</div>;
+  }
 
-  tenders.forEach((tender) => {
-    const value = tender.successfulBidderAmount;
-
-    // Add console log to debug values
-    console.log("Processing tender value:", value);
-
-    if (value < 1_000_000) ranges["< R1M"]++;
-    else if (value < 5_000_000) ranges["R1M - R5M"]++;
-    else if (value < 10_000_000) ranges["R5M - R10M"]++;
-    else if (value < 50_000_000) ranges["R10M - R50M"]++;
-    else ranges["> R50M"]++;
-  });
-
-  // Log final ranges for debugging
-  console.log("Final ranges:", ranges);
-
-  const data = {
-    labels: Object.keys(ranges),
+  const chartData = {
+    labels: data.map((item) => item.range),
     datasets: [
       {
-        data: Object.values(ranges),
+        data: data.map((item) => item.count),
         backgroundColor: [
           "#B8C5FF", // Base periwinkle
           "#C2CDFF",
@@ -46,6 +25,8 @@ export default function ValueDistributionChart({ tenders }) {
       },
     ],
   };
+
+  const totalTenders = data.reduce((sum, item) => sum + item.count, 0);
 
   const options = {
     responsive: true,
@@ -66,9 +47,13 @@ export default function ValueDistributionChart({ tenders }) {
       tooltip: {
         callbacks: {
           label: (context) => {
-            const value = context.raw;
-            const percentage = ((value / tenders.length) * 100).toFixed(1);
-            return `${context.label}: ${value} tenders (${percentage}%)`;
+            const item = data[context.dataIndex];
+            const percentage = ((item.count / totalTenders) * 100).toFixed(1);
+            const value = item.totalValue.toLocaleString();
+            return [
+              `Count: ${item.count} tenders (${percentage}%)`,
+              `Total Value: R ${value}`,
+            ];
           },
         },
       },
@@ -87,5 +72,5 @@ export default function ValueDistributionChart({ tenders }) {
     },
   };
 
-  return <Pie data={data} options={options} height={400} width={600} />;
+  return <Pie data={chartData} options={options} height={400} width={600} />;
 }
