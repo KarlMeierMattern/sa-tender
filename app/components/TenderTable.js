@@ -33,72 +33,73 @@ export default function TenderTable({
   totalItems,
   itemsPerPage = 10,
   paginateData,
+  selectedCategories = [],
+  setSelectedCategories,
+  selectedDepartments = [],
+  setSelectedDepartments,
+  selectedProvinces = [],
+  setSelectedProvinces,
+  selectedAdvertisedDate,
+  setSelectedAdvertisedDate,
+  selectedSecondDate,
+  setSelectedSecondDate,
+  allCategories = [],
+  allDepartments = [],
+  allProvinces = [],
 }) {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const [selectedAdvertisedDate, setSelectedAdvertisedDate] = React.useState();
-  const [selectedSecondDate, setSelectedSecondDate] = React.useState();
-  const [selectedCategories, setSelectedCategories] = React.useState([]);
-  const [selectedDepartments, setSelectedDepartments] = React.useState([]);
-  const [selectedProvinces, setSelectedProvinces] = React.useState([]);
 
   if (isLoading) {
     return <TableSkeleton />;
   }
 
-  // Get unique values for filters
-  const categories = [
-    ...new Set(allTenders.map((tender) => tender.category)),
-  ].filter(Boolean);
-  const departments = [
-    ...new Set(allTenders.map((tender) => tender.department)),
-  ].filter(Boolean);
-  const provinces = [
-    ...new Set(allTenders.map((tender) => tender.province)),
-  ].filter(Boolean);
-
   // Apply filters to full dataset
-  const filteredTenders = allTenders.filter((tender) => {
-    const matchesCategory =
-      selectedCategories.length === 0 ||
-      selectedCategories.includes(tender.category);
-    const matchesDepartment =
-      selectedDepartments.length === 0 ||
-      selectedDepartments.includes(tender.department);
-    const matchesProvince =
-      selectedProvinces.length === 0 ||
-      selectedProvinces.includes(tender.province);
+  const filteredTenders = Array.isArray(allTenders)
+    ? allTenders.filter((tender) => {
+        const matchesCategory =
+          selectedCategories.length === 0 ||
+          selectedCategories.includes(tender.category);
+        const matchesDepartment =
+          selectedDepartments.length === 0 ||
+          selectedDepartments.includes(tender.department);
+        const matchesProvince =
+          selectedProvinces.length === 0 ||
+          selectedProvinces.includes(tender.province);
 
-    // First date filter always checks 'advertised' field
-    const matchesAdvertisedDate =
-      !selectedAdvertisedDate ||
-      format(new Date(tender.advertised), "yyyy-MM-dd") ===
-        format(selectedAdvertisedDate, "yyyy-MM-dd");
+        // First date filter always checks 'advertised' field
+        const matchesAdvertisedDate =
+          !selectedAdvertisedDate ||
+          format(new Date(tender.advertised), "yyyy-MM-dd") ===
+            format(selectedAdvertisedDate, "yyyy-MM-dd");
 
-    // Second date filter checks either 'closingDate' or 'awarded' based on isAwarded
-    const matchesSecondDate =
-      !selectedSecondDate ||
-      format(
-        new Date(isAwarded ? tender.awarded : tender.closingDate),
-        "yyyy-MM-dd"
-      ) === format(selectedSecondDate, "yyyy-MM-dd");
+        // Second date filter checks either 'closingDate' or 'awarded' based on isAwarded
+        const matchesSecondDate =
+          !selectedSecondDate ||
+          format(
+            new Date(isAwarded ? tender.awarded : tender.closingDate),
+            "yyyy-MM-dd"
+          ) === format(selectedSecondDate, "yyyy-MM-dd");
 
-    return (
-      matchesCategory &&
-      matchesDepartment &&
-      matchesProvince &&
-      matchesAdvertisedDate &&
-      matchesSecondDate
-    );
-  });
+        return (
+          matchesCategory &&
+          matchesDepartment &&
+          matchesProvince &&
+          matchesAdvertisedDate &&
+          matchesSecondDate
+        );
+      })
+    : [];
+
+  console.log("Filtered tenders:", filteredTenders.length);
 
   // Get the current page of filtered data
   const currentPageData = paginateData
     ? paginateData(filteredTenders, currentPage, itemsPerPage)
-    : filteredTenders;
+    : allTenders; // Use allTenders directly when using server-side pagination
 
-  // Calculate total pages from filtered items
-  const totalPages = Math.ceil(filteredTenders.length / itemsPerPage);
+  // Calculate total pages from total items
+  const totalPages = Math.ceil(totalItems / itemsPerPage);
 
   const handlePageChange = (newPage) => {
     const params = new URLSearchParams(searchParams);
@@ -151,21 +152,21 @@ export default function TenderTable({
       <div className="flex flex-wrap gap-4 mb-6">
         <MultiSelect
           label="Category"
-          options={categories}
+          options={allCategories}
           selected={selectedCategories}
           onSelect={setSelectedCategories}
           placeholder="Select Category"
         />
         <MultiSelect
           label="Department"
-          options={departments}
+          options={allDepartments}
           selected={selectedDepartments}
           onSelect={setSelectedDepartments}
           placeholder="Select Department"
         />
         <MultiSelect
           label="Province"
-          options={provinces}
+          options={allProvinces}
           selected={selectedProvinces}
           onSelect={setSelectedProvinces}
           placeholder="Select Province"

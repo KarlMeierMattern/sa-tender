@@ -8,6 +8,17 @@ export async function GET(request) {
   const page = parseInt(searchParams.get("page")) || 1; // API params processing
   const limit = parseInt(searchParams.get("limit")) || 10; // API params processing
   const year = searchParams.get("year"); // API params processing
+  const category = searchParams.get("category");
+  const department = searchParams.get("department");
+  const province = searchParams.get("province");
+  const advertised = searchParams.get("advertised");
+  const awarded = searchParams.get("awarded");
 
-  return getAwardedTenders(page, limit, year);
+  return getAwardedTenders(page, limit, year, {
+    category,
+    department,
+    province,
+    advertised,
+    awarded,
+  });
 }

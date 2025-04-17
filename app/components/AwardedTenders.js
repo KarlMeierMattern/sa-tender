@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import dynamic from "next/dynamic";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -14,7 +14,10 @@ import {
 } from "./visualizations/awarded";
 import TableSkeleton from "./ui/table-skeleton";
 import { useAwardedCharts } from "../hooks/useAwardedCharts.js";
-import { useAwardedTendersTable } from "../hooks/useAwardedTendersTable.js";
+import { usePaginatedAwardedTenders } from "../hooks/usePaginatedAwardedTenders.js";
+import { useAllAwardedTenders } from "../hooks/useAllAwardedTendersTable.js";
+import { format } from "date-fns";
+import { useAwardedTenderFilters } from "../hooks/useAwardedTenderFilters";
 
 // Lazy load the table component
 const TenderTable = dynamic(() => import("./TenderTable"), {
@@ -26,58 +29,63 @@ const ITEMS_PER_PAGE = 10;
 
 export default function AwardedTenders({ page, currentView, updateUrlParams }) {
   const [selectedYear, setSelectedYear] = useState("all");
-  const [availableYears, setAvailableYears] = useState([]);
+  const [selectedCategories, setSelectedCategories] = useState([]);
+  const [selectedDepartments, setSelectedDepartments] = useState([]);
+  const [selectedProvinces, setSelectedProvinces] = useState([]);
+  const [selectedAdvertisedDate, setSelectedAdvertisedDate] = useState(null);
+  const [selectedSecondDate, setSelectedSecondDate] = useState(null);
 
-  // Fetch all years from the awarded tenders
-  useEffect(() => {
-    async function fetchYears() {
-      try {
-        const response = await fetch(
-          "/api/tenders-detail-awarded?limit=999999"
-        );
-        const data = await response.json();
+  // Fetch filter options
+  const { data: filterOptions, isLoading: isFiltersLoading } =
+    useAwardedTenderFilters();
 
-        const years = Array.from(
-          new Set(
-            data?.data
-              ?.map((tender) => new Date(tender.awarded).getFullYear())
-              .filter(Boolean)
-          )
-        ).sort((a, b) => b - a);
-
-        setAvailableYears(years);
-      } catch (error) {
-        console.error("Error fetching years:", error);
-      }
-    }
-
-    fetchYears();
-  }, []);
+  // Extract years from awarded dates
+  const availableYears = Array.from(
+    new Set(
+      filterOptions?.awarded
+        ?.map((date) => new Date(date).getFullYear())
+        .filter(Boolean)
+    )
+  ).sort((a, b) => b - a);
 
   // Fetch chart data
   const chartQueries = useAwardedCharts(selectedYear);
 
-  // Fetch table data
-  const { paginatedData, allData, paginateData, isLoading } =
-    useAwardedTendersTable({
-      page,
-      limit: ITEMS_PER_PAGE,
-    });
+  const isFirstPage = page === 1;
 
-  // Use full data for charts, but paginated data for table
-  const allAwarded =
-    currentView === "table"
-      ? {
-          data: allData.data?.data || [],
-          pagination: {
-            total: allData.data?.pagination?.total || 0,
-            page: page,
-            limit: ITEMS_PER_PAGE,
-          },
-        }
-      : allData.data;
+  const paginatedData = usePaginatedAwardedTenders({
+    page,
+    category: selectedCategories.join(","),
+    department: selectedDepartments.join(","),
+    province: selectedProvinces.join(","),
+    advertised: selectedAdvertisedDate
+      ? format(selectedAdvertisedDate, "yyyy-MM-dd")
+      : "",
+    awarded: selectedSecondDate ? format(selectedSecondDate, "yyyy-MM-dd") : "",
+  });
 
-  if (isLoading) return <TableSkeleton />;
+  // Use paginated data for table view, all data for charts
+  const tableData = paginatedData.data?.data || [];
+  const totalItems = paginatedData.data?.pagination?.total || 0;
+  const totalPages = Math.ceil(totalItems / ITEMS_PER_PAGE);
+
+  const allData = useAllAwardedTenders({ enabled: !isFirstPage });
+
+  // Combine loading states
+  const isLoading = paginatedData.isALoading || allData.isLoading;
+
+  // Extract unique filter values from the full dataset
+  const allCategories = Array.from(
+    new Set(tableData.map((t) => t.category).filter(Boolean))
+  ).sort();
+  const allDepartments = Array.from(
+    new Set(tableData.map((t) => t.department).filter(Boolean))
+  ).sort();
+  const allProvinces = Array.from(
+    new Set(tableData.map((t) => t.province).filter(Boolean))
+  ).sort();
+
+  if (isLoading || isFiltersLoading) return <TableSkeleton />;
 
   // Calculate metrics
   const calculateTotalValue = (tenders) => {
@@ -132,9 +140,7 @@ export default function AwardedTenders({ page, currentView, updateUrlParams }) {
               <CardTitle>Total Tenders Awarded</CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-3xl font-bold">
-                {allAwarded?.pagination?.total}
-              </p>
+              <p className="text-3xl font-bold">{totalItems}</p>
             </CardContent>
           </Card>
           <Card>
@@ -143,7 +149,8 @@ export default function AwardedTenders({ page, currentView, updateUrlParams }) {
             </CardHeader>
             <CardContent>
               <p className="text-3xl font-bold">
-                R {calculateTotalValue(allAwarded?.data || []).toLocaleString()}
+                R{" "}
+                {calculateTotalValue(allData.data?.data || []).toLocaleString()}
               </p>
             </CardContent>
           </Card>
@@ -154,7 +161,9 @@ export default function AwardedTenders({ page, currentView, updateUrlParams }) {
             <CardContent>
               <p className="text-3xl font-bold">
                 R{" "}
-                {calculateAverageValue(allAwarded?.data || []).toLocaleString()}
+                {calculateAverageValue(
+                  allData.data?.data || []
+                ).toLocaleString()}
               </p>
             </CardContent>
           </Card>
@@ -191,13 +200,26 @@ export default function AwardedTenders({ page, currentView, updateUrlParams }) {
 
       <TabsContent value="table">
         <TenderTable
-          allTenders={allData.data?.data || []}
+          allTenders={tableData}
           currentPage={page}
           isAwarded={true}
           isLoading={isLoading}
-          totalItems={allData.data?.pagination?.total || 0}
+          totalItems={totalItems}
           itemsPerPage={ITEMS_PER_PAGE}
-          paginateData={paginateData}
+          paginateData={null}
+          selectedCategories={selectedCategories}
+          setSelectedCategories={setSelectedCategories}
+          selectedDepartments={selectedDepartments}
+          setSelectedDepartments={setSelectedDepartments}
+          selectedProvinces={selectedProvinces}
+          setSelectedProvinces={setSelectedProvinces}
+          selectedAdvertisedDate={selectedAdvertisedDate}
+          setSelectedAdvertisedDate={setSelectedAdvertisedDate}
+          selectedSecondDate={selectedSecondDate}
+          setSelectedSecondDate={setSelectedSecondDate}
+          allCategories={filterOptions?.categories || []}
+          allDepartments={filterOptions?.departments || []}
+          allProvinces={filterOptions?.provinces || []}
         />
       </TabsContent>
     </Tabs>

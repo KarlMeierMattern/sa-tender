@@ -81,10 +81,17 @@ export async function getTendersDetail(page = 1, limit = 10) {
   }
 }
 
-export async function getAwardedTenders(page = 1, limit = 10, year = "all") {
+export async function getAwardedTenders(
+  page = 1,
+  limit = 10,
+  year = "all",
+  filters = {}
+) {
   try {
     // 1. Check redis cache first
-    const cacheKey = `awarded-tenders:${page}:${limit}:${year}`;
+    const cacheKey = `awarded-tenders:${page}:${limit}:${year}:${JSON.stringify(
+      filters
+    )}`;
     const cachedData = await cache.get(cacheKey);
 
     if (cachedData) {
@@ -96,10 +103,45 @@ export async function getAwardedTenders(page = 1, limit = 10, year = "all") {
     await connectDB();
 
     let query = {};
+
+    // Year filter
     if (year && year !== "all") {
       query.awarded = {
         $gte: new Date(`${year}-01-01`),
         $lt: new Date(`${parseInt(year) + 1}-01-01`),
+      };
+    }
+
+    // Category filter
+    if (filters.category) {
+      query.category = { $in: filters.category.split(",") };
+    }
+
+    // Department filter
+    if (filters.department) {
+      query.department = { $in: filters.department.split(",") };
+    }
+
+    // Province filter
+    if (filters.province) {
+      query.province = { $in: filters.province.split(",") };
+    }
+
+    // Advertised date filter
+    if (filters.advertised) {
+      const advertisedDate = new Date(filters.advertised);
+      query.advertised = {
+        $gte: new Date(advertisedDate.setHours(0, 0, 0, 0)),
+        $lt: new Date(advertisedDate.setHours(23, 59, 59, 999)),
+      };
+    }
+
+    // Awarded date filter
+    if (filters.awarded) {
+      const awardedDate = new Date(filters.awarded);
+      query.awarded = {
+        $gte: new Date(awardedDate.setHours(0, 0, 0, 0)),
+        $lt: new Date(awardedDate.setHours(23, 59, 59, 999)),
       };
     }
 
@@ -123,7 +165,7 @@ export async function getAwardedTenders(page = 1, limit = 10, year = "all") {
         .sort({ awarded: -1 })
         .skip(skip)
         .limit(limit)
-        .lean(), // Use lean() to get plain objects instead of Mongoose documents
+        .lean(),
       AwardedTenderModel.countDocuments(query),
     ]);
 
@@ -138,7 +180,7 @@ export async function getAwardedTenders(page = 1, limit = 10, year = "all") {
       },
     };
 
-    // 3. Store in Redis cache for 5 minutes, with error handling
+    // 3. Store in Redis cache for 5 minutes
     try {
       await cache.set(cacheKey, response, 300);
       console.log("Cached data for", cacheKey);

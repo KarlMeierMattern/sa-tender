@@ -29,3 +29,11 @@ Web Application Firewall (WAF)
 - Handles loading/error states;
 - Automatic background refetching;
 - Used in: user-specific data, frequently changing data, client-side filtering/sorting, and optimistic updates.
+
+Filtering & pagination
+• ✅ Filters parsed in route handler (category, department, province, advertised, awarded).
+• ✅ Filters passed into getAwardedTenders as an object.
+• ✅ Filters applied in MongoDB query before .skip() and .limit().
+• ✅ Date handling includes full-day range (midnight to 23:59) – perfect for equality-based filters.
+• ✅ Pagination and total count calculated using the filtered query.
+• ✅ Redis caching includes filters in the key to avoid mismatches.
