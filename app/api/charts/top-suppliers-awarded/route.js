@@ -1,7 +1,7 @@
-import { getValueDistribution } from "../../index.js";
+import { getTopSuppliersAwarded } from "../../index.js";
 
 export async function GET(request) {
   const url = new URL(request.url);
   const year = url.searchParams.get("year") || "all";
-  return getValueDistribution(year);
+  return getTopSuppliersAwarded(year);
 }

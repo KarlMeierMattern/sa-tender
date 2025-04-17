@@ -30,36 +30,22 @@ const CustomTooltip = ({ active, payload }) => {
     const data = payload[0].payload;
     return (
       <div className="bg-white p-3 rounded-lg shadow-md border border-gray-200">
-        <p className="font-medium text-gray-900">{data.name}</p>
-        <p className="text-gray-600">{data.value} tenders</p>
-        <p className="text-gray-500 text-sm">
-          {(data.percent * 100).toFixed(1)}% of total
-        </p>
+        <p className="font-medium text-gray-900">{data.department}</p>
+        <p className="text-gray-600">{data.count} tenders</p>
       </div>
     );
   }
   return null;
 };
 
-export default function DepartmentBarChart({ tenders }) {
-  const data = React.useMemo(() => {
-    const counts = {};
-    const total = tenders.length;
-
-    tenders.forEach((tender) => {
-      const dept = tender.department || "Unknown";
-      counts[dept] = (counts[dept] || 0) + 1;
-    });
-
-    return Object.entries(counts)
-      .map(([name, value]) => ({
-        name,
-        value,
-        percent: value / total,
-      }))
-      .sort((a, b) => b.value - a.value)
-      .slice(0, 10);
-  }, [tenders]);
+export default function DepartmentBarChart({ data }) {
+  const chartData = React.useMemo(() => {
+    if (!data) return [];
+    return data.map((item) => ({
+      department: item.department,
+      count: item.count,
+    }));
+  }, [data]);
 
   return (
     <div className="w-full h-[400px]">
@@ -67,7 +53,7 @@ export default function DepartmentBarChart({ tenders }) {
       <div className="h-[calc(100%-2rem)]">
         <ResponsiveContainer width="100%" height="100%">
           <BarChart
-            data={data}
+            data={chartData}
             layout="vertical"
             margin={{ top: 20, right: 30, left: 180, bottom: 20 }}
             barSize={20}
@@ -87,7 +73,7 @@ export default function DepartmentBarChart({ tenders }) {
             />
             <YAxis
               type="category"
-              dataKey="name"
+              dataKey="department"
               width={160}
               tickMargin={8}
               tick={{ fill: "#6B7280", fontSize: 12 }}
@@ -95,7 +81,7 @@ export default function DepartmentBarChart({ tenders }) {
               tickLine={{ stroke: "#E5E7EB" }}
             />
             <Tooltip content={<CustomTooltip />} />
-            <Bar dataKey="value" fill={COLORS[0]} radius={[0, 4, 4, 0]} />
+            <Bar dataKey="count" fill={COLORS[0]} radius={[0, 4, 4, 0]} />
           </BarChart>
         </ResponsiveContainer>
       </div>

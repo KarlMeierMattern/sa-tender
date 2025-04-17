@@ -23,34 +23,21 @@ const CustomTooltip = ({ active, payload }) => {
     return (
       <div className="bg-white p-3 rounded-lg shadow-md border border-gray-200">
         <p className="font-medium text-gray-900">{data.name}</p>
-        <p className="text-gray-600">{data.value} tenders</p>
-        <p className="text-gray-500 text-sm">
-          {(data.percent * 100).toFixed(1)}% of total
-        </p>
+        <p className="text-gray-600">{data.count} tenders</p>
       </div>
     );
   }
   return null;
 };
 
-export default function TenderTypeDonut({ tenders }) {
-  const data = React.useMemo(() => {
-    const counts = {};
-    const total = tenders.length;
-
-    tenders.forEach((tender) => {
-      const type = tender.tenderType || "Unknown";
-      counts[type] = (counts[type] || 0) + 1;
-    });
-
-    return Object.entries(counts)
-      .map(([name, value]) => ({
-        name,
-        value,
-        percent: value / total,
-      }))
-      .sort((a, b) => b.value - a.value);
-  }, [tenders]);
+export default function TenderTypeDonut({ data }) {
+  const chartData = React.useMemo(() => {
+    if (!data) return [];
+    return data.map((item) => ({
+      name: item.name || "Unknown",
+      count: item.count || 0,
+    }));
+  }, [data]);
 
   return (
     <div className="w-full h-[400px]">
@@ -59,15 +46,16 @@ export default function TenderTypeDonut({ tenders }) {
         <ResponsiveContainer width="100%" height="100%">
           <PieChart>
             <Pie
-              data={data}
+              data={chartData}
               cx="50%"
               cy="50%"
               innerRadius="60%"
               outerRadius="90%"
               fill="#8884d8"
-              dataKey="value"
+              dataKey="count"
+              nameKey="name"
             >
-              {data.map((entry, index) => (
+              {chartData.map((entry, index) => (
                 <Cell
                   key={`cell-${index}`}
                   fill={COLORS[index % COLORS.length]}

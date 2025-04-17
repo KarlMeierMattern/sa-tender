@@ -19,6 +19,7 @@ import {
 } from "./visualizations/active";
 import { differenceInDays } from "date-fns";
 import TableSkeleton from "./ui/table-skeleton";
+import { useAwardedCharts } from "../hooks/useAwardedCharts";
 
 const ITEMS_PER_PAGE = 10;
 
@@ -42,6 +43,9 @@ export default function AdvertisedTenders({
     },
     staleTime: 1000 * 60 * 5, // 5 minutes
   });
+
+  // Get chart data
+  const chartQueries = useAwardedCharts();
 
   // Get the current page of data
   const getCurrentPageData = () => {
@@ -139,19 +143,27 @@ export default function AdvertisedTenders({
         <div className="mt-8 bg-gray-50 rounded-3xl p-8">
           <div className="grid grid-cols-2 gap-8">
             <div className="bg-white rounded-xl p-6 shadow-sm">
-              <ProvinceBarChart tenders={allAdvertised?.data || []} />
+              <ProvinceBarChart
+                data={chartQueries.provinceCountActive.data?.data}
+              />
             </div>
             <div className="bg-white rounded-xl p-6 shadow-sm">
-              <ProvinceMap tenders={allAdvertised?.data || []} />
+              <ProvinceMap data={chartQueries.provinceCountActive.data?.data} />
             </div>
             <div className="bg-white rounded-xl p-6 shadow-sm">
-              <DepartmentBarChart tenders={allAdvertised?.data || []} />
+              <DepartmentBarChart
+                data={chartQueries.departmentCountActive.data?.data}
+              />
             </div>
             <div className="bg-white rounded-xl p-6 shadow-sm">
-              <CategoryPieChart tenders={allAdvertised?.data || []} />
+              <CategoryPieChart
+                data={chartQueries.categoryCountActive.data?.data}
+              />
             </div>
             <div className="bg-white rounded-xl p-6 shadow-sm">
-              <TenderTypeDonut tenders={allAdvertised?.data || []} />
+              <TenderTypeDonut
+                data={chartQueries.tenderTypeCountActive.data?.data}
+              />
             </div>
           </div>
         </div>

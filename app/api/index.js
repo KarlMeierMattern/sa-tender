@@ -307,7 +307,7 @@ export async function getProvinceValueAwarded(year = "all") {
 }
 
 // Value Distribution
-export async function getValueDistribution(year = "all") {
+export async function getValueDistributionAwarded(year = "all") {
   try {
     // 1. Check redis cache first
     const cacheKey = `value-distribution:${year}`;
@@ -395,7 +395,7 @@ export async function getValueDistribution(year = "all") {
 }
 
 // Top Suppliers
-export async function getTopSuppliers(year = "all") {
+export async function getTopSuppliersAwarded(year = "all") {
   try {
     // 1. Check redis cache first
     const cacheKey = `top-suppliers:${year}`;
@@ -638,6 +638,330 @@ export async function getLowestAwardTiming(year = "all") {
     console.error("Error in getLowestAwardTiming:", error);
     return NextResponse.json(
       { success: false, error: error.message },
+      { status: 500 }
+    );
+  }
+}
+
+export async function getProvinceCountActive() {
+  try {
+    // 1. Check redis cache first
+    const cacheKey = `province-count-active`;
+    const cachedData = await cache.get(cacheKey);
+
+    if (cachedData) {
+      console.log("Cache hit for", cacheKey);
+      return NextResponse.json(cachedData);
+    }
+
+    await connectDB();
+
+    const data = await TenderModel.aggregate([
+      {
+        $match: {
+          province: { $exists: true },
+        },
+      },
+      {
+        $group: {
+          _id: "$province",
+          count: { $sum: 1 },
+        },
+      },
+      {
+        $project: {
+          _id: 0,
+          province: "$_id",
+          count: 1,
+        },
+      },
+      { $sort: { count: -1 } },
+    ]);
+
+    const response = {
+      success: true,
+      data,
+    };
+
+    // Store in Redis cache for 5 minutes
+    try {
+      await cache.set(cacheKey, response, 300);
+      console.log("Cached data for", cacheKey);
+    } catch (cacheError) {
+      console.error("Cache set error:", cacheError);
+      // Continue even if caching fails
+    }
+
+    return NextResponse.json(response);
+  } catch (error) {
+    console.error("Error in getProvinceCountActive:", error);
+    return NextResponse.json(
+      { success: false, error: error.message },
+      { status: 500 }
+    );
+  }
+}
+
+export async function getProvinceValueActive() {
+  try {
+    // 1. Check redis cache first
+    const cacheKey = `province-value-active`;
+    const cachedData = await cache.get(cacheKey);
+
+    if (cachedData) {
+      console.log("Cache hit for", cacheKey);
+      return NextResponse.json(cachedData);
+    }
+
+    await connectDB();
+
+    const data = await TenderModel.aggregate([
+      {
+        $match: {
+          province: { $exists: true },
+        },
+      },
+      {
+        $group: {
+          _id: "$province",
+          count: { $sum: 1 },
+        },
+      },
+      {
+        $project: {
+          _id: 0,
+          province: "$_id",
+          count: 1,
+        },
+      },
+      { $sort: { count: -1 } },
+    ]);
+
+    const response = {
+      success: true,
+      data,
+    };
+
+    // Store in Redis cache for 5 minutes
+    try {
+      await cache.set(cacheKey, response, 300);
+      console.log("Cached data for", cacheKey);
+    } catch (cacheError) {
+      console.error("Cache set error:", cacheError);
+      // Continue even if caching fails
+    }
+
+    return NextResponse.json(response);
+  } catch (error) {
+    console.error("Error in getProvinceValueActive:", error);
+    return NextResponse.json(
+      { success: false, error: error.message },
+      { status: 500 }
+    );
+  }
+}
+
+export async function getDepartmentCountActive() {
+  try {
+    // 1. Check redis cache first
+    const cacheKey = `department-count-active`;
+    const cachedData = await cache.get(cacheKey);
+
+    if (cachedData) {
+      console.log("Cache hit for", cacheKey);
+      return NextResponse.json(cachedData);
+    }
+
+    await connectDB();
+
+    const data = await TenderModel.aggregate([
+      {
+        $match: {
+          department: { $exists: true },
+        },
+      },
+      {
+        $group: {
+          _id: "$department",
+          count: { $sum: 1 },
+        },
+      },
+      {
+        $project: {
+          _id: 0,
+          department: "$_id",
+          count: 1,
+        },
+      },
+      { $sort: { count: -1 } },
+      { $limit: 10 },
+    ]);
+
+    const response = {
+      success: true,
+      data,
+    };
+
+    // Store in Redis cache for 5 minutes
+    try {
+      await cache.set(cacheKey, response, 300);
+      console.log("Cached data for", cacheKey);
+    } catch (cacheError) {
+      console.error("Cache set error:", cacheError);
+      // Continue even if caching fails
+    }
+
+    return NextResponse.json(response);
+  } catch (error) {
+    console.error("Error in getDepartmentCountActive:", error);
+    return NextResponse.json(
+      { success: false, error: error.message },
+      { status: 500 }
+    );
+  }
+}
+
+export async function getCategoryCountActive() {
+  try {
+    // 1. Check redis cache first
+    const cacheKey = `category-count-active`;
+    const cachedData = await cache.get(cacheKey);
+
+    if (cachedData) {
+      console.log("Cache hit for", cacheKey);
+      return NextResponse.json(cachedData);
+    }
+
+    await connectDB();
+
+    // First, get all categories with their counts
+    const aggregationResult = await TenderModel.aggregate([
+      {
+        $match: {
+          category: { $exists: true, $ne: null }, // only include categories that exist
+        },
+      },
+      {
+        $group: {
+          _id: "$category",
+          count: { $sum: 1 },
+        },
+      },
+      {
+        $project: {
+          _id: 0,
+          category: "$_id",
+          count: 1,
+        },
+      },
+      { $sort: { count: -1 } },
+    ]);
+
+    console.log("Aggregation result:", aggregationResult);
+
+    // Process the results
+    let processedData = aggregationResult;
+
+    // If we have more than 10 categories, group the rest as "Other"
+    if (processedData.length > 10) {
+      const topTen = processedData.slice(0, 10);
+      const otherSum = processedData
+        .slice(10)
+        .reduce((sum, item) => sum + (item.count || 0), 0);
+
+      processedData = [
+        ...topTen,
+        {
+          category: "Other",
+          count: otherSum,
+        },
+      ];
+    }
+
+    const response = {
+      success: true,
+      data: processedData,
+    };
+
+    // Store in Redis cache for 5 minutes
+    try {
+      await cache.set(cacheKey, response, 300);
+      console.log("Cached data for", cacheKey);
+    } catch (cacheError) {
+      console.error("Cache set error:", cacheError);
+      // Continue even if caching fails
+    }
+
+    return NextResponse.json(response);
+  } catch (error) {
+    console.error("Error in getCategoryCountActive:", error);
+    return NextResponse.json(
+      {
+        success: false,
+        error: error.message,
+      },
+      { status: 500 }
+    );
+  }
+}
+
+export async function getTenderTypeCountActive() {
+  try {
+    // 1. Check redis cache first
+    const cacheKey = `tender-type-count-active`;
+    const cachedData = await cache.get(cacheKey);
+
+    if (cachedData) {
+      console.log("Cache hit for", cacheKey);
+      return NextResponse.json(cachedData);
+    }
+
+    await connectDB();
+
+    const data = await TenderModel.aggregate([
+      {
+        $match: {
+          tenderType: { $exists: true, $ne: null },
+        },
+      },
+      {
+        $group: {
+          _id: "$tenderType",
+          count: { $sum: 1 },
+        },
+      },
+      {
+        $project: {
+          _id: 0,
+          name: "$_id",
+          count: 1,
+        },
+      },
+      { $sort: { count: -1 } },
+    ]);
+
+    const response = {
+      success: true,
+      data,
+    };
+
+    // Store in Redis cache for 5 minutes
+    try {
+      await cache.set(cacheKey, response, 300);
+      console.log("Cached data for", cacheKey);
+    } catch (cacheError) {
+      console.error("Cache set error:", cacheError);
+      // Continue even if caching fails
+    }
+
+    return NextResponse.json(response);
+  } catch (error) {
+    console.error("Error in getTenderTypeCountActive:", error);
+    return NextResponse.json(
+      {
+        success: false,
+        error: error.message,
+      },
       { status: 500 }
     );
   }

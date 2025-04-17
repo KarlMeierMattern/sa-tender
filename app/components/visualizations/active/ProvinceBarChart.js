@@ -41,26 +41,19 @@ const CustomTooltip = ({ active, payload }) => {
   return null;
 };
 
-export default function ProvinceBarChart({ tenders }) {
-  // Process data to get counts per province
-  // useMemo caches the result of the function so that it is not recalculated on every render
+export default function ProvinceBarChart({ data }) {
   const provinceData = React.useMemo(() => {
-    const counts = {};
-    const total = tenders.length;
+    if (!data) return [];
 
-    tenders.forEach((tender) => {
-      const province = tender.province || "Unknown";
-      counts[province] = (counts[province] || 0) + 1;
-    });
+    const total = data.reduce((sum, item) => sum + item.count, 0);
 
-    return Object.entries(counts)
-      .map(([province, count]) => ({
-        province,
-        count,
-        percent: count / total,
+    return data
+      .map((item) => ({
+        ...item,
+        percent: item.count / total,
       }))
       .sort((a, b) => b.count - a.count);
-  }, [tenders]);
+  }, [data]);
 
   return (
     <div className="w-full h-[400px]">

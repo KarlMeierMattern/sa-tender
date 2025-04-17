@@ -9,7 +9,7 @@ import provinceGeoData from "../provinceGeoData.json";
 const CustomTooltip = ({ province, value }) => (
   <div className="bg-white p-3 rounded-lg shadow-md border border-gray-200">
     <p className="font-medium text-gray-900">{province}</p>
-    <p className="text-gray-600">R {(value || 0).toLocaleString()}</p>
+    <p className="text-gray-600">{value || 0} tenders</p>
   </div>
 );
 
@@ -25,8 +25,8 @@ export default function ProvinceMap({ data }) {
     let maxValue = 0;
 
     data.forEach((item) => {
-      values[item.province] = item.totalValue;
-      maxValue = Math.max(maxValue, item.totalValue);
+      values[item.province] = item.count || 0;
+      maxValue = Math.max(maxValue, item.count || 0);
     });
 
     return { values, maxValue };
@@ -174,7 +174,7 @@ export default function ProvinceMap({ data }) {
   return (
     <div className="w-full h-[400px]">
       <h2 className="text-xl font-semibold mb-6">
-        Total Awarded Value by Province
+        Number of Tenders by Province
       </h2>
       <div
         ref={mapContainer}
