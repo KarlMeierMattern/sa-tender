@@ -1,6 +1,5 @@
 "use client";
 
-import { useQuery } from "@tanstack/react-query";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import dynamic from "next/dynamic";
 import {
@@ -19,7 +18,8 @@ import {
 } from "./visualizations/active";
 import { differenceInDays } from "date-fns";
 import TableSkeleton from "./ui/table-skeleton";
-import { useAwardedCharts } from "../hooks/useAwardedCharts";
+import { useAdvertisedCharts } from "../hooks/useAdvertisedCharts";
+import { useAdvertisedTenders } from "../hooks/useAdvertisedTendersTable";
 
 const ITEMS_PER_PAGE = 10;
 
@@ -34,44 +34,14 @@ export default function AdvertisedTenders({
   currentView,
   updateUrlParams,
 }) {
-  // Single query to fetch all data
-  const { data: fullData, isLoading } = useQuery({
-    queryKey: ["advertised-tenders-full"],
-    queryFn: async () => {
-      const res = await fetch("/api/tenders-detail?limit=999999");
-      return res.json();
-    },
-    staleTime: 1000 * 60 * 5, // 5 minutes
+  // Use the new hook for advertised tenders data
+  const { paginatedData, allData } = useAdvertisedTenders({
+    page,
+    limit: ITEMS_PER_PAGE,
   });
 
   // Get chart data
-  const chartQueries = useAwardedCharts();
-
-  // Get the current page of data
-  const getCurrentPageData = () => {
-    if (!fullData?.data) return [];
-    const start = (page - 1) * ITEMS_PER_PAGE;
-    const end = start + ITEMS_PER_PAGE;
-    return fullData.data.slice(start, end);
-  };
-
-  // Get total count
-  const getTotalCount = () => {
-    return fullData?.pagination?.total || 0;
-  };
-
-  // Use full data for charts, but paginated data for table
-  const allAdvertised =
-    currentView === "table"
-      ? {
-          data: getCurrentPageData(),
-          pagination: {
-            total: getTotalCount(),
-            page: page,
-            limit: ITEMS_PER_PAGE,
-          },
-        }
-      : fullData;
+  const chartQueries = useAdvertisedCharts();
 
   // Calculate metrics
   const calculateClosingSoon = (tenders) => {
@@ -86,13 +56,16 @@ export default function AdvertisedTenders({
   const calculateRecentlyAdded = (tenders) => {
     const now = new Date();
     return tenders.filter((tender) => {
-      const publishDate = new Date(tender.datePublished);
+      const publishDate = new Date(tender.advertised);
       const daysAgo = differenceInDays(now, publishDate);
       return daysAgo >= 0 && daysAgo <= 7;
     }).length;
   };
 
-  if (isLoading) return <TableSkeleton />;
+  if (paginatedData.isLoading || allData.isLoading) return <TableSkeleton />;
+
+  const displayData =
+    currentView === "table" ? paginatedData.data : allData.data;
 
   return (
     <Tabs
@@ -113,7 +86,7 @@ export default function AdvertisedTenders({
             </CardHeader>
             <CardContent>
               <p className="text-3xl font-bold">
-                {allAdvertised?.pagination?.total}
+                {displayData?.pagination?.total}
               </p>
             </CardContent>
           </Card>
@@ -124,7 +97,7 @@ export default function AdvertisedTenders({
             </CardHeader>
             <CardContent>
               <p className="text-3xl font-bold">
-                {calculateClosingSoon(allAdvertised?.data || [])}
+                {calculateClosingSoon(displayData?.data || [])}
               </p>
             </CardContent>
           </Card>
@@ -135,7 +108,7 @@ export default function AdvertisedTenders({
             </CardHeader>
             <CardContent>
               <p className="text-3xl font-bold">
-                {calculateRecentlyAdded(allAdvertised?.data || [])}
+                {calculateRecentlyAdded(displayData?.data || [])}
               </p>
             </CardContent>
           </Card>
@@ -143,27 +116,21 @@ export default function AdvertisedTenders({
         <div className="mt-8 bg-gray-50 rounded-3xl p-8">
           <div className="grid grid-cols-2 gap-8">
             <div className="bg-white rounded-xl p-6 shadow-sm">
-              <ProvinceBarChart
-                data={chartQueries.provinceCountActive.data?.data}
-              />
+              <ProvinceBarChart data={chartQueries.provinceCount.data?.data} />
             </div>
             <div className="bg-white rounded-xl p-6 shadow-sm">
-              <ProvinceMap data={chartQueries.provinceCountActive.data?.data} />
+              <ProvinceMap data={chartQueries.provinceCount.data?.data} />
             </div>
             <div className="bg-white rounded-xl p-6 shadow-sm">
               <DepartmentBarChart
-                data={chartQueries.departmentCountActive.data?.data}
+                data={chartQueries.departmentCount.data?.data}
               />
             </div>
             <div className="bg-white rounded-xl p-6 shadow-sm">
-              <CategoryPieChart
-                data={chartQueries.categoryCountActive.data?.data}
-              />
+              <CategoryPieChart data={chartQueries.categoryCount.data?.data} />
             </div>
             <div className="bg-white rounded-xl p-6 shadow-sm">
-              <TenderTypeDonut
-                data={chartQueries.tenderTypeCountActive.data?.data}
-              />
+              <TenderTypeDonut data={chartQueries.tenderTypeCount.data?.data} />
             </div>
           </div>
         </div>
@@ -171,11 +138,11 @@ export default function AdvertisedTenders({
 
       <TabsContent value="table">
         <TenderTable
-          allTenders={getCurrentPageData()}
+          allTenders={paginatedData.data?.data || []}
           currentPage={page}
           isAwarded={false}
-          isLoading={isLoading}
-          totalItems={getTotalCount()}
+          isLoading={paginatedData.isLoading}
+          totalItems={paginatedData.data?.pagination?.total || 0}
         />
       </TabsContent>
     </Tabs>

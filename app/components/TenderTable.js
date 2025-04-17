@@ -225,7 +225,9 @@ export default function TenderTable({
       </div>
 
       <Table className="table-fixed w-full">
-        <TableCaption>List of Available Tenders</TableCaption>
+        <TableCaption>
+          {isAwarded ? "List of Awarded Tenders" : "List of Available Tenders"}
+        </TableCaption>
         <TableHeader>
           <TableRow>
             {columns.map((column) => (

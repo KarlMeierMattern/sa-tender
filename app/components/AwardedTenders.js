@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useQuery } from "@tanstack/react-query";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import dynamic from "next/dynamic";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -15,6 +14,7 @@ import {
 } from "./visualizations/awarded";
 import TableSkeleton from "./ui/table-skeleton";
 import { useAwardedCharts } from "../hooks/useAwardedCharts.js";
+import { useAwardedTendersTable } from "../hooks/useAwardedTendersTable.js";
 
 // Lazy load the table component
 const TenderTable = dynamic(() => import("./TenderTable"), {
@@ -58,28 +58,15 @@ export default function AwardedTenders({ page, currentView, updateUrlParams }) {
   const chartQueries = useAwardedCharts(selectedYear);
 
   // Fetch table data
-  const { data: tableData, isLoading } = useQuery({
-    queryKey: ["awarded-tenders-table", page],
-    queryFn: async () => {
-      const res = await fetch(
-        `/api/tenders-detail-awarded?page=${page}&limit=${ITEMS_PER_PAGE}`
-      );
-      return res.json();
-    },
-    staleTime: 1000 * 60 * 5, // 5 minutes
+  const {
+    data: tableData,
+    isLoading,
+    getCurrentPageData,
+    getTotalCount,
+  } = useAwardedTendersTable({
+    page,
+    limit: ITEMS_PER_PAGE,
   });
-
-  // Get the current page of data
-  const getCurrentPageData = () => {
-    if (!tableData?.data) return [];
-    const paginatedData = tableData?.data || [];
-    return paginatedData;
-  };
-
-  // Get total count
-  const getTotalCount = () => {
-    return tableData?.pagination?.total || 0;
-  };
 
   // Use full data for charts, but paginated data for table
   const allAwarded =
@@ -208,11 +195,11 @@ export default function AwardedTenders({ page, currentView, updateUrlParams }) {
 
       <TabsContent value="table">
         <TenderTable
-          allTenders={tableData?.data || []}
+          allTenders={getCurrentPageData()}
           currentPage={page}
           isAwarded={true}
           isLoading={isLoading}
-          totalItems={tableData?.pagination?.total || 0}
+          totalItems={getTotalCount()}
         />
       </TabsContent>
     </Tabs>

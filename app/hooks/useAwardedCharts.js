@@ -73,60 +73,9 @@ export function useAwardedCharts(selectedYear = "all") {
     staleTime: 1000 * 60 * 5, // 5 minutes
   });
 
-  // Active: Province Count Chart
-  const provinceCountActive = useQuery({
-    queryKey: ["province-count-chart"],
-    queryFn: async () => {
-      const res = await fetch("/api/charts/province-count-active");
-      return res.json();
-    },
-    staleTime: 1000 * 60 * 5, // 5 minutes
-  });
-
-  const provinceValueActive = useQuery({
-    queryKey: ["provinceValueActive"],
-    queryFn: async () => {
-      const res = await fetch("/api/charts/province-value-active");
-      return res.json();
-    },
-    staleTime: 1000 * 60 * 5, // 5 minutes
-  });
-
-  const departmentCountActive = useQuery({
-    queryKey: ["departmentCountActive"],
-    queryFn: async () => {
-      const res = await fetch("/api/charts/department-count-active");
-      return res.json();
-    },
-    staleTime: 1000 * 60 * 5, // 5 minutes
-  });
-
-  const categoryCountActive = useQuery({
-    queryKey: ["categoryCountActive"],
-    queryFn: async () => {
-      const res = await fetch("/api/charts/category-count-active");
-      return res.json();
-    },
-    staleTime: 1000 * 60 * 5, // 5 minutes
-  });
-
-  const tenderTypeCountActive = useQuery({
-    queryKey: ["tenderTypeCountActive"],
-    queryFn: async () => {
-      const res = await fetch("/api/charts/tender-type-count-active");
-      return res.json();
-    },
-    staleTime: 1000 * 60 * 5, // 5 minutes
-  });
-
   return {
     departmentValue,
     provinceValue,
-    provinceValueActive,
-    provinceCountActive,
-    departmentCountActive,
-    categoryCountActive,
-    tenderTypeCountActive,
     valueDistribution,
     topSuppliers,
     awardTiming,
