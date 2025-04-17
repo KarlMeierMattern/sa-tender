@@ -51,8 +51,6 @@ export default function AwardedTenders({ page, currentView, updateUrlParams }) {
   // Fetch chart data
   const chartQueries = useAwardedCharts(selectedYear);
 
-  const isFirstPage = page === 1;
-
   const paginatedData = usePaginatedAwardedTenders({
     page,
     category: selectedCategories.join(","),
@@ -69,7 +67,9 @@ export default function AwardedTenders({ page, currentView, updateUrlParams }) {
   const totalItems = paginatedData.data?.pagination?.total || 0;
   const totalPages = Math.ceil(totalItems / ITEMS_PER_PAGE);
 
-  const allData = useAllAwardedTenders({ enabled: !isFirstPage });
+  const allData = useAllAwardedTenders({
+    enabled: currentView === "visualizations",
+  });
 
   // Combine loading states
   const isLoading = paginatedData.isALoading || allData.isLoading;

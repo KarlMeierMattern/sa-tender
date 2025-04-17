@@ -19,6 +19,7 @@ Web Application Firewall (WAF)
 - Reduces database load; and
 - Faster API responses.
 - Use for: rate limiting.
+- Controls how long the data is stored in the server-side Redis cache
 
 ## Pagination at API level
 

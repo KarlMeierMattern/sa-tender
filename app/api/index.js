@@ -46,8 +46,13 @@ export async function getTendersDetail(page = 1, limit = 10) {
       placeServicesRequired: 1,
     };
 
+    // Use Promise.all for parallel execution
     const [tenders, total] = await Promise.all([
-      TenderModel.find({}, projection).skip(skip).limit(limit).lean(), // Use lean() to get plain objects instead of Mongoose documents
+      TenderModel.find({}, projection)
+        .sort({ datePublished: -1 }) // Use indexed field for sorting
+        .skip(skip)
+        .limit(limit)
+        .lean(), // Use lean() for better performance
       TenderModel.countDocuments({}),
     ]);
 
@@ -62,7 +67,7 @@ export async function getTendersDetail(page = 1, limit = 10) {
       },
     };
 
-    // 3. Store in Redis cache for 5 minutes, with error handling
+    // 3. Store in Redis cache for 5 minutes
     try {
       await cache.set(cacheKey, response, 300);
       console.log("Cached data for", cacheKey);
@@ -102,32 +107,33 @@ export async function getAwardedTenders(
     // 2. If not in cache, get from DB
     await connectDB();
 
-    let query = {};
+    // Build query efficiently
+    const query = {};
+    const dateRange = {};
 
     // Year filter
     if (year && year !== "all") {
-      query.awarded = {
-        $gte: new Date(`${year}-01-01`),
-        $lt: new Date(`${parseInt(year) + 1}-01-01`),
-      };
+      dateRange.$gte = new Date(`${year}-01-01`);
+      dateRange.$lt = new Date(`${parseInt(year) + 1}-01-01`);
+      query.awarded = dateRange;
     }
 
-    // Category filter
+    // Category filter with $in for multiple values
     if (filters.category) {
       query.category = { $in: filters.category.split(",") };
     }
 
-    // Department filter
+    // Department filter with $in for multiple values
     if (filters.department) {
       query.department = { $in: filters.department.split(",") };
     }
 
-    // Province filter
+    // Province filter with $in for multiple values
     if (filters.province) {
       query.province = { $in: filters.province.split(",") };
     }
 
-    // Advertised date filter
+    // Date filters with proper date handling
     if (filters.advertised) {
       const advertisedDate = new Date(filters.advertised);
       query.advertised = {
@@ -136,7 +142,6 @@ export async function getAwardedTenders(
       };
     }
 
-    // Awarded date filter
     if (filters.awarded) {
       const awardedDate = new Date(filters.awarded);
       query.awarded = {
@@ -160,12 +165,13 @@ export async function getAwardedTenders(
       successfulBidderAmount: 1,
     };
 
+    // Use Promise.all for parallel execution
     const [data, total] = await Promise.all([
       AwardedTenderModel.find(query, projection)
-        .sort({ awarded: -1 })
+        .sort({ awarded: -1 }) // Use indexed field for sorting
         .skip(skip)
         .limit(limit)
-        .lean(),
+        .lean(), // Use lean() for better performance
       AwardedTenderModel.countDocuments(query),
     ]);
 

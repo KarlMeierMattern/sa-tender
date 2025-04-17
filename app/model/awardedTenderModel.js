@@ -25,6 +25,25 @@ awardedTenderSchema.pre("save", function (next) {
   next();
 });
 
+// Add indexes for frequently queried fields
+awardedTenderSchema.index({ awarded: -1 }); // For sorting by award date
+awardedTenderSchema.index({ category: 1 }); // For category filters
+awardedTenderSchema.index({ department: 1 }); // For department filters
+awardedTenderSchema.index({ province: 1 }); // For province filters
+awardedTenderSchema.index({ tenderNumber: 1 }, { unique: true }); // For unique tender numbers
+
+// Compound indexes for common query patterns
+awardedTenderSchema.index({
+  category: 1,
+  department: 1,
+  province: 1,
+});
+
+awardedTenderSchema.index({
+  awarded: -1,
+  category: 1,
+});
+
 export const AwardedTenderModel =
   mongoose.models.AwardedTender ||
   mongoose.model("AwardedTender", awardedTenderSchema);
