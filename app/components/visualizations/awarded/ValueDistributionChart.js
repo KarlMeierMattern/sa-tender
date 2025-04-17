@@ -6,9 +6,7 @@ import { Chart as ChartJS, ArcElement, Tooltip, Legend, Title } from "chart.js";
 ChartJS.register(ArcElement, Tooltip, Legend, Title);
 
 export default function ValueDistributionChart({ data }) {
-  if (!data) {
-    return <div>Loading...</div>;
-  }
+  if (!data) return null;
 
   const chartData = {
     labels: data.map((item) => item.range),

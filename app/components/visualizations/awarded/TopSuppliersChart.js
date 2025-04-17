@@ -21,9 +21,7 @@ ChartJS.register(
 );
 
 export default function TopSuppliersChart({ data }) {
-  if (!data) {
-    return <div>Loading...</div>;
-  }
+  if (!data) return null;
 
   const chartData = {
     labels: data.map((item) => item.supplier),
