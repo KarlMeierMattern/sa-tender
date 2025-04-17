@@ -31,6 +31,8 @@ export default function TenderTable({
   isAwarded,
   isLoading,
   totalItems,
+  itemsPerPage = 10,
+  paginateData,
 }) {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -39,7 +41,6 @@ export default function TenderTable({
   const [selectedCategories, setSelectedCategories] = React.useState([]);
   const [selectedDepartments, setSelectedDepartments] = React.useState([]);
   const [selectedProvinces, setSelectedProvinces] = React.useState([]);
-  const ITEMS_PER_PAGE = 10;
 
   if (isLoading) {
     return <TableSkeleton />;
@@ -56,7 +57,7 @@ export default function TenderTable({
     ...new Set(allTenders.map((tender) => tender.province)),
   ].filter(Boolean);
 
-  // Apply filters to current page data
+  // Apply filters to full dataset
   const filteredTenders = allTenders.filter((tender) => {
     const matchesCategory =
       selectedCategories.length === 0 ||
@@ -91,8 +92,13 @@ export default function TenderTable({
     );
   });
 
-  // Calculate total pages from total items
-  const totalPages = Math.ceil(totalItems / ITEMS_PER_PAGE);
+  // Get the current page of filtered data
+  const currentPageData = paginateData
+    ? paginateData(filteredTenders, currentPage, itemsPerPage)
+    : filteredTenders;
+
+  // Calculate total pages from filtered items
+  const totalPages = Math.ceil(filteredTenders.length / itemsPerPage);
 
   const handlePageChange = (newPage) => {
     const params = new URLSearchParams(searchParams);
@@ -219,9 +225,9 @@ export default function TenderTable({
       </div>
 
       <div className="text-sm text-muted-foreground mb-4">
-        Showing {(currentPage - 1) * ITEMS_PER_PAGE + 1} to{" "}
-        {Math.min(currentPage * ITEMS_PER_PAGE, totalItems)} of {totalItems}{" "}
-        results
+        Showing {(currentPage - 1) * itemsPerPage + 1} to{" "}
+        {Math.min(currentPage * itemsPerPage, filteredTenders.length)} of{" "}
+        {filteredTenders.length} results
       </div>
 
       <Table className="table-fixed w-full">
@@ -241,7 +247,7 @@ export default function TenderTable({
           </TableRow>
         </TableHeader>
         <TableBody>
-          {filteredTenders.map((tender, index) => (
+          {currentPageData.map((tender, index) => (
             <TableRow key={tender._id || index}>
               {columns.map((column) => (
                 <TableCell

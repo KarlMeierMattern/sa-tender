@@ -35,7 +35,7 @@ export default function AdvertisedTenders({
   updateUrlParams,
 }) {
   // Use the new hook for advertised tenders data
-  const { paginatedData, allData } = useAdvertisedTenders({
+  const { paginatedData, allData, paginateData } = useAdvertisedTenders({
     page,
     limit: ITEMS_PER_PAGE,
   });
@@ -138,11 +138,13 @@ export default function AdvertisedTenders({
 
       <TabsContent value="table">
         <TenderTable
-          allTenders={paginatedData.data?.data || []}
+          allTenders={allData.data?.data || []}
           currentPage={page}
           isAwarded={false}
-          isLoading={paginatedData.isLoading}
-          totalItems={paginatedData.data?.pagination?.total || 0}
+          isLoading={paginatedData.isLoading || allData.isLoading}
+          totalItems={allData.data?.pagination?.total || 0}
+          itemsPerPage={ITEMS_PER_PAGE}
+          paginateData={paginateData}
         />
       </TabsContent>
     </Tabs>

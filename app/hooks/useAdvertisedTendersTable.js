@@ -15,7 +15,7 @@ export function useAdvertisedTenders({ page = 1, limit = 10 } = {}) {
     staleTime: 1000 * 60 * 5, // 5 minutes
   });
 
-  // Query for all data (used in visualizations)
+  // Query for all data (used in visualizations and filtering)
   const allData = useQuery({
     queryKey: ["advertised-tenders-full"],
     queryFn: async () => {
@@ -25,8 +25,16 @@ export function useAdvertisedTenders({ page = 1, limit = 10 } = {}) {
     staleTime: 1000 * 60 * 5, // 5 minutes
   });
 
+  // Helper function to paginate filtered data
+  const paginateData = (filteredData, currentPage, itemsPerPage) => {
+    const start = (currentPage - 1) * itemsPerPage;
+    const end = start + itemsPerPage;
+    return filteredData.slice(start, end);
+  };
+
   return {
     paginatedData,
     allData,
+    paginateData,
   };
 }

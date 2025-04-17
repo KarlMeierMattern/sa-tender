@@ -58,28 +58,24 @@ export default function AwardedTenders({ page, currentView, updateUrlParams }) {
   const chartQueries = useAwardedCharts(selectedYear);
 
   // Fetch table data
-  const {
-    data: tableData,
-    isLoading,
-    getCurrentPageData,
-    getTotalCount,
-  } = useAwardedTendersTable({
-    page,
-    limit: ITEMS_PER_PAGE,
-  });
+  const { paginatedData, allData, paginateData, isLoading } =
+    useAwardedTendersTable({
+      page,
+      limit: ITEMS_PER_PAGE,
+    });
 
   // Use full data for charts, but paginated data for table
   const allAwarded =
     currentView === "table"
       ? {
-          data: getCurrentPageData(),
+          data: allData.data?.data || [],
           pagination: {
-            total: getTotalCount(),
+            total: allData.data?.pagination?.total || 0,
             page: page,
             limit: ITEMS_PER_PAGE,
           },
         }
-      : tableData;
+      : allData.data;
 
   if (isLoading) return <TableSkeleton />;
 
@@ -195,11 +191,13 @@ export default function AwardedTenders({ page, currentView, updateUrlParams }) {
 
       <TabsContent value="table">
         <TenderTable
-          allTenders={getCurrentPageData()}
+          allTenders={allData.data?.data || []}
           currentPage={page}
           isAwarded={true}
           isLoading={isLoading}
-          totalItems={getTotalCount()}
+          totalItems={allData.data?.pagination?.total || 0}
+          itemsPerPage={ITEMS_PER_PAGE}
+          paginateData={paginateData}
         />
       </TabsContent>
     </Tabs>

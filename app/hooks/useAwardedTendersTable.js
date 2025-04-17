@@ -3,8 +3,8 @@
 import { useQuery } from "@tanstack/react-query";
 
 export function useAwardedTendersTable({ page = 1, limit = 10 } = {}) {
-  // Fetch table data
-  const { data: tableData, isLoading } = useQuery({
+  // Query for paginated table data
+  const paginatedData = useQuery({
     queryKey: ["awarded-tenders-table", page],
     queryFn: async () => {
       const res = await fetch(
@@ -15,21 +15,27 @@ export function useAwardedTendersTable({ page = 1, limit = 10 } = {}) {
     staleTime: 1000 * 60 * 5, // 5 minutes
   });
 
-  // Get the current page of data
-  const getCurrentPageData = () => {
-    if (!tableData?.data) return [];
-    return tableData?.data || [];
-  };
+  // Query for all data (used for filtering)
+  const allData = useQuery({
+    queryKey: ["awarded-tenders-full"],
+    queryFn: async () => {
+      const res = await fetch("/api/tenders-detail-awarded?limit=999999");
+      return res.json();
+    },
+    staleTime: 1000 * 60 * 5, // 5 minutes
+  });
 
-  // Get total count
-  const getTotalCount = () => {
-    return tableData?.pagination?.total || 0;
+  // Helper function to paginate filtered data
+  const paginateData = (filteredData, currentPage, itemsPerPage) => {
+    const start = (currentPage - 1) * itemsPerPage;
+    const end = start + itemsPerPage;
+    return filteredData.slice(start, end);
   };
 
   return {
-    data: tableData,
-    isLoading,
-    getCurrentPageData,
-    getTotalCount,
+    paginatedData,
+    allData,
+    paginateData,
+    isLoading: paginatedData.isLoading || allData.isLoading,
   };
 }
