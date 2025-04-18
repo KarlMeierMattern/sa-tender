@@ -57,7 +57,13 @@ export default function ProvinceBarChart({ data }) {
 
   return (
     <div className="w-full h-[400px]">
-      <h2 className="text-xl font-semibold mb-6">Tenders by Province</h2>
+      <h3 className="text-lg font-semibold mb-2 text-center">
+        Tenders by Province
+      </h3>
+      <p className="text-sm text-gray-500 mb-2 text-center">
+        Number of tenders by province
+      </p>
+
       <ResponsiveContainer width="100%" height="100%">
         <BarChart
           data={provinceData}

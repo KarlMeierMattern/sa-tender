@@ -7,9 +7,9 @@ import {
   HighestAwardTimingChart,
   LowestAwardTimingChart,
   ProvinceMap,
-} from "./visualizations/awarded";
-import { useAwardedCharts } from "../hooks/awarded/useAwardedCharts.js";
-import TableSkeleton from "./ui/table-skeleton";
+} from "../visualizations/awarded";
+import { useAwardedCharts } from "../../hooks/awarded/useAwardedCharts.js";
+import TableSkeleton from "../ui/table-skeleton";
 
 export default function AwardedTendersCharts({ selectedYear }) {
   // Fetch chart data

@@ -5,11 +5,11 @@ import dynamic from "next/dynamic";
 import { useSearchParams, useRouter } from "next/navigation";
 
 // Lazy load the components
-const AdvertisedTenders = dynamic(() => import("./AdvertisedTenders"), {
+const AdvertisedTenders = dynamic(() => import("./active/AdvertisedTenders"), {
   ssr: false,
 });
 
-const AwardedTenders = dynamic(() => import("./AwardedTenders"), {
+const AwardedTenders = dynamic(() => import("./awarded/AwardedTenders"), {
   ssr: false,
 });
 

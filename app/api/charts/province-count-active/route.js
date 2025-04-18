@@ -1,5 +1,4 @@
 import { NextResponse } from "next/server";
-import mongoose from "mongoose";
 import { TenderModel } from "../../../model/tenderModel";
 import { cache } from "../../../lib/cache";
 import { connectDB } from "../../db";

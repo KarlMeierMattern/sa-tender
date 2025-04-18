@@ -3,15 +3,15 @@
 import { useState } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import dynamic from "next/dynamic";
-import TableSkeleton from "./ui/table-skeleton";
-import { useAdvertisedTenders } from "../hooks/active/useActiveTendersTable";
-import { useActiveTenderFilters } from "../hooks/active/useActiveTenderFilters";
+import TableSkeleton from "../ui/table-skeleton";
+import { useAdvertisedTenders } from "../../hooks/active/useActiveTendersTable";
+import { useActiveTenderFilters } from "../../hooks/active/useActiveTenderFilters";
 import AdvertisedTendersCard from "./AvertisedTendersCard";
 import AdvertisedTendersCharts from "./AdvertisedTendersCharts";
 const ITEMS_PER_PAGE = 10;
 
 // Lazy load the table component
-const TenderTable = dynamic(() => import("./TenderTable"), {
+const TenderTable = dynamic(() => import("../TenderTable"), {
   loading: () => <TableSkeleton />,
   ssr: false,
 });

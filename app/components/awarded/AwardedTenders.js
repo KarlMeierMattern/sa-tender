@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, Suspense } from "react";
+import React, { useState } from "react";
 import AwardedTendersCard from "./AwardedTendersCard";
 const AwardedTendersCharts = React.lazy(() => import("./AwardedTendersCharts"));
 

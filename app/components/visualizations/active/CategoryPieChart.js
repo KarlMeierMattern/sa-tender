@@ -43,7 +43,13 @@ export default function CategoryPieChart({ data }) {
 
   return (
     <div className="w-full h-[400px]">
-      <h2 className="text-xl font-semibold mb-6">Tenders by Category</h2>
+      <h3 className="text-lg font-semibold mb-2 text-center">
+        Tenders by Category
+      </h3>
+      <p className="text-sm text-gray-500 mb-2 text-center">
+        Number of tenders by category
+      </p>
+
       <div className="h-[calc(100%-2rem)]">
         <ResponsiveContainer width="100%" height="100%">
           <PieChart>

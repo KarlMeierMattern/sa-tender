@@ -8,8 +8,8 @@ import {
   CardDescription,
 } from "@/components/ui/card";
 import { differenceInDays } from "date-fns";
-import TableSkeleton from "./ui/table-skeleton";
-import { useAdvertisedTenders } from "../hooks/active/useActiveTendersTable";
+import TableSkeleton from "../ui/table-skeleton";
+import { useAdvertisedTenders } from "../../hooks/active/useActiveTendersTable";
 
 export default function AdvertisedTendersCard() {
   // Hook for paginated data and all data

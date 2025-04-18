@@ -1,5 +1,4 @@
 import { NextResponse } from "next/server";
-import mongoose from "mongoose";
 import { TenderModel } from "../../model/tenderModel";
 import { cache } from "../../lib/cache";
 import { connectDB } from "../db";
@@ -18,18 +17,21 @@ export async function GET() {
     // Connect to DB
     await connectDB();
 
+    // Only get fields from active tenders (where closing date is in the future)
+    const activeFilter = { closingDate: { $gte: new Date() } };
+
     // Get distinct values for each field
     const [categories, departments, provinces] = await Promise.all([
       (async () => {
-        const values = await TenderModel.distinct("category");
+        const values = await TenderModel.distinct("category", activeFilter);
         return values.filter(Boolean).sort();
       })(),
       (async () => {
-        const values = await TenderModel.distinct("department");
+        const values = await TenderModel.distinct("department", activeFilter);
         return values.filter(Boolean).sort();
       })(),
       (async () => {
-        const values = await TenderModel.distinct("province");
+        const values = await TenderModel.distinct("province", activeFilter);
         return values.filter(Boolean).sort();
       })(),
     ]);
