@@ -1,77 +1,127 @@
 "use client";
 
-import { Bar } from "react-chartjs-2";
 import {
-  Chart as ChartJS,
-  CategoryScale,
-  LinearScale,
-  BarElement,
-  Title,
+  ResponsiveContainer,
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
   Tooltip,
-  Legend,
-} from "chart.js";
-
-ChartJS.register(
-  CategoryScale,
-  LinearScale,
-  BarElement,
-  Title,
-  Tooltip,
-  Legend
-);
+} from "recharts";
 
 export default function HighestAwardTimingChart({ data }) {
   if (!data) return null;
 
-  const chartData = {
-    labels: data.map((item) => item.department),
-    datasets: [
-      {
-        label: "Average Days to Award",
-        data: data.map((item) => item.averageDays),
-        backgroundColor: "#B8C5FF",
-        borderColor: "#C2CDFF",
-        borderWidth: 1,
-      },
-    ],
-  };
+  // Format data for recharts
+  const chartData = data.map((item) => ({
+    department: item.department,
+    averageDays: item.averageDays,
+    count: item.count,
+  }));
 
-  const options = {
-    responsive: true,
-    plugins: {
-      legend: {
-        position: "top",
-      },
-      title: {
-        display: true,
-        text: "Top 10 Departments with Highest Days to Award Tender",
-      },
-      tooltip: {
-        callbacks: {
-          label: (context) => {
-            const item = data[context.dataIndex];
-            return [
-              `Average Days: ${item.averageDays}`,
-              `Number of Tenders: ${item.count}`,
-            ];
-          },
-        },
-      },
-    },
-    scales: {
-      y: {
-        beginAtZero: true,
-        title: {
-          display: true,
-          text: "Days",
-        },
-      },
-    },
+  // Custom tooltip component
+  const CustomTooltip = ({ active, payload, label }) => {
+    if (active && payload && payload.length) {
+      const item = payload[0].payload;
+      return (
+        <div className="bg-white p-3 border border-gray-200 shadow-md rounded">
+          <p className="font-semibold mb-1">{item.department}</p>
+          <p>{`Average Days: ${item.averageDays}`}</p>
+          <p>{`Number of Tenders: ${item.count}`}</p>
+        </div>
+      );
+    }
+    return null;
   };
 
   return (
-    <div>
-      <Bar data={chartData} options={options} />
+    <div className="w-full">
+      <h3 className="text-lg font-semibold mb-2 text-center">
+        Top 10 Departments with Highest Days to Award Tender
+      </h3>
+      <p className="text-sm text-gray-500 mb-2 text-center">
+        Top 10 departments with highest days to award tender
+      </p>
+      <ResponsiveContainer width="100%" height={400}>
+        <BarChart
+          data={chartData}
+          margin={{
+            top: 5,
+            right: 30,
+            left: 20,
+            bottom: 120, // Extra space for department names
+          }}
+        >
+          <CartesianGrid strokeDasharray="3 3" />
+          <XAxis
+            dataKey="department"
+            angle={-45}
+            textAnchor="end"
+            height={120}
+            tick={(props) => {
+              const { x, y, payload } = props;
+
+              // Calculate how to break up long text
+              const words = payload.value.split(" ");
+              const lineHeight = 12;
+              const width = 150; // increased maximum width from 100 to 150
+              let line = [];
+              let lines = [];
+              let currentWidth = 0;
+
+              // Create wrapped lines for long text
+              words.forEach((word) => {
+                const wordWidth = word.length * 6; // rough estimate of word width
+                if (currentWidth + wordWidth > width) {
+                  lines.push(line.join(" "));
+                  line = [word];
+                  currentWidth = wordWidth;
+                } else {
+                  line.push(word);
+                  currentWidth += wordWidth;
+                }
+              });
+              if (line.length > 0) lines.push(line.join(" "));
+
+              return (
+                <g transform={`translate(${x},${y})`}>
+                  {lines.map((line, i) => (
+                    <text
+                      key={i}
+                      x={0}
+                      y={i * lineHeight}
+                      dy={0}
+                      textAnchor="end"
+                      fill="#666"
+                      fontSize={10}
+                      transform="rotate(-45)"
+                    >
+                      {line}
+                    </text>
+                  ))}
+                </g>
+              );
+            }}
+          />
+          <YAxis
+            label={{
+              value: "Days",
+              angle: -90,
+              position: "insideLeft",
+              style: { textAnchor: "middle" },
+            }}
+            tick={{ fontSize: 8 }}
+          />
+          <Tooltip content={<CustomTooltip />} />
+          <Bar
+            dataKey="averageDays"
+            fill="#B8C5FF"
+            stroke="#C2CDFF"
+            strokeWidth={1}
+          />
+        </BarChart>
+      </ResponsiveContainer>
     </div>
   );
 }

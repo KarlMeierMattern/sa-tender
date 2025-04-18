@@ -23,7 +23,7 @@ export default function TimelineChart({ data }) {
   };
 
   return (
-    <div>
+    <div className="w-full h-[400px]">
       <h3 className="text-lg font-semibold mb-2 text-center">
         Daily Tender Publications (Last 30 Days)
       </h3>

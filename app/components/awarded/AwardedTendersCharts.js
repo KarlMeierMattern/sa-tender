@@ -19,7 +19,7 @@ export default function AwardedTendersCharts({ selectedYear }) {
 
   return (
     <div className="mt-8 bg-gray-50 rounded-3xl p-8">
-      <div className="grid grid-cols-2 gap-8">
+      <div className="grid md:grid-cols-1 lg:grid-cols-2 gap-8">
         <div className="bg-white rounded-xl p-6 shadow-sm">
           <DepartmentValueChart
             data={chartQueries.departmentValue.data?.data}

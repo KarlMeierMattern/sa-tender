@@ -171,9 +171,12 @@ export default function ProvinceMap({ data }) {
 
   return (
     <div className="w-full h-[400px]">
-      <h2 className="text-xl font-semibold mb-6">
+      <h3 className="text-lg font-semibold mb-2 text-center">
         Total Awarded Value by Province
-      </h2>
+      </h3>
+      <p className="text-sm text-gray-500 mb-2 text-center">
+        Total Awarded Value by Province
+      </p>
       <div
         ref={mapContainer}
         className="h-[calc(100%-2rem)] relative rounded-lg overflow-hidden"

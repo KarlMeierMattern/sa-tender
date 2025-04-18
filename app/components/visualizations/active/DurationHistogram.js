@@ -28,7 +28,7 @@ export default function DurationHistogram({ data }) {
   };
 
   return (
-    <div>
+    <div className="w-full h-[400px]">
       <h3 className="text-lg font-semibold mb-2 text-center">
         Tender Duration Distribution
       </h3>

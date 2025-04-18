@@ -54,7 +54,7 @@ export default function DepartmentTenderTypeChart({ data }) {
   };
 
   return (
-    <div>
+    <div className="w-full h-[400px]">
       <h3 className="text-lg font-semibold mb-2 text-center">
         Department vs Tender Type
       </h3>

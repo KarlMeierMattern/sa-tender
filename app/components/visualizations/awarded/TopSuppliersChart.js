@@ -1,77 +1,81 @@
 "use client";
 
-import { Bar } from "react-chartjs-2";
 import {
-  Chart as ChartJS,
-  CategoryScale,
-  LinearScale,
-  BarElement,
-  Title,
+  ResponsiveContainer,
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
   Tooltip,
-  Legend,
-} from "chart.js";
-
-ChartJS.register(
-  CategoryScale,
-  LinearScale,
-  BarElement,
-  Title,
-  Tooltip,
-  Legend
-);
+} from "recharts";
 
 export default function TopSuppliersChart({ data }) {
   if (!data) return null;
 
-  const chartData = {
-    labels: data.map((item) => item.supplier),
-    datasets: [
-      {
-        label: "Total Awarded Value (R)",
-        data: data.map((item) => item.totalValue),
-        backgroundColor: "#B8C5FF", // Base periwinkle
-        borderColor: "#C2CDFF",
-        borderWidth: 1,
-      },
-    ],
+  // Format data for recharts
+  const chartData = data.map((item) => ({
+    supplier: item.supplier,
+    value: item.totalValue,
+    count: item.count,
+  }));
+
+  // Custom formatter for the x-axis (currency)
+  const formatCurrency = (value) => {
+    return `R ${value.toLocaleString()}`;
   };
 
-  const options = {
-    indexAxis: "y", // This makes it a horizontal bar chart
-    responsive: true,
-    plugins: {
-      legend: {
-        position: "top",
-      },
-      title: {
-        display: true,
-        text: "Top 10 Suppliers by Awarded Value",
-      },
-      tooltip: {
-        callbacks: {
-          label: (context) => {
-            const item = data[context.dataIndex];
-            return [
-              `Total Value: R ${item.totalValue.toLocaleString()}`,
-              `Number of Tenders: ${item.count}`,
-            ];
-          },
-        },
-      },
-    },
-    scales: {
-      x: {
-        beginAtZero: true,
-        ticks: {
-          callback: (value) => `R ${value.toLocaleString()}`,
-        },
-      },
-    },
+  // Custom tooltip component
+  const CustomTooltip = ({ active, payload, label }) => {
+    if (active && payload && payload.length) {
+      const item = payload[0].payload;
+      return (
+        <div className="bg-white p-3 border border-gray-200 shadow-md rounded">
+          <p className="font-semibold mb-1">{item.supplier}</p>
+          <p>{`Total Value: R ${item.value.toLocaleString()}`}</p>
+          <p>{`Number of Tenders: ${item.count}`}</p>
+        </div>
+      );
+    }
+    return null;
   };
 
   return (
-    <div>
-      <Bar data={chartData} options={options} />
+    <div className="w-full">
+      <h3 className="text-lg font-semibold mb-2 text-center">
+        Top 10 Suppliers by Awarded Value
+      </h3>
+      <p className="text-sm text-gray-500 mb-2 text-center">
+        Top 10 suppliers by awarded value
+      </p>
+      <ResponsiveContainer width="100%" height={400}>
+        <BarChart
+          data={chartData}
+          layout="vertical"
+          margin={{
+            top: 5,
+            right: 30,
+            left: 120, // Extra space for supplier names
+            bottom: 5,
+          }}
+        >
+          <CartesianGrid strokeDasharray="3 3" />
+          <XAxis type="number" tickFormatter={formatCurrency} />
+          <YAxis
+            type="category"
+            dataKey="supplier"
+            width={120}
+            tick={{ fontSize: 12 }}
+          />
+          <Tooltip content={<CustomTooltip />} />
+          <Bar
+            dataKey="value"
+            fill="#B8C5FF"
+            stroke="#C2CDFF"
+            strokeWidth={1}
+          />
+        </BarChart>
+      </ResponsiveContainer>
     </div>
   );
 }
