@@ -14,7 +14,7 @@ export function useAdvertisedCharts() {
   });
 
   const provinceValue = useQuery({
-    queryKey: ["provinceValueActive"],
+    queryKey: ["province-value-active"],
     queryFn: async () => {
       const res = await fetch("/api/charts/province-value-active");
       return res.json();
@@ -23,7 +23,7 @@ export function useAdvertisedCharts() {
   });
 
   const departmentCount = useQuery({
-    queryKey: ["departmentCountActive"],
+    queryKey: ["department-count-active"],
     queryFn: async () => {
       const res = await fetch("/api/charts/department-count-active");
       return res.json();
@@ -32,7 +32,7 @@ export function useAdvertisedCharts() {
   });
 
   const categoryCount = useQuery({
-    queryKey: ["categoryCountActive"],
+    queryKey: ["category-count-active"],
     queryFn: async () => {
       const res = await fetch("/api/charts/category-count-active");
       return res.json();
@@ -41,7 +41,7 @@ export function useAdvertisedCharts() {
   });
 
   const tenderTypeCount = useQuery({
-    queryKey: ["tenderTypeCountActive"],
+    queryKey: ["tender-type-count-active"],
     queryFn: async () => {
       const res = await fetch("/api/charts/tender-type-count-active");
       return res.json();

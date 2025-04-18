@@ -2,16 +2,7 @@ import { NextResponse } from "next/server";
 import mongoose from "mongoose";
 import { AwardedTenderModel } from "../../model/awardedTenderModel.js";
 import { cache } from "../../lib/cache.js";
-
-async function connectDB() {
-  try {
-    await mongoose.connect(process.env.MONGODB_URI);
-    console.log("Connected to MongoDB");
-  } catch (error) {
-    console.error("Failed to connect to MongoDB:", error);
-    throw error;
-  }
-}
+import { connectDB } from "../db";
 
 export async function GET() {
   try {

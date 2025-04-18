@@ -6,7 +6,7 @@ import {
   DepartmentValueChart,
   ValueDistributionChart,
   TopSuppliersChart,
-  AwardTimingChart,
+  HighestAwardTimingChart,
   LowestAwardTimingChart,
   ProvinceMap,
 } from "./visualizations/awarded";
@@ -126,7 +126,9 @@ export default function AwardedTenders() {
             <TopSuppliersChart data={chartQueries.topSuppliers.data?.data} />
           </div>
           <div className="bg-white rounded-xl p-6 shadow-sm">
-            <AwardTimingChart data={chartQueries.awardTiming.data?.data} />
+            <HighestAwardTimingChart
+              data={chartQueries.awardTiming.data?.data}
+            />
           </div>
           <div className="bg-white rounded-xl p-6 shadow-sm">
             <LowestAwardTimingChart

@@ -1,7 +1,7 @@
 import DepartmentValueChart from "./DepartmentValueChart";
 import ValueDistributionChart from "./ValueDistributionChart";
 import TopSuppliersChart from "./TopSuppliersChart";
-import AwardTimingChart from "./AwardTimingChart";
+import HighestAwardTimingChart from "./HighestAwardTimingChart";
 import LowestAwardTimingChart from "./LowestAwardTimingChart";
 import ProvinceMap from "./ProvinceMap";
 
@@ -9,7 +9,7 @@ export {
   DepartmentValueChart,
   ValueDistributionChart,
   TopSuppliersChart,
-  AwardTimingChart,
+  HighestAwardTimingChart,
   LowestAwardTimingChart,
   ProvinceMap,
 };

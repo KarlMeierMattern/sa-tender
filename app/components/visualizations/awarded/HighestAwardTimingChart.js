@@ -20,7 +20,7 @@ ChartJS.register(
   Legend
 );
 
-export default function AwardTimingChart({ data }) {
+export default function HighestAwardTimingChart({ data }) {
   if (!data) return null;
 
   const chartData = {
