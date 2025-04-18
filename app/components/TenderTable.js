@@ -1,6 +1,6 @@
 "use client";
 
-import React, { Suspense } from "react";
+import React from "react";
 import MultiSelect from "./ui/multi-select";
 import { Calendar } from "@/components/ui/calendar";
 import {
@@ -28,7 +28,6 @@ import TableSkeleton from "./ui/table-skeleton";
 export default function TenderTable({
   allTenders = [],
   currentPage,
-  isAwarded,
   isLoading,
   totalItems,
   itemsPerPage = 10,
@@ -41,8 +40,8 @@ export default function TenderTable({
   setSelectedProvinces,
   selectedAdvertisedDate,
   setSelectedAdvertisedDate,
-  selectedSecondDate,
-  setSelectedSecondDate,
+  selectedClosingDate,
+  setSelectedClosingDate,
   allCategories = [],
   allDepartments = [],
   allProvinces = [],
@@ -67,36 +66,30 @@ export default function TenderTable({
           selectedProvinces.length === 0 ||
           selectedProvinces.includes(tender.province);
 
-        // First date filter always checks 'advertised' field
         const matchesAdvertisedDate =
           !selectedAdvertisedDate ||
           format(new Date(tender.advertised), "yyyy-MM-dd") ===
             format(selectedAdvertisedDate, "yyyy-MM-dd");
 
-        // Second date filter checks either 'closingDate' or 'awarded' based on isAwarded
-        const matchesSecondDate =
-          !selectedSecondDate ||
-          format(
-            new Date(isAwarded ? tender.awarded : tender.closingDate),
-            "yyyy-MM-dd"
-          ) === format(selectedSecondDate, "yyyy-MM-dd");
+        const matchesClosingDate =
+          !selectedClosingDate ||
+          format(new Date(tender.closingDate), "yyyy-MM-dd") ===
+            format(selectedClosingDate, "yyyy-MM-dd");
 
         return (
           matchesCategory &&
           matchesDepartment &&
           matchesProvince &&
           matchesAdvertisedDate &&
-          matchesSecondDate
+          matchesClosingDate
         );
       })
     : [];
 
-  console.log("Filtered tenders:", filteredTenders.length);
-
   // Get the current page of filtered data
   const currentPageData = paginateData
     ? paginateData(filteredTenders, currentPage, itemsPerPage)
-    : allTenders; // Use allTenders directly when using server-side pagination
+    : allTenders;
 
   // Calculate total pages from total items
   const totalPages = Math.ceil(totalItems / itemsPerPage);
@@ -115,37 +108,17 @@ export default function TenderTable({
     return date.toLocaleDateString("en-ZA");
   };
 
-  const formatCurrency = (amount) => {
-    if (!amount) return "";
-    return new Intl.NumberFormat("en-ZA", {
-      style: "currency",
-      currency: "ZAR",
-    }).format(amount);
-  };
-
-  const columns = isAwarded
-    ? [
-        { key: "category", label: "Category" },
-        { key: "department", label: "Department" },
-        { key: "province", label: "Province" },
-        { key: "description", label: "Description" },
-        { key: "tenderNumber", label: "Tender Number" },
-        { key: "advertised", label: "Advertised" },
-        { key: "awarded", label: "Awarded" },
-        { key: "successfulBidderName", label: "Successful Bidder" },
-        { key: "successfulBidderAmount", label: "Award Amount" },
-      ]
-    : [
-        { key: "category", label: "Category" },
-        { key: "department", label: "Department" },
-        { key: "province", label: "Province" },
-        { key: "description", label: "Description" },
-        { key: "tenderNumber", label: "Tender Number" },
-        { key: "advertised", label: "Advertised" },
-        { key: "closingDate", label: "Closing Date" },
-        { key: "tenderType", label: "Type" },
-        { key: "placeServicesRequired", label: "Location" },
-      ];
+  const columns = [
+    { key: "category", label: "Category" },
+    { key: "department", label: "Department" },
+    { key: "province", label: "Province" },
+    { key: "description", label: "Description" },
+    { key: "tenderNumber", label: "Tender Number" },
+    { key: "advertised", label: "Advertised" },
+    { key: "closingDate", label: "Closing Date" },
+    { key: "tenderType", label: "Type" },
+    { key: "placeServicesRequired", label: "Location" },
+  ];
 
   return (
     <>
@@ -203,22 +176,20 @@ export default function TenderTable({
               variant={"outline"}
               className={cn(
                 "w-[240px] justify-start text-left font-normal",
-                !selectedSecondDate && "text-muted-foreground"
+                !selectedClosingDate && "text-muted-foreground"
               )}
             >
               <CalendarIcon className="mr-2 h-4 w-4" />
-              {selectedSecondDate
-                ? format(selectedSecondDate, "PPP")
-                : isAwarded
-                ? "Filter by Award Date"
+              {selectedClosingDate
+                ? format(selectedClosingDate, "PPP")
                 : "Filter by Closing Date"}
             </Button>
           </PopoverTrigger>
           <PopoverContent className="w-auto p-0" align="start">
             <Calendar
               mode="single"
-              selected={selectedSecondDate}
-              onSelect={setSelectedSecondDate}
+              selected={selectedClosingDate}
+              onSelect={setSelectedClosingDate}
               initialFocus
             />
           </PopoverContent>
@@ -232,9 +203,7 @@ export default function TenderTable({
       </div>
 
       <Table className="table-fixed w-full">
-        <TableCaption>
-          {isAwarded ? "List of Awarded Tenders" : "List of Available Tenders"}
-        </TableCaption>
+        <TableCaption>List of Available Tenders</TableCaption>
         <TableHeader>
           <TableRow>
             {columns.map((column) => (
@@ -255,11 +224,7 @@ export default function TenderTable({
                   key={column.key}
                   className="whitespace-normal break-words"
                 >
-                  {column.key === "successfulBidderAmount"
-                    ? formatCurrency(tender[column.key])
-                    : column.key === "advertised" ||
-                      column.key === "awarded" ||
-                      column.key === "closingDate"
+                  {column.key === "advertised" || column.key === "closingDate"
                     ? formatDate(tender[column.key])
                     : tender[column.key]}
                 </TableCell>

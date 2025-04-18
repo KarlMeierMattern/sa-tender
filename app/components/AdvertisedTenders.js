@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import dynamic from "next/dynamic";
 import {
@@ -20,6 +21,7 @@ import { differenceInDays } from "date-fns";
 import TableSkeleton from "./ui/table-skeleton";
 import { useAdvertisedCharts } from "../hooks/useAdvertisedCharts";
 import { useAdvertisedTenders } from "../hooks/useAdvertisedTendersTable";
+import { useActiveTenderFilters } from "../hooks/useActiveTenderFilters";
 
 const ITEMS_PER_PAGE = 10;
 
@@ -34,6 +36,17 @@ export default function AdvertisedTenders({
   currentView,
   updateUrlParams,
 }) {
+  // Add state for filters
+  const [selectedCategories, setSelectedCategories] = useState([]);
+  const [selectedDepartments, setSelectedDepartments] = useState([]);
+  const [selectedProvinces, setSelectedProvinces] = useState([]);
+  const [selectedAdvertisedDate, setSelectedAdvertisedDate] = useState(null);
+  const [selectedClosingDate, setSelectedClosingDate] = useState(null);
+
+  // Fetch filter options
+  const { data: filterOptions, isLoading: isFiltersLoading } =
+    useActiveTenderFilters();
+
   // Use the new hook for advertised tenders data
   const { paginatedData, allData, paginateData } = useAdvertisedTenders({
     page,
@@ -140,11 +153,23 @@ export default function AdvertisedTenders({
         <TenderTable
           allTenders={allData.data?.data || []}
           currentPage={page}
-          isAwarded={false}
           isLoading={paginatedData.isLoading || allData.isLoading}
           totalItems={allData.data?.pagination?.total || 0}
           itemsPerPage={ITEMS_PER_PAGE}
           paginateData={paginateData}
+          selectedCategories={selectedCategories}
+          setSelectedCategories={setSelectedCategories}
+          selectedDepartments={selectedDepartments}
+          setSelectedDepartments={setSelectedDepartments}
+          selectedProvinces={selectedProvinces}
+          setSelectedProvinces={setSelectedProvinces}
+          selectedAdvertisedDate={selectedAdvertisedDate}
+          setSelectedAdvertisedDate={setSelectedAdvertisedDate}
+          selectedClosingDate={selectedClosingDate}
+          setSelectedClosingDate={setSelectedClosingDate}
+          allCategories={filterOptions?.categories || []}
+          allDepartments={filterOptions?.departments || []}
+          allProvinces={filterOptions?.provinces || []}
         />
       </TabsContent>
     </Tabs>
