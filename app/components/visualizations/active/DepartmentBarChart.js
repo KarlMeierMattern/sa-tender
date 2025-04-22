@@ -9,6 +9,7 @@ import {
   ResponsiveContainer,
   Tooltip,
   CartesianGrid,
+  Legend,
 } from "recharts";
 
 // Periwinkle color palette with incrementally lighter shades
@@ -61,7 +62,7 @@ export default function DepartmentBarChart({ data }) {
           <BarChart
             data={chartData}
             layout="vertical"
-            margin={{ top: 20, right: 30, left: 180, bottom: 20 }}
+            margin={{ top: 20, right: 30, bottom: 20 }}
             barSize={20}
           >
             <CartesianGrid
@@ -88,6 +89,11 @@ export default function DepartmentBarChart({ data }) {
             />
             <Tooltip content={<CustomTooltip />} />
             <Bar dataKey="count" fill={COLORS[0]} radius={[0, 4, 4, 0]} />
+            <Legend
+              verticalAlign="top"
+              height={0}
+              wrapperStyle={{ display: "none" }}
+            />
           </BarChart>
         </ResponsiveContainer>
       </div>

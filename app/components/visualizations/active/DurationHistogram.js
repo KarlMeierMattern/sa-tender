@@ -46,8 +46,14 @@ export default function DurationHistogram({ data }) {
           }}
         >
           <CartesianGrid strokeDasharray="3 3" />
-          <XAxis dataKey="range" />
-          <YAxis allowDecimals={false} />
+          <XAxis
+            dataKey="range"
+            interval="preserveStartEnd"
+            textAnchor="end"
+            height={60}
+            tick={{ fill: "#6B7280", fontSize: 12 }}
+          />
+          <YAxis tick={{ fill: "#6B7280", fontSize: 12 }} />
           <Tooltip content={customTooltip} />
           <Bar dataKey="count" fill="#B8C5FF" radius={[4, 4, 0, 0]} />
         </BarChart>

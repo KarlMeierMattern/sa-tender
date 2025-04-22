@@ -88,7 +88,14 @@ export default function AwardedTendersCard({
         </CardHeader>
         <CardContent>
           <p className="text-3xl font-bold">
-            R {calculateTotalValue(allData?.data?.data || []).toLocaleString()}
+            R{" "}
+            {(
+              calculateTotalValue(allData?.data?.data || []) / 1000000000
+            ).toLocaleString(undefined, {
+              minimumFractionDigits: 1,
+              maximumFractionDigits: 1,
+            })}
+            bn
           </p>
         </CardContent>
       </Card>
@@ -99,7 +106,13 @@ export default function AwardedTendersCard({
         <CardContent>
           <p className="text-3xl font-bold">
             R{" "}
-            {calculateAverageValue(allData?.data?.data || []).toLocaleString()}
+            {(
+              calculateAverageValue(allData?.data?.data || []) / 1000000
+            ).toLocaleString(undefined, {
+              minimumFractionDigits: 1,
+              maximumFractionDigits: 1,
+            })}
+            m
           </p>
         </CardContent>
       </Card>

@@ -50,14 +50,14 @@ export default function AdvertisedTendersCharts() {
             data={chartQueries.departmentTenderType.data?.data}
           />
         </div>
-        <div className="bg-white rounded-xl p-6 shadow-sm">
+        {/* <div className="bg-white rounded-xl p-6 shadow-sm">
           <CategoryProvinceChart
             data={chartQueries.categoryProvince.data?.data}
           />
         </div>
         <div className="bg-white rounded-xl p-6 shadow-sm">
           <KeywordCloud data={chartQueries.keywordCloud.data?.data} />
-        </div>
+        </div> */}
       </div>
     </div>
   );

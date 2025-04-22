@@ -46,8 +46,11 @@ export default function TimelineChart({ data }) {
             dataKey="date"
             tickFormatter={formatXAxis}
             interval="preserveStartEnd"
+            textAnchor="end"
+            height={60}
+            tick={{ fill: "#6B7280", fontSize: 12 }}
           />
-          <YAxis allowDecimals={false} />
+          <YAxis tick={{ fill: "#6B7280", fontSize: 12 }} />
           <Tooltip
             labelFormatter={(value) => {
               const date = new Date(value);

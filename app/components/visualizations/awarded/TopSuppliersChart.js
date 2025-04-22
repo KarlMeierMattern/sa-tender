@@ -54,18 +54,24 @@ export default function TopSuppliersChart({ data }) {
           layout="vertical"
           margin={{
             top: 5,
-            right: 30,
-            left: 120, // Extra space for supplier names
+            right: 20,
+            left: 40,
             bottom: 5,
           }}
         >
           <CartesianGrid strokeDasharray="3 3" />
-          <XAxis type="number" tickFormatter={formatCurrency} />
+          <XAxis
+            type="number"
+            tickFormatter={formatCurrency}
+            textAnchor="end"
+            height={60}
+            tick={{ fill: "#6B7280", fontSize: 12 }}
+          />
           <YAxis
             type="category"
             dataKey="supplier"
             width={120}
-            tick={{ fontSize: 12 }}
+            tick={{ fill: "#6B7280", fontSize: 12 }}
           />
           <Tooltip content={<CustomTooltip />} />
           <Bar

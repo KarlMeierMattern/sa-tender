@@ -47,10 +47,7 @@ export default function LowestAwardTimingChart({ data }) {
         <BarChart
           data={chartData}
           margin={{
-            top: 5,
-            right: 30,
-            left: 20,
-            bottom: 120, // Extra space for department names
+            bottom: 20, // Extra space for department names
           }}
         >
           <CartesianGrid strokeDasharray="3 3" />

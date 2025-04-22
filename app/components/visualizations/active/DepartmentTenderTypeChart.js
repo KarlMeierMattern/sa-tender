@@ -74,12 +74,18 @@ export default function DepartmentTenderTypeChart({ data }) {
           layout="vertical"
         >
           <CartesianGrid strokeDasharray="3 3" />
-          <XAxis type="number" />
+          <XAxis
+            type="number"
+            interval="preserveStartEnd"
+            textAnchor="end"
+            height={60}
+            tick={{ fill: "#6B7280", fontSize: 12 }}
+          />
           <YAxis
             dataKey="department"
             type="category"
             width={150}
-            tick={{ fontSize: 12 }}
+            tick={{ fill: "#6B7280", fontSize: 12 }}
           />
           <Tooltip content={<CustomTooltip />} />
           <Legend />
@@ -94,9 +100,6 @@ export default function DepartmentTenderTypeChart({ data }) {
           ))}
         </BarChart>
       </ResponsiveContainer>
-      <p className="text-sm text-gray-500 text-center mt-2">
-        Distribution of tender types by department
-      </p>
     </div>
   );
 }

@@ -46,15 +46,7 @@ export default function DepartmentValueChart({ data }) {
         Total value awarded to each department
       </p>
       <ResponsiveContainer width="100%" height={400}>
-        <BarChart
-          data={chartData}
-          margin={{
-            top: 5,
-            right: 30,
-            left: 20,
-            bottom: 120,
-          }}
-        >
+        <BarChart data={chartData}>
           <CartesianGrid strokeDasharray="3 3" />
           <XAxis
             dataKey="department"
