@@ -9,7 +9,7 @@ import { useActiveTenderFilters } from "../../hooks/active/useActiveTenderFilter
 import AdvertisedTendersCard from "./AvertisedTendersCard";
 import AdvertisedTendersCharts from "./AdvertisedTendersCharts";
 
-// import awarded hooks to prefetch data
+// import hooks for awarded tenders to prefetch data when the advertised component mounts
 import { useQueryClient } from "@tanstack/react-query";
 
 import {

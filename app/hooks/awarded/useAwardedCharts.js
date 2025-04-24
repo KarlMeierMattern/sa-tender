@@ -55,7 +55,8 @@ export const lowestAwardTimingFn = async (year = "all") => {
   return res.json();
 };
 
-// Hook (unchanged in usage)
+// Hook for awarded charts
+// Use () => yourFn(params) to pass arguments safely and defer execution.
 export function useAwardedCharts(selectedYear = "all") {
   const departmentValue = useQuery({
     queryKey: departmentValueKey(selectedYear),
