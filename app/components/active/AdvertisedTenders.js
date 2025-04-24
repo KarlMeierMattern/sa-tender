@@ -9,10 +9,48 @@ import { useActiveTenderFilters } from "../../hooks/active/useActiveTenderFilter
 import AdvertisedTendersCard from "./AvertisedTendersCard";
 import AdvertisedTendersCharts from "./AdvertisedTendersCharts";
 
+// import awarded hooks to prefetch data
+import { useQueryClient } from "@tanstack/react-query";
+
+import {
+  awardedTendersKey,
+  awardedTendersFn,
+} from "../../hooks/awarded/useAllAwardedTendersTable";
+
+import {
+  departmentValueKey,
+  departmentValueFn,
+} from "../../hooks/awarded/useAwardedCharts";
+
+import {
+  provinceValueKey,
+  provinceValueFn,
+} from "../../hooks/awarded/useAwardedCharts";
+
+import {
+  valueDistributionKey,
+  valueDistributionFn,
+} from "../../hooks/awarded/useAwardedCharts";
+
+import {
+  topSuppliersKey,
+  topSuppliersFn,
+} from "../../hooks/awarded/useAwardedCharts";
+
+import {
+  awardTimingKey,
+  awardTimingFn,
+} from "../../hooks/awarded/useAwardedCharts";
+
+import {
+  lowestAwardTimingKey,
+  lowestAwardTimingFn,
+} from "../../hooks/awarded/useAwardedCharts";
+
 const ITEMS_PER_PAGE = 10;
 
 // Lazy load the table component
-const TenderTable = dynamic(() => import("../TenderTable"), {
+const TenderTable = dynamic(() => import("./TenderTable"), {
   loading: () => <TableSkeleton />,
   ssr: false,
 });
@@ -21,6 +59,7 @@ export default function AdvertisedTenders({
   page,
   currentView,
   updateUrlParams,
+  selectedYear,
 }) {
   // Add state for filters
   const [selectedCategories, setSelectedCategories] = useState([]);
@@ -28,6 +67,44 @@ export default function AdvertisedTenders({
   const [selectedProvinces, setSelectedProvinces] = useState([]);
   const [selectedAdvertisedDate, setSelectedAdvertisedDate] = useState(null);
   const [selectedClosingDate, setSelectedClosingDate] = useState(null);
+
+  // prefetch data
+  const queryClient = useQueryClient();
+
+  useEffect(() => {
+    import("../awarded/AwardedTenders"); // prefetch awarded tenders component
+    import("../awarded/AwardedTendersCharts"); // prefetch awarded tenders charts component
+    import("../awarded/AwardedTendersCard"); // prefetch awarded tenders card component
+
+    queryClient.prefetchQuery({
+      queryKey: awardedTendersKey,
+      queryFn: awardedTendersFn,
+    });
+    queryClient.prefetchQuery({
+      queryKey: departmentValueKey(selectedYear),
+      queryFn: departmentValueFn(selectedYear),
+    });
+    queryClient.prefetchQuery({
+      queryKey: provinceValueKey(selectedYear),
+      queryFn: provinceValueFn(selectedYear),
+    });
+    queryClient.prefetchQuery({
+      queryKey: valueDistributionKey(selectedYear),
+      queryFn: valueDistributionFn(selectedYear),
+    });
+    queryClient.prefetchQuery({
+      queryKey: topSuppliersKey(selectedYear),
+      queryFn: topSuppliersFn(selectedYear),
+    });
+    queryClient.prefetchQuery({
+      queryKey: awardTimingKey(selectedYear),
+      queryFn: awardTimingFn(selectedYear),
+    });
+    queryClient.prefetchQuery({
+      queryKey: lowestAwardTimingKey(selectedYear),
+      queryFn: lowestAwardTimingFn(selectedYear),
+    });
+  }, [queryClient, selectedYear]);
 
   // Hook for filter options
   const { data: filterOptions } = useActiveTenderFilters();

@@ -3,6 +3,7 @@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import dynamic from "next/dynamic";
 import { useSearchParams, useRouter } from "next/navigation";
+import { useState } from "react";
 
 // Lazy load the components
 const AdvertisedTenders = dynamic(() => import("./active/AdvertisedTenders"), {
@@ -19,6 +20,7 @@ export default function TenderLayout() {
   const page = parseInt(searchParams.get("page")) || 1;
   const currentView = searchParams.get("view") || "visualizations";
   const currentTab = searchParams.get("tab") || "advertised";
+  const [selectedYear, setSelectedYear] = useState("all");
 
   const updateUrlParams = (params) => {
     const newParams = new URLSearchParams(searchParams);
@@ -46,6 +48,7 @@ export default function TenderLayout() {
 
         <TabsContent value="advertised">
           <AdvertisedTenders
+            selectedYear={selectedYear}
             page={page}
             currentView={currentView}
             updateUrlParams={updateUrlParams}
@@ -54,6 +57,8 @@ export default function TenderLayout() {
 
         <TabsContent value="awarded">
           <AwardedTenders
+            selectedYear={selectedYear}
+            setSelectedYear={setSelectedYear}
             page={page}
             currentView={currentView}
             updateUrlParams={updateUrlParams}

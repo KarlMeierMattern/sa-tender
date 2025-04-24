@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import MultiSelect from "./ui/multi-select";
+import MultiSelect from "../ui/multi-select";
 import { Calendar } from "@/components/ui/calendar";
 import {
   Table,
@@ -22,8 +22,8 @@ import { CalendarIcon } from "lucide-react";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import { useRouter, useSearchParams } from "next/navigation";
-import Pagination from "./Pagination";
-import TableSkeleton from "./ui/table-skeleton";
+import Pagination from "../Pagination";
+import TableSkeleton from "../ui/table-skeleton";
 
 export default function TenderTable({
   allTenders = [],

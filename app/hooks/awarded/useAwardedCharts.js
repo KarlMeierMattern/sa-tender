@@ -2,75 +2,95 @@
 
 import { useQuery } from "@tanstack/react-query";
 
+// Query Keys
+export const departmentValueKey = (year = "all") => [
+  "department-value-chart",
+  year,
+];
+export const provinceValueKey = (year = "all") => [
+  "province-value-chart",
+  year,
+];
+export const valueDistributionKey = (year = "all") => [
+  "value-distribution-chart",
+  year,
+];
+export const topSuppliersKey = (year = "all") => ["top-suppliers-chart", year];
+export const awardTimingKey = (year = "all") => ["award-timing-chart", year];
+export const lowestAwardTimingKey = (year = "all") => [
+  "lowest-award-timing-chart",
+  year,
+];
+
+// Query Fns
+export const departmentValueFn = async (year = "all") => {
+  const res = await fetch(`/api/charts/department-value-awarded?year=${year}`);
+  return res.json();
+};
+
+export const provinceValueFn = async (year = "all") => {
+  const res = await fetch(`/api/charts/province-value-awarded?year=${year}`);
+  return res.json();
+};
+
+export const valueDistributionFn = async (year = "all") => {
+  const res = await fetch(
+    `/api/charts/value-distribution-awarded?year=${year}`
+  );
+  return res.json();
+};
+
+export const topSuppliersFn = async (year = "all") => {
+  const res = await fetch(`/api/charts/top-suppliers-awarded?year=${year}`);
+  return res.json();
+};
+
+export const awardTimingFn = async (year = "all") => {
+  const res = await fetch(`/api/charts/award-timing?year=${year}`);
+  return res.json();
+};
+
+export const lowestAwardTimingFn = async (year = "all") => {
+  const res = await fetch(`/api/charts/lowest-award-timing?year=${year}`);
+  return res.json();
+};
+
+// Hook (unchanged in usage)
 export function useAwardedCharts(selectedYear = "all") {
-  // DepartmentValueChart
   const departmentValue = useQuery({
-    queryKey: ["department-value-chart", selectedYear],
-    queryFn: async () => {
-      const res = await fetch(
-        `/api/charts/department-value-awarded?year=${selectedYear}`
-      );
-      return res.json();
-    },
-    staleTime: 1000 * 60 * 5, // 5 minutes
+    queryKey: departmentValueKey(selectedYear),
+    queryFn: () => departmentValueFn(selectedYear),
+    staleTime: 1000 * 60 * 5,
   });
 
-  // ProvinceMap
   const provinceValue = useQuery({
-    queryKey: ["province-value-chart", selectedYear],
-    queryFn: async () => {
-      const res = await fetch(
-        `/api/charts/province-value-awarded?year=${selectedYear}`
-      );
-      return res.json();
-    },
-    staleTime: 1000 * 60 * 5, // 5 minutes
+    queryKey: provinceValueKey(selectedYear),
+    queryFn: () => provinceValueFn(selectedYear),
+    staleTime: 1000 * 60 * 5,
   });
 
-  // ValueDistribution
   const valueDistribution = useQuery({
-    queryKey: ["value-distribution-chart", selectedYear],
-    queryFn: async () => {
-      const res = await fetch(
-        `/api/charts/value-distribution-awarded?year=${selectedYear}`
-      );
-      return res.json();
-    },
-    staleTime: 1000 * 60 * 5, // 5 minutes
+    queryKey: valueDistributionKey(selectedYear),
+    queryFn: () => valueDistributionFn(selectedYear),
+    staleTime: 1000 * 60 * 5,
   });
 
-  // TopSuppliersChart
   const topSuppliers = useQuery({
-    queryKey: ["top-suppliers-chart", selectedYear],
-    queryFn: async () => {
-      const res = await fetch(
-        `/api/charts/top-suppliers-awarded?year=${selectedYear}`
-      );
-      return res.json();
-    },
-    staleTime: 1000 * 60 * 5, // 5 minutes
+    queryKey: topSuppliersKey(selectedYear),
+    queryFn: () => topSuppliersFn(selectedYear),
+    staleTime: 1000 * 60 * 5,
   });
 
-  // HighestAwardTimingChart
   const awardTiming = useQuery({
-    queryKey: ["award-timing-chart", selectedYear],
-    queryFn: async () => {
-      const res = await fetch(`/api/charts/award-timing?year=${selectedYear}`);
-      return res.json();
-    },
-    staleTime: 1000 * 60 * 5, // 5 minutes
+    queryKey: awardTimingKey(selectedYear),
+    queryFn: () => awardTimingFn(selectedYear),
+    staleTime: 1000 * 60 * 5,
   });
 
-  // LowestAwardTimingChart
   const lowestAwardTiming = useQuery({
-    queryKey: ["lowest-award-timing-chart", selectedYear],
-    queryFn: async () => {
-      const res = await fetch(
-        `/api/charts/lowest-award-timing?year=${selectedYear}`
-      );
-      return res.json();
-    },
-    staleTime: 1000 * 60 * 5, // 5 minutes
+    queryKey: lowestAwardTimingKey(selectedYear),
+    queryFn: () => lowestAwardTimingFn(selectedYear),
+    staleTime: 1000 * 60 * 5,
   });
 
   return {
