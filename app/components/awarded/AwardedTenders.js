@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import AwardedTendersCard from "./AwardedTendersCard";
-const AwardedTendersCharts = React.lazy(() => import("./AwardedTendersCharts"));
+const AwardedTendersCharts = React.lazy(() => import("./AwardedTendersCharts")); // Lazy-loads AwardedTendersCharts only when it needs to render
 
 export default function AwardedTenders() {
   const [selectedYear, setSelectedYear] = useState("all");

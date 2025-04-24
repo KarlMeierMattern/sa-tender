@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import dynamic from "next/dynamic";
 import TableSkeleton from "../ui/table-skeleton";
@@ -8,6 +8,7 @@ import { useAdvertisedTenders } from "../../hooks/active/useActiveTendersTable";
 import { useActiveTenderFilters } from "../../hooks/active/useActiveTenderFilters";
 import AdvertisedTendersCard from "./AvertisedTendersCard";
 import AdvertisedTendersCharts from "./AdvertisedTendersCharts";
+
 const ITEMS_PER_PAGE = 10;
 
 // Lazy load the table component
@@ -27,6 +28,14 @@ export default function AdvertisedTenders({
   const [selectedProvinces, setSelectedProvinces] = useState([]);
   const [selectedAdvertisedDate, setSelectedAdvertisedDate] = useState(null);
   const [selectedClosingDate, setSelectedClosingDate] = useState(null);
+
+  // Prefetch AwardedTenders early in the background without blocking UI.
+  // It caches the file, so when the user switches tabs, it shows up faster
+  useEffect(() => {
+    import("../awarded/AwardedTenders");
+    import("../awarded/AwardedTendersCharts");
+    import("../awarded/AwardedTendersCard");
+  }, []);
 
   // Hook for filter options
   const { data: filterOptions } = useActiveTenderFilters();
