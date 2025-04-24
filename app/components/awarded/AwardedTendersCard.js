@@ -15,9 +15,7 @@ export default function AwardedTendersCard({
   const filterOptions = useAwardedTenderFilters();
 
   // Hook for all awarded tenders data
-  const allData = useAllAwardedTenders({
-    enabled: true, // Always enabled since we need it for metrics
-  });
+  const allData = useAllAwardedTenders();
 
   // Notify parent that loading is done
   useEffect(() => {

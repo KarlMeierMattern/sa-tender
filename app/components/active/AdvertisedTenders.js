@@ -29,14 +29,6 @@ export default function AdvertisedTenders({
   const [selectedAdvertisedDate, setSelectedAdvertisedDate] = useState(null);
   const [selectedClosingDate, setSelectedClosingDate] = useState(null);
 
-  // Prefetch AwardedTenders early in the background without blocking UI.
-  // It caches the file, so when the user switches tabs, it shows up faster
-  useEffect(() => {
-    import("../awarded/AwardedTenders");
-    import("../awarded/AwardedTendersCharts");
-    import("../awarded/AwardedTendersCard");
-  }, []);
-
   // Hook for filter options
   const { data: filterOptions } = useActiveTenderFilters();
 
