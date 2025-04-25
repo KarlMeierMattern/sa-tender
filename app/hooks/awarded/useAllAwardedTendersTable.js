@@ -2,17 +2,22 @@
 
 import { useQuery } from "@tanstack/react-query";
 
-export const awardedTendersKey = ["awarded-tenders-full"]; // This is how to identify this piece of data in the cache”
+export const awardedTendersKey = (year = "all") => [
+  "awarded-tenders-full",
+  year,
+];
 
-export const awardedTendersFn = async () => {
-  const res = await fetch("/api/tenders-detail-awarded?limit=999999"); // This is how to fetch the data if it’s not in the cache yet
+export const awardedTendersFn = async (year = "all") => {
+  const params = new URLSearchParams({ limit: "999999" });
+  if (year && year !== "all") params.append("year", year);
+  const res = await fetch(`/api/tenders-detail-awarded?${params.toString()}`);
   return res.json();
 };
 
-export function useAllAwardedTenders() {
+export function useAllAwardedTenders(year = "all") {
   return useQuery({
-    queryKey: awardedTendersKey,
-    queryFn: awardedTendersFn,
+    queryKey: awardedTendersKey(year),
+    queryFn: () => awardedTendersFn(year),
     staleTime: 1000 * 60 * 5,
   });
 }

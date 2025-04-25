@@ -11,11 +11,11 @@ export default function AwardedTendersCard({
   setSelectedYear,
   setIsCardLoading,
 }) {
-  // Hook for filter options
+  // Hook for filter optionsa
   const filterOptions = useAwardedTenderFilters();
 
-  // Hook for all awarded tenders data
-  const allData = useAllAwardedTenders();
+  // Hook for all awarded tenders data filtered by selected year
+  const allData = useAllAwardedTenders(selectedYear);
 
   // Notify parent that loading is done
   useEffect(() => {
@@ -38,7 +38,7 @@ export default function AwardedTendersCard({
   // Calculdate total value
   const calculateTotalValue = (tenders) => {
     return tenders.reduce(
-      (sum, tender) => sum + (parseFloat(tender.successfulBidderAmount) || 0),
+      (sum, tender) => sum + (parseFloat(tender?.successfulBidderAmount) || 0),
       0
     );
   };

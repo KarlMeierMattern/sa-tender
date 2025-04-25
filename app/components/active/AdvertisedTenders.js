@@ -47,6 +47,11 @@ import {
   lowestAwardTimingFn,
 } from "../../hooks/awarded/useAwardedCharts";
 
+import {
+  awardedTenderFiltersKey,
+  awardedTenderFiltersFn,
+} from "../../hooks/awarded/useAwardedTenderFilters";
+
 const ITEMS_PER_PAGE = 10;
 
 // Lazy load the table component
@@ -77,8 +82,8 @@ export default function AdvertisedTenders({
     import("../awarded/AwardedTendersCard"); // prefetch awarded tenders card component
 
     queryClient.prefetchQuery({
-      queryKey: awardedTendersKey,
-      queryFn: awardedTendersFn,
+      queryKey: awardedTendersKey(selectedYear),
+      queryFn: awardedTendersFn(selectedYear),
     });
     queryClient.prefetchQuery({
       queryKey: departmentValueKey(selectedYear),
@@ -103,6 +108,10 @@ export default function AdvertisedTenders({
     queryClient.prefetchQuery({
       queryKey: lowestAwardTimingKey(selectedYear),
       queryFn: lowestAwardTimingFn(selectedYear),
+    });
+    queryClient.prefetchQuery({
+      queryKey: awardedTenderFiltersKey,
+      queryFn: awardedTenderFiltersFn,
     });
   }, [queryClient, selectedYear]);
 
