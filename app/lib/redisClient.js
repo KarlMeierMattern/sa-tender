@@ -1,3 +1,7 @@
+// Provides a Redis client for the application
+// Used in ../middleware.js for rate limiting
+// Used in ../api/index.js for caching
+
 import Redis from "ioredis";
 
 const redis = new Redis(process.env.UPSTASH_REDIS_URL, {
