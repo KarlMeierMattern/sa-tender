@@ -25,8 +25,6 @@ export default function TopCategoriesChart({ data }) {
     return `R ${value.toLocaleString()}`;
   };
 
-  // const totalValue = data.reduce((acc, item) => acc + item.totalValue, 0);
-
   const totalValue = data.reduce((acc, item) => acc + item.totalValue, 0);
 
   // Custom tooltip component

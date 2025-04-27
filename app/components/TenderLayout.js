@@ -35,7 +35,7 @@ export default function TenderLayout() {
   };
 
   return (
-    <div className="p-4">
+    <div>
       <Tabs
         defaultValue={currentTab}
         className="w-full"

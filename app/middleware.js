@@ -1,4 +1,4 @@
-// Next.js automatically runs this middleware
+// Next.js automatically runs this middleware at the route of your project
 
 import { rateLimit } from "./middleware/rateLimit";
 
