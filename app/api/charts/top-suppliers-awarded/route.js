@@ -1,5 +1,4 @@
 import { NextResponse } from "next/server";
-import mongoose from "mongoose";
 import { AwardedTenderModel } from "../../../model/awardedTenderModel";
 import { cache } from "../../../lib/cache";
 import { connectDB } from "../../db";
@@ -22,8 +21,9 @@ export async function GET(request) {
 
     // Build match stage based on year
     const matchStage = {
-      successfulBidderName: { $exists: true, $ne: null },
+      successfulBidderName: { $exists: true, $ne: null }, // exists AND is not 0
       successfulBidderAmount: { $exists: true, $ne: 0 },
+      category: { $exists: true, $ne: null },
     };
 
     // Add year filter if specified
@@ -34,28 +34,34 @@ export async function GET(request) {
       };
     }
 
-    const data = await AwardedTenderModel.aggregate([
-      {
-        $match: matchStage,
-      },
-      {
-        $group: {
-          _id: "$successfulBidderName",
-          totalValue: { $sum: "$successfulBidderAmount" },
-          count: { $sum: 1 },
+    const data = await AwardedTenderModel.aggregate(
+      [
+        {
+          $match: matchStage,
         },
-      },
-      {
-        $project: {
-          _id: 0,
-          supplier: "$_id",
-          totalValue: 1,
-          count: 1,
+        {
+          $group: {
+            _id: "$successfulBidderName", // group by supplier name
+            totalValue: { $sum: "$successfulBidderAmount" }, // sum the total value of all tenders for this supplier
+            count: { $sum: 1 }, // add 1 for each document in the group
+            categories: { $addToSet: "$category" }, // collect all categories for this supplier
+          },
         },
-      },
-      { $sort: { totalValue: -1 } },
-      { $limit: 10 },
-    ]);
+        {
+          // use $project to limit the number of categories
+          $project: {
+            _id: 0, // remove the _id field
+            supplier: "$_id", // rename _id to supplier
+            totalValue: 1, // include the total value
+            count: 1, // include the count
+            categories: { $slice: ["$categories", 3] }, // limit to first 3 categories
+          },
+        },
+        { $sort: { totalValue: -1 } },
+        { $limit: 10 },
+      ],
+      { allowDiskUse: true }
+    );
 
     const response = {
       success: true,

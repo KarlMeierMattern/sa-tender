@@ -7,6 +7,7 @@ import {
   HighestAwardTimingChart,
   LowestAwardTimingChart,
   ProvinceMap,
+  TopCategoriesChart,
 } from "../visualizations/awarded";
 import { useAwardedCharts } from "../../hooks/awarded/useAwardedCharts.js";
 import TableSkeleton from "../ui/table-skeleton";
@@ -29,12 +30,15 @@ export default function AwardedTendersCharts({ selectedYear }) {
           <ProvinceMap data={chartQueries.provinceValue.data?.data} />
         </div>
         <div className="bg-white rounded-xl p-6 shadow-sm">
-          <ValueDistributionChart
-            data={chartQueries.valueDistribution.data?.data}
-          />
+          <TopCategoriesChart data={chartQueries.topCategories.data?.data} />
         </div>
         <div className="bg-white rounded-xl p-6 shadow-sm">
           <TopSuppliersChart data={chartQueries.topSuppliers.data?.data} />
+        </div>
+        <div className="bg-white rounded-xl p-6 shadow-sm">
+          <ValueDistributionChart
+            data={chartQueries.valueDistribution.data?.data}
+          />
         </div>
         <div className="bg-white rounded-xl p-6 shadow-sm">
           <HighestAwardTimingChart data={chartQueries.awardTiming.data?.data} />

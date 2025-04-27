@@ -22,6 +22,11 @@ export const lowestAwardTimingKey = (year = "all") => [
   year,
 ];
 
+export const topCategoriesKey = (year = "all") => [
+  "top-categories-chart",
+  year,
+];
+
 // Query Fns
 export const departmentValueFn = async (year = "all") => {
   const res = await fetch(`/api/charts/department-value-awarded?year=${year}`);
@@ -52,6 +57,11 @@ export const awardTimingFn = async (year = "all") => {
 
 export const lowestAwardTimingFn = async (year = "all") => {
   const res = await fetch(`/api/charts/lowest-award-timing?year=${year}`);
+  return res.json();
+};
+
+export const topCategoriesFn = async (year = "all") => {
+  const res = await fetch(`/api/charts/top-categories-awarded?year=${year}`);
   return res.json();
 };
 
@@ -94,6 +104,12 @@ export function useAwardedCharts(selectedYear = "all") {
     staleTime: 1000 * 60 * 5,
   });
 
+  const topCategories = useQuery({
+    queryKey: topCategoriesKey(selectedYear),
+    queryFn: () => topCategoriesFn(selectedYear),
+    staleTime: 1000 * 60 * 5,
+  });
+
   return {
     departmentValue,
     provinceValue,
@@ -101,5 +117,6 @@ export function useAwardedCharts(selectedYear = "all") {
     topSuppliers,
     awardTiming,
     lowestAwardTiming,
+    topCategories,
   };
 }

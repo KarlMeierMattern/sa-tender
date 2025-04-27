@@ -4,6 +4,7 @@ import TopSuppliersChart from "./TopSuppliersChart";
 import HighestAwardTimingChart from "./HighestAwardTimingChart";
 import LowestAwardTimingChart from "./LowestAwardTimingChart";
 import ProvinceMap from "./ProvinceMap";
+import TopCategoriesChart from "./TopCategoriesChart";
 
 export {
   DepartmentValueChart,
@@ -12,4 +13,5 @@ export {
   HighestAwardTimingChart,
   LowestAwardTimingChart,
   ProvinceMap,
+  TopCategoriesChart,
 };

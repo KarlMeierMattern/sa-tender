@@ -17,6 +17,7 @@ export default function DepartmentValueChart({ data }) {
   const chartData = data.map((item) => ({
     department: item.department,
     value: item.totalValue,
+    count: item.count,
   }));
 
   // Custom formatter for the y-axis (currency)
@@ -24,13 +25,21 @@ export default function DepartmentValueChart({ data }) {
     return `R ${value.toLocaleString()}`;
   };
 
+  const totalValue = data.reduce((acc, item) => acc + item.totalValue, 0);
+
   // Custom tooltip formatter
   const CustomTooltip = ({ active, payload, label }) => {
     if (active && payload && payload.length) {
+      const item = payload[0].payload;
+
       return (
         <div className="bg-white p-3 border border-gray-200 shadow-md rounded">
           <p className="font-semibold mb-1">{label}</p>
-          <p>{`Total Value: R ${payload[0].value.toLocaleString()}`}</p>
+          <p>{`Total Value: R ${item.value.toLocaleString()}`}</p>
+          <p>{`Number of Tenders: ${item.count}`}</p>
+          <p>{`% of total value: ${((item.value / totalValue) * 100).toFixed(
+            2
+          )}%`}</p>
         </div>
       );
     }
@@ -46,7 +55,7 @@ export default function DepartmentValueChart({ data }) {
         Total value awarded to each department
       </p>
       <ResponsiveContainer width="100%" height={400}>
-        <BarChart data={chartData}>
+        <BarChart data={chartData} barSize={60}>
           <CartesianGrid strokeDasharray="3 3" />
           <XAxis
             dataKey="department"
@@ -104,7 +113,7 @@ export default function DepartmentValueChart({ data }) {
             tick={{ fontSize: 10 }}
           />
           <Tooltip content={<CustomTooltip />} />
-          <Bar dataKey="value" fill="#B8C5FF" />
+          <Bar dataKey="value" fill="#B8C5FF" radius={[4, 4, 0, 0]} />
         </BarChart>
       </ResponsiveContainer>
     </div>

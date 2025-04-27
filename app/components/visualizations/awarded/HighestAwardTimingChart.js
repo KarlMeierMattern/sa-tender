@@ -49,6 +49,7 @@ export default function HighestAwardTimingChart({ data }) {
           margin={{
             bottom: 20, // Extra space for department names
           }}
+          barSize={60}
         >
           <CartesianGrid strokeDasharray="3 3" />
           <XAxis
@@ -116,6 +117,7 @@ export default function HighestAwardTimingChart({ data }) {
             fill="#B8C5FF"
             stroke="#C2CDFF"
             strokeWidth={1}
+            radius={[4, 4, 0, 0]}
           />
         </BarChart>
       </ResponsiveContainer>
