@@ -53,7 +53,7 @@ export default function ValueDistributionChart({ data }) {
         Awarded Tender Distribution
       </h3>
       <p className="text-sm text-gray-500 mb-2 text-center">
-        Distribution of awarded tender values by value range
+        The value ranges of awarded tenders
       </p>
       <div className="flex items-center justify-center">
         <ResponsiveContainer width="100%" height={400}>

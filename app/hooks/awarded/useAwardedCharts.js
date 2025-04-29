@@ -116,7 +116,6 @@ export function useAwardedCharts(selectedYear = "all") {
     valueDistribution,
     topSuppliers,
     awardTiming,
-    // lowestAwardTiming,
     topCategories,
   };
 }

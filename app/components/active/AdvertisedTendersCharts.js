@@ -2,15 +2,11 @@
 
 import {
   ProvinceMap,
-  ProvinceBarChart,
   CategoryPieChart,
   DepartmentBarChart,
   TenderTypeDonut,
   TimelineChart,
   DurationHistogram,
-  DepartmentTenderTypeChart,
-  CategoryProvinceChart,
-  KeywordCloud,
 } from "../visualizations/active";
 import TableSkeleton from "../ui/table-skeleton";
 import { useAdvertisedCharts } from "../../hooks/active/useActiveCharts";
@@ -41,14 +37,6 @@ export default function AdvertisedTendersCharts() {
       <div className="bg-white rounded-xl p-6 border shadow-sm">
         <TenderTypeDonut data={chartQueries.tenderTypeCount.data?.data} />
       </div>
-      {/* <div className="bg-white rounded-xl p-6 border shadow-sm">
-        <ProvinceBarChart data={chartQueries.provinceCount.data?.data} />
-      </div> */}
-      {/* <div className="bg-white rounded-xl p-6 border shadow-sm">
-        <DepartmentTenderTypeChart
-          data={chartQueries.departmentTenderType.data?.data}
-        />
-      </div> */}
     </div>
   );
 }

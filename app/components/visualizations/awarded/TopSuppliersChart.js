@@ -57,7 +57,7 @@ export default function TopSuppliersChart({ data }) {
         Top 10 Suppliers by Awarded Value
       </h3>
       <p className="text-sm text-gray-500 mb-2 text-center">
-        Top 10 suppliers by awarded value
+        The suppliers that received the most money from tenders
       </p>
       <ResponsiveContainer width="100%" height={400}>
         <BarChart data={chartData} layout="vertical" barSize={20}>

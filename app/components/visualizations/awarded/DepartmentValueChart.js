@@ -54,7 +54,7 @@ export default function DepartmentValueChart({ data }) {
         Department by Procurement Value
       </h3>
       <p className="text-sm text-gray-500 mb-2 text-center">
-        Total value awarded by each department
+        The departments that spent the most money on tenders
       </p>
       <ResponsiveContainer width="100%" height={400}>
         <BarChart data={chartData} barSize={60}>

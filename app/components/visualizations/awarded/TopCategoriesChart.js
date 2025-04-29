@@ -74,10 +74,10 @@ export default function TopCategoriesChart({ data }) {
   return (
     <div className="w-full">
       <h3 className="text-lg font-semibold mb-2 text-center">
-        Categories by Awarded Value
+        Industries by Awarded Value
       </h3>
       <p className="text-sm text-gray-500 mb-2 text-center">
-        Distribution of awarded value across categories
+        The industries that received the most money from tenders
       </p>
       <ResponsiveContainer width="100%" height={400}>
         <PieChart>

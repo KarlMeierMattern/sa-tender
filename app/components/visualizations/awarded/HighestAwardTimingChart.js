@@ -22,7 +22,7 @@ export default function HighestAwardTimingChart({ data }) {
       const item = payload[0].payload;
       return (
         <div className="bg-white p-3 border border-gray-200 shadow-md rounded text-xs">
-          <p className="font-semibold mb-1">{item.label}</p>
+          <p className="font-semibold mb-1">{`${item.label} days`}</p>
           <p>{`Number of Tenders: ${item.count}`}</p>
         </div>
       );
@@ -36,7 +36,7 @@ export default function HighestAwardTimingChart({ data }) {
         Tender Duration Distribution
       </h3>
       <p className="text-sm text-gray-500 mb-2 text-center">
-        Days between advertisement and closing date
+        How long it took for a tender to be awarded
       </p>
       <ResponsiveContainer width="100%" height={400}>
         <BarChart data={chartData} barSize={60}>
