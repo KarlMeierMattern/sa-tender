@@ -30,22 +30,18 @@ async function getTenderDurationData() {
 
   // Create histogram buckets
   const buckets = [
-    { range: "1-7", label: "1-7 days", count: 0 },
-    { range: "8-14", label: "8-14 days", count: 0 },
-    { range: "15-21", label: "15-21 days", count: 0 },
-    { range: "22-30", label: "22-30 days", count: 0 },
+    { range: "1-30", label: "1-30 days", count: 0 },
     { range: "31-60", label: "31-60 days", count: 0 },
-    { range: "61+", label: "61+ days", count: 0 },
+    { range: "61-90", label: "61-90 days", count: 0 },
+    { range: "90+", label: "90+ days", count: 0 },
   ];
 
   // Populate buckets
   durations.forEach((duration) => {
-    if (duration <= 7) buckets[0].count++;
-    else if (duration <= 14) buckets[1].count++;
-    else if (duration <= 21) buckets[2].count++;
-    else if (duration <= 30) buckets[3].count++;
-    else if (duration <= 60) buckets[4].count++;
-    else buckets[5].count++;
+    if (duration <= 30) buckets[0].count++;
+    else if (duration <= 60) buckets[1].count++;
+    else if (duration <= 90) buckets[2].count++;
+    else buckets[3].count++;
   });
 
   return buckets;
