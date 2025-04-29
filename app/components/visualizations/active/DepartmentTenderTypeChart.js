@@ -1,3 +1,5 @@
+// this chart is not used in the app
+
 "use client";
 
 import {
@@ -40,7 +42,7 @@ export default function DepartmentTenderTypeChart({ data }) {
   const CustomTooltip = ({ active, payload, label }) => {
     if (active && payload && payload.length) {
       return (
-        <div className="bg-white p-3 border border-gray-200 shadow-md rounded">
+        <div className="bg-white p-3 border border-gray-200 shadow-md rounded text-xs">
           <p className="font-semibold mb-2">{label}</p>
           {payload.map((entry, index) => (
             <p key={index} style={{ color: entry.color }}>
@@ -65,13 +67,14 @@ export default function DepartmentTenderTypeChart({ data }) {
       <ResponsiveContainer width="100%" height={400}>
         <BarChart
           data={data}
-          margin={{
-            top: 20,
-            right: 30,
-            left: 20,
-            bottom: 100,
-          }}
+          // margin={{
+          //   top: 20,
+          //   right: 30,
+          //   left: 20,
+          //   bottom: 100,
+          // }}
           layout="vertical"
+          margin={{ bottom: 40 }}
         >
           <CartesianGrid strokeDasharray="3 3" />
           <XAxis
@@ -84,11 +87,10 @@ export default function DepartmentTenderTypeChart({ data }) {
           <YAxis
             dataKey="department"
             type="category"
-            width={150}
+            width={120}
             tick={{ fill: "#6B7280", fontSize: 12 }}
           />
           <Tooltip content={<CustomTooltip />} />
-          <Legend />
           {Array.from(tenderTypes).map((type) => (
             <Bar
               key={type}

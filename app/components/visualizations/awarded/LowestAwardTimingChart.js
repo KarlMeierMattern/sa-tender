@@ -102,15 +102,7 @@ export default function LowestAwardTimingChart({ data }) {
               );
             }}
           />
-          <YAxis
-            label={{
-              value: "Days",
-              angle: -90,
-              position: "insideLeft",
-              style: { textAnchor: "middle" },
-            }}
-            tick={{ fontSize: 10 }}
-          />
+          <YAxis tick={{ fontSize: 10 }} />
           <Tooltip content={<CustomTooltip />} />
           <Bar
             dataKey="averageDays"

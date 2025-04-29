@@ -78,17 +78,17 @@ export function useAdvertisedCharts() {
   });
 
   // Department vs Tender Type Breakdown
-  const departmentTenderType = useQuery({
-    queryKey: ["departmentTenderType"],
-    queryFn: async () => {
-      const res = await fetch("/api/charts/department-tendertype");
-      if (!res.ok) {
-        throw new Error(`HTTP error! status: ${res.status}`);
-      }
-      return res.json();
-    },
-    staleTime: 1000 * 60 * 5, // 5 minutes
-  });
+  // const departmentTenderType = useQuery({
+  //   queryKey: ["departmentTenderType"],
+  //   queryFn: async () => {
+  //     const res = await fetch("/api/charts/department-tendertype");
+  //     if (!res.ok) {
+  //       throw new Error(`HTTP error! status: ${res.status}`);
+  //     }
+  //     return res.json();
+  //   },
+  //   staleTime: 1000 * 60 * 5, // 5 minutes
+  // });
 
   // Category vs Province Breakdown
   const categoryProvince = useQuery({
@@ -124,7 +124,7 @@ export function useAdvertisedCharts() {
     tenderTypeCount,
     activeTimeline,
     tenderDuration,
-    departmentTenderType,
+    // departmentTenderType,
     categoryProvince,
     keywordCloud,
   };

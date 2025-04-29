@@ -36,7 +36,7 @@ export default function TopSuppliersChart({ data }) {
     if (active && payload && payload.length) {
       const item = payload[0].payload;
       return (
-        <div className="bg-white p-3 border border-gray-200 shadow-md rounded">
+        <div className="bg-white p-3 border border-gray-200 shadow-md rounded text-xs">
           <p className="font-semibold mb-1">{item.supplier}</p>
           <p>{`Total Value: R ${item.value.toLocaleString()}`}</p>
           <p>{`Number of Tenders: ${item.count}`}</p>

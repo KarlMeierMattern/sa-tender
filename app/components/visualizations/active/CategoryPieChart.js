@@ -22,7 +22,7 @@ const CustomTooltip = ({ active, payload }) => {
   if (active && payload && payload.length) {
     const data = payload[0].payload;
     return (
-      <div className="bg-white p-3 rounded-lg shadow-md border border-gray-200">
+      <div className="bg-white p-3 rounded-lg shadow-md border border-gray-200 text-xs">
         <p className="font-medium text-gray-900">{data.category}</p>
         <p className="text-gray-600">{data.count} tenders</p>
       </div>

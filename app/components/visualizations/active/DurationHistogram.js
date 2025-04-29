@@ -18,7 +18,7 @@ export default function DurationHistogram({ data }) {
   const customTooltip = ({ active, payload, label }) => {
     if (active && payload && payload.length) {
       return (
-        <div className="bg-white p-3 border border-gray-200 shadow-md rounded">
+        <div className="bg-white p-3 border border-gray-200 shadow-md rounded text-xs">
           <p className="font-semibold">{`${payload[0].payload.label}`}</p>
           <p>{`Count: ${payload[0].value}`}</p>
         </div>
@@ -36,15 +36,7 @@ export default function DurationHistogram({ data }) {
         Days between advertisement and closing date
       </p>
       <ResponsiveContainer width="100%" height={300}>
-        <BarChart
-          data={data}
-          margin={{
-            top: 5,
-            right: 30,
-            left: 20,
-            bottom: 5,
-          }}
-        >
+        <BarChart data={data}>
           <CartesianGrid strokeDasharray="3 3" />
           <XAxis
             dataKey="range"

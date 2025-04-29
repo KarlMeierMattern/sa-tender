@@ -6,13 +6,12 @@ import "maplibre-gl/dist/maplibre-gl.css";
 import ReactDOMServer from "react-dom/server";
 import provinceGeoData from "../provinceGeoData.json";
 
-const CustomTooltip = ({ province, value, count }) => (
+const CustomTooltip = ({ province, value, count, percent }) => (
   <div className="bg-white p-3 rounded-lg shadow-md border border-gray-200">
     <p className="font-medium text-gray-900">{province}</p>
-    <p className="text-gray-600">
-      Total Value: R {(value || 0).toLocaleString()}
-    </p>
-    <p className="text-gray-600">Number of Tenders: {count || 0}</p>
+    <p className="text-gray-600">R {(value || 0).toLocaleString()}</p>
+    <p className="text-gray-600">{percent?.toFixed(1)}% of total value</p>
+    <p className="text-gray-600">{count || 0} tenders</p>
   </div>
 );
 
@@ -22,18 +21,20 @@ export default function ProvinceMap({ data }) {
   const popup = useRef(null);
 
   const provinceData = React.useMemo(() => {
-    if (!data) return { values: {}, counts: {} };
+    if (!data) return { values: {}, counts: {}, total: 0 };
 
     const values = {};
     const counts = {};
+    let total = 0;
 
     data.forEach((item) => {
       const province = item.province;
       values[province] = item.totalValue;
       counts[province] = item.count;
+      total += item.totalValue;
     });
 
-    return { values, counts };
+    return { values, counts, total };
   }, [data]);
 
   useEffect(() => {
@@ -138,13 +139,21 @@ export default function ProvinceMap({ data }) {
         const province = feature.properties.name;
         const value = provinceData.values[province];
         const count = provinceData.counts[province] || 0;
+        const percent = provinceData.total
+          ? (value / provinceData.total) * 100
+          : 0;
 
         // Show popup
         popup.current
           .setLngLat(e.lngLat)
           .setHTML(
             ReactDOMServer.renderToString(
-              <CustomTooltip province={province} value={value} count={count} />
+              <CustomTooltip
+                province={province}
+                value={value}
+                count={count}
+                percent={percent}
+              />
             )
           )
           .addTo(map.current);
@@ -172,10 +181,10 @@ export default function ProvinceMap({ data }) {
   return (
     <div className="w-full">
       <h3 className="text-lg font-semibold mb-2 text-center">
-        Total Awarded Value by Province
+        Awarded Tenders by Province
       </h3>
       <p className="text-sm text-gray-500 mb-2 text-center">
-        Total Awarded Value by Province
+        Total value of awarded tenders by province
       </p>
       <div
         ref={mapContainer}

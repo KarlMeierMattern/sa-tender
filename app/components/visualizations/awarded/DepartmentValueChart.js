@@ -33,13 +33,13 @@ export default function DepartmentValueChart({ data }) {
       const item = payload[0].payload;
 
       return (
-        <div className="bg-white p-3 border border-gray-200 shadow-md rounded">
+        <div className="bg-white p-3 border border-gray-200 shadow-md rounded text-xs">
           <p className="font-semibold mb-1">{label}</p>
-          <p>{`Total Value: R ${item.value.toLocaleString()}`}</p>
-          <p>{`Number of Tenders: ${item.count}`}</p>
-          <p>{`% of total value: ${((item.value / totalValue) * 100).toFixed(
-            2
-          )}%`}</p>
+          <p>{`R ${item.value.toLocaleString()} (${(
+            (item.value / totalValue) *
+            100
+          ).toFixed(2)}%)`}</p>
+          <p>{`${item.count} tenders`}</p>
         </div>
       );
     }
@@ -49,10 +49,10 @@ export default function DepartmentValueChart({ data }) {
   return (
     <div className="w-full">
       <h3 className="text-lg font-semibold mb-2 text-center">
-        Department by Total Value Awarded
+        Department by Procurement Value
       </h3>
       <p className="text-sm text-gray-500 mb-2 text-center">
-        Total value awarded to each department
+        Total value awarded by each department
       </p>
       <ResponsiveContainer width="100%" height={400}>
         <BarChart data={chartData} barSize={60}>

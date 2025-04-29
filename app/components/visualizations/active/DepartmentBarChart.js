@@ -30,7 +30,7 @@ const CustomTooltip = ({ active, payload }) => {
   if (active && payload && payload.length) {
     const data = payload[0].payload;
     return (
-      <div className="bg-white p-3 rounded-lg shadow-md border border-gray-200">
+      <div className="bg-white p-3 rounded-lg shadow-md border border-gray-200 text-xs">
         <p className="font-medium text-gray-900">{data.department}</p>
         <p className="text-gray-600">{data.count} tenders</p>
       </div>
@@ -51,10 +51,10 @@ export default function DepartmentBarChart({ data }) {
   return (
     <div className="w-full h-[400px]">
       <h3 className="text-lg font-semibold mb-2 text-center">
-        Top 10 Departments
+        Departments by Tenders
       </h3>
       <p className="text-sm text-gray-500 mb-2 text-center">
-        Number of tenders by department
+        Top 10 procuring departments by number of tenders
       </p>
 
       <div className="h-[calc(100%-2rem)]">
@@ -62,7 +62,7 @@ export default function DepartmentBarChart({ data }) {
           <BarChart
             data={chartData}
             layout="vertical"
-            margin={{ top: 20, right: 30, bottom: 20 }}
+            margin={{ bottom: 40 }}
             barSize={20}
           >
             <CartesianGrid
@@ -81,7 +81,7 @@ export default function DepartmentBarChart({ data }) {
             <YAxis
               type="category"
               dataKey="department"
-              width={160}
+              width={100}
               tickMargin={8}
               tick={{ fill: "#6B7280", fontSize: 12 }}
               axisLine={{ stroke: "#E5E7EB" }}

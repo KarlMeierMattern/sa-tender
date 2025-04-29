@@ -10,14 +10,36 @@ import {
   Tooltip,
 } from "recharts";
 
+// Helper to bucket durations
+function getDurationBucket(days) {
+  if (days <= 7) return "1-7";
+  if (days <= 14) return "8-14";
+  if (days <= 21) return "15-21";
+  if (days <= 30) return "22-30";
+  if (days <= 60) return "31-60";
+  return "61+";
+}
+
 export default function HighestAwardTimingChart({ data }) {
   if (!data) return null;
 
-  // Format data for recharts
-  const chartData = data.map((item) => ({
-    department: item.department,
-    averageDays: item.averageDays,
-    count: item.count,
+  // Group data into buckets
+  const bucketCounts = {
+    "1-7": 0,
+    "8-14": 0,
+    "15-21": 0,
+    "22-30": 0,
+    "31-60": 0,
+    "61+": 0,
+  };
+  data.forEach((item) => {
+    const bucket = getDurationBucket(item.duration);
+    bucketCounts[bucket] = (bucketCounts[bucket] || 0) + 1;
+  });
+
+  const chartData = Object.entries(bucketCounts).map(([bucket, count]) => ({
+    bucket,
+    count,
   }));
 
   // Custom tooltip component
@@ -25,9 +47,8 @@ export default function HighestAwardTimingChart({ data }) {
     if (active && payload && payload.length) {
       const item = payload[0].payload;
       return (
-        <div className="bg-white p-3 border border-gray-200 shadow-md rounded">
-          <p className="font-semibold mb-1">{item.department}</p>
-          <p>{`Average Days: ${item.averageDays}`}</p>
+        <div className="bg-white p-3 border border-gray-200 shadow-md rounded text-xs">
+          <p className="font-semibold mb-1">{item.bucket} days</p>
           <p>{`Number of Tenders: ${item.count}`}</p>
         </div>
       );
@@ -38,82 +59,19 @@ export default function HighestAwardTimingChart({ data }) {
   return (
     <div className="w-full">
       <h3 className="text-lg font-semibold mb-2 text-center">
-        Top 10 Departments with Highest Days to Award Tender
+        Tender Duration Distribution
       </h3>
       <p className="text-sm text-gray-500 mb-2 text-center">
-        Top 10 departments with highest days to award tender
+        Days between advertisement and closing date
       </p>
       <ResponsiveContainer width="100%" height={400}>
-        <BarChart
-          data={chartData}
-          margin={{
-            bottom: 20, // Extra space for department names
-          }}
-          barSize={60}
-        >
+        <BarChart data={chartData} margin={{ bottom: 20 }} barSize={60}>
           <CartesianGrid strokeDasharray="3 3" />
-          <XAxis
-            dataKey="department"
-            angle={-45}
-            textAnchor="end"
-            height={120}
-            tick={(props) => {
-              const { x, y, payload } = props;
-
-              // Calculate how to break up long text
-              const words = payload.value.split(" ");
-              const lineHeight = 12;
-              const width = 150; // increased maximum width from 100 to 150
-              let line = [];
-              let lines = [];
-              let currentWidth = 0;
-
-              // Create wrapped lines for long text
-              words.forEach((word) => {
-                const wordWidth = word.length * 6; // rough estimate of word width
-                if (currentWidth + wordWidth > width) {
-                  lines.push(line.join(" "));
-                  line = [word];
-                  currentWidth = wordWidth;
-                } else {
-                  line.push(word);
-                  currentWidth += wordWidth;
-                }
-              });
-              if (line.length > 0) lines.push(line.join(" "));
-
-              return (
-                <g transform={`translate(${x},${y})`}>
-                  {lines.map((line, i) => (
-                    <text
-                      key={i}
-                      x={0}
-                      y={i * lineHeight}
-                      dy={0}
-                      textAnchor="end"
-                      fill="#666"
-                      fontSize={10}
-                      transform="rotate(-45)"
-                    >
-                      {line}
-                    </text>
-                  ))}
-                </g>
-              );
-            }}
-          />
-          <YAxis
-            label={{
-              value: "Days",
-              angle: -90,
-              position: "insideLeft",
-              style: { textAnchor: "middle" },
-            }}
-            tick={{ fontSize: 8 }}
-          />
+          <XAxis dataKey="bucket" tick={{ fontSize: 12 }} />
+          <YAxis tick={{ fontSize: 10 }} />
           <Tooltip content={<CustomTooltip />} />
           <Bar
-            dataKey="averageDays"
+            dataKey="count"
             fill="#B8C5FF"
             stroke="#C2CDFF"
             strokeWidth={1}

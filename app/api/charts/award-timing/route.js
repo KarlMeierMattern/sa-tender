@@ -65,7 +65,7 @@ export async function GET(request) {
         },
       },
       { $sort: { averageDays: -1 } },
-      { $limit: 10 },
+      // { $limit: 10 },
     ]);
 
     const response = {

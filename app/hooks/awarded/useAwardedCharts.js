@@ -17,10 +17,10 @@ export const valueDistributionKey = (year = "all") => [
 ];
 export const topSuppliersKey = (year = "all") => ["top-suppliers-chart", year];
 export const awardTimingKey = (year = "all") => ["award-timing-chart", year];
-export const lowestAwardTimingKey = (year = "all") => [
-  "lowest-award-timing-chart",
-  year,
-];
+// export const lowestAwardTimingKey = (year = "all") => [
+//   "lowest-award-timing-chart",
+//   year,
+// ];
 
 export const topCategoriesKey = (year = "all") => [
   "top-categories-chart",
@@ -55,10 +55,10 @@ export const awardTimingFn = async (year = "all") => {
   return res.json();
 };
 
-export const lowestAwardTimingFn = async (year = "all") => {
-  const res = await fetch(`/api/charts/lowest-award-timing?year=${year}`);
-  return res.json();
-};
+// export const lowestAwardTimingFn = async (year = "all") => {
+//   const res = await fetch(`/api/charts/lowest-award-timing?year=${year}`);
+//   return res.json();
+// };
 
 export const topCategoriesFn = async (year = "all") => {
   const res = await fetch(`/api/charts/top-categories-awarded?year=${year}`);
@@ -98,11 +98,11 @@ export function useAwardedCharts(selectedYear = "all") {
     staleTime: 1000 * 60 * 5,
   });
 
-  const lowestAwardTiming = useQuery({
-    queryKey: lowestAwardTimingKey(selectedYear),
-    queryFn: () => lowestAwardTimingFn(selectedYear),
-    staleTime: 1000 * 60 * 5,
-  });
+  // const lowestAwardTiming = useQuery({
+  //   queryKey: lowestAwardTimingKey(selectedYear),
+  //   queryFn: () => lowestAwardTimingFn(selectedYear),
+  //   staleTime: 1000 * 60 * 5,
+  // });
 
   const topCategories = useQuery({
     queryKey: topCategoriesKey(selectedYear),
@@ -116,7 +116,7 @@ export function useAwardedCharts(selectedYear = "all") {
     valueDistribution,
     topSuppliers,
     awardTiming,
-    lowestAwardTiming,
+    // lowestAwardTiming,
     topCategories,
   };
 }

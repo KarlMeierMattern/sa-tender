@@ -42,10 +42,10 @@ import {
   awardTimingFn,
 } from "../../hooks/awarded/useAwardedCharts";
 
-import {
-  lowestAwardTimingKey,
-  lowestAwardTimingFn,
-} from "../../hooks/awarded/useAwardedCharts";
+// import {
+//   lowestAwardTimingKey,
+//   lowestAwardTimingFn,
+// } from "../../hooks/awarded/useAwardedCharts";
 
 import {
   awardedTenderFiltersKey,
@@ -105,10 +105,10 @@ export default function AdvertisedTenders({
       queryKey: awardTimingKey(selectedYear),
       queryFn: awardTimingFn(selectedYear),
     });
-    queryClient.prefetchQuery({
-      queryKey: lowestAwardTimingKey(selectedYear),
-      queryFn: lowestAwardTimingFn(selectedYear),
-    });
+    // queryClient.prefetchQuery({
+    //   queryKey: lowestAwardTimingKey(selectedYear),
+    //   queryFn: lowestAwardTimingFn(selectedYear),
+    // });
     queryClient.prefetchQuery({
       queryKey: awardedTenderFiltersKey,
       queryFn: awardedTenderFiltersFn,

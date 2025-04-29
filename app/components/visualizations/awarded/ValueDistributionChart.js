@@ -37,9 +37,9 @@ export default function ValueDistributionChart({ data }) {
       const percentage = ((item.value / totalTenders) * 100).toFixed(1);
 
       return (
-        <div className="bg-white p-3 border border-gray-200 shadow-md rounded">
+        <div className="bg-white p-3 border border-gray-200 shadow-md rounded text-xs">
           <p className="font-semibold mb-1">{item.name}</p>
-          <p>{`Count: ${item.value} tenders (${percentage}%)`}</p>
+          <p>{`${item.value} tenders (${percentage}%)`}</p>
           <p>{`Total Value: R ${item.totalValue.toLocaleString()}`}</p>
         </div>
       );
@@ -47,32 +47,13 @@ export default function ValueDistributionChart({ data }) {
     return null;
   };
 
-  // Custom legend that renders outside the pie chart
-  const renderCustomizedLegend = (props) => {
-    const { payload } = props;
-
-    return (
-      <ul className="flex flex-col text-sm mt-4">
-        {payload.map((entry, index) => (
-          <li key={`item-${index}`} className="flex items-center mb-1">
-            <div
-              className="w-3 h-3 mr-2"
-              style={{ backgroundColor: entry.color }}
-            />
-            <span>{entry.value}</span>
-          </li>
-        ))}
-      </ul>
-    );
-  };
-
   return (
     <div className="w-full">
       <h3 className="text-lg font-semibold mb-2 text-center">
-        Distribution of Awarded Tender Values
+        Awarded Tender Distribution
       </h3>
       <p className="text-sm text-gray-500 mb-2 text-center">
-        Distribution of awarded tender values
+        Distribution of awarded tender values by value range
       </p>
       <div className="flex items-center justify-center">
         <ResponsiveContainer width="100%" height={400}>
@@ -82,7 +63,7 @@ export default function ValueDistributionChart({ data }) {
               cx="50%"
               cy="50%"
               labelLine={false}
-              outerRadius="90%"
+              // outerRadius="90%"
               fill="#8884d8"
               dataKey="value"
             >
@@ -94,12 +75,6 @@ export default function ValueDistributionChart({ data }) {
               ))}
             </Pie>
             <Tooltip content={<CustomTooltip />} />
-            <Legend
-              layout="vertical"
-              verticalAlign="middle"
-              align="right"
-              content={renderCustomizedLegend}
-            />
           </PieChart>
         </ResponsiveContainer>
       </div>

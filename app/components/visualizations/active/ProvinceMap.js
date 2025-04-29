@@ -6,10 +6,11 @@ import "maplibre-gl/dist/maplibre-gl.css";
 import ReactDOMServer from "react-dom/server";
 import provinceGeoData from "../provinceGeoData.json";
 
-const CustomTooltip = ({ province, value }) => (
+const CustomTooltip = ({ province, value, percentOfTotal }) => (
   <div className="bg-white p-3 rounded-lg shadow-md border border-gray-200">
     <p className="font-medium text-gray-900">{province}</p>
     <p className="text-gray-600">{value || 0} tenders</p>
+    <p className="text-gray-600">{percentOfTotal?.toFixed(1)}% of total</p>
   </div>
 );
 
@@ -19,25 +20,20 @@ export default function ProvinceMap({ data }) {
   const popup = useRef(null);
 
   const provinceData = React.useMemo(() => {
-    if (!data) return { values: {}, maxValue: 0 };
+    if (!data) return { values: {}, maxValue: 0, total: 0, percentOfTotal: {} };
 
     const values = {};
     let maxValue = 0;
+    const total = data.reduce((sum, item) => sum + item.count, 0);
 
     data.forEach((item) => {
       values[item.province] = item.count || 0;
       maxValue = Math.max(maxValue, item.count || 0);
+      values[item.province + "_percent"] = (item.count / total) * 100;
     });
 
-    return { values, maxValue };
+    return { values, maxValue, total, percentOfTotal: values };
   }, [data]);
-
-  const getColor = (province) => {
-    const value = provinceData.values[province];
-    if (!value) return "rgba(129, 140, 248, 0.1)";
-    const opacity = Math.min(0.2 + (value / provinceData.maxValue) * 0.8, 1);
-    return `rgba(129, 140, 248, ${opacity})`;
-  };
 
   useEffect(() => {
     if (map.current) return;
@@ -140,13 +136,19 @@ export default function ProvinceMap({ data }) {
         const feature = e.features[0];
         const province = feature.properties.name;
         const value = provinceData.values[province];
+        const percentOfTotal =
+          provinceData.percentOfTotal[province + "_percent"];
 
         // Show popup
         popup.current
           .setLngLat(e.lngLat)
           .setHTML(
             ReactDOMServer.renderToString(
-              <CustomTooltip province={province} value={value} />
+              <CustomTooltip
+                province={province}
+                value={value}
+                percentOfTotal={percentOfTotal}
+              />
             )
           )
           .addTo(map.current);
@@ -174,10 +176,10 @@ export default function ProvinceMap({ data }) {
   return (
     <div className="w-full">
       <h3 className="text-lg font-semibold mb-2 text-center">
-        Number of Tenders by Province
+        Tenders by Province
       </h3>
       <p className="text-sm text-gray-500 mb-2 text-center">
-        Days between advertisement and closing date
+        Count of tenders by province
       </p>
       <div
         ref={mapContainer}
