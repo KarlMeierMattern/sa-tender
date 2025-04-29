@@ -63,7 +63,7 @@ export default function ValueDistributionChart({ data }) {
               cx="50%"
               cy="50%"
               labelLine={false}
-              // outerRadius="90%"
+              outerRadius="100%"
               fill="#8884d8"
               dataKey="value"
             >

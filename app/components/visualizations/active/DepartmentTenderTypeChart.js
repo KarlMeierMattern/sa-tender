@@ -8,9 +8,7 @@ import {
   Bar,
   XAxis,
   YAxis,
-  CartesianGrid,
   Tooltip,
-  Legend,
 } from "recharts";
 
 export default function DepartmentTenderTypeChart({ data }) {
@@ -65,24 +63,14 @@ export default function DepartmentTenderTypeChart({ data }) {
       </p>
 
       <ResponsiveContainer width="100%" height={400}>
-        <BarChart
-          data={data}
-          // margin={{
-          //   top: 20,
-          //   right: 30,
-          //   left: 20,
-          //   bottom: 100,
-          // }}
-          layout="vertical"
-          margin={{ bottom: 40 }}
-        >
-          <CartesianGrid strokeDasharray="3 3" />
+        <BarChart data={data} layout="vertical" margin={{ bottom: 40 }}>
           <XAxis
             type="number"
             interval="preserveStartEnd"
             textAnchor="end"
             height={60}
             tick={{ fill: "#6B7280", fontSize: 12 }}
+            axisLine={{ stroke: "transparent" }}
           />
           <YAxis
             dataKey="department"

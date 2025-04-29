@@ -184,7 +184,7 @@ export default function ProvinceMap({ data }) {
         Awarded Tenders by Province
       </h3>
       <p className="text-sm text-gray-500 mb-2 text-center">
-        Total value of awarded tenders by province
+        Tap a province to see the details{" "}
       </p>
       <div
         ref={mapContainer}

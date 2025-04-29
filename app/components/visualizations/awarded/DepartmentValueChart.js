@@ -6,7 +6,6 @@ import {
   Bar,
   XAxis,
   YAxis,
-  CartesianGrid,
   Tooltip,
 } from "recharts";
 
@@ -22,6 +21,9 @@ export default function DepartmentValueChart({ data }) {
 
   // Custom formatter for the y-axis (currency)
   const formatCurrency = (value) => {
+    if (value >= 1_000_000_000) {
+      return `R ${(value / 1_000_000_000).toFixed(1)}B`;
+    }
     return `R ${value.toLocaleString()}`;
   };
 
@@ -56,61 +58,19 @@ export default function DepartmentValueChart({ data }) {
       </p>
       <ResponsiveContainer width="100%" height={400}>
         <BarChart data={chartData} barSize={60}>
-          <CartesianGrid strokeDasharray="3 3" />
           <XAxis
             dataKey="department"
-            angle={-45}
-            textAnchor="end"
-            height={120}
-            tick={(props) => {
-              const { x, y, payload } = props;
-
-              // Calculate how to break up long text
-              const words = payload.value.split(" ");
-              const lineHeight = 12;
-              const width = 150; // increased maximum width for more words per line
-              let line = [];
-              let lines = [];
-              let currentWidth = 0;
-
-              // Create wrapped lines for long text
-              words.forEach((word) => {
-                const wordWidth = word.length * 6; // rough estimate of word width
-                if (currentWidth + wordWidth > width) {
-                  lines.push(line.join(" "));
-                  line = [word];
-                  currentWidth = wordWidth;
-                } else {
-                  line.push(word);
-                  currentWidth += wordWidth;
-                }
-              });
-              if (line.length > 0) lines.push(line.join(" "));
-
-              return (
-                <g transform={`translate(${x},${y})`}>
-                  {lines.map((line, i) => (
-                    <text
-                      key={i}
-                      x={0}
-                      y={i * lineHeight}
-                      dy={0}
-                      textAnchor="end"
-                      fill="#666"
-                      fontSize={10}
-                      transform="rotate(-45)"
-                    >
-                      {line}
-                    </text>
-                  ))}
-                </g>
-              );
-            }}
+            tick={false}
+            axisLine={false}
+            height={0}
           />
           <YAxis
             tickFormatter={formatCurrency}
-            width={80}
-            tick={{ fontSize: 10 }}
+            width={0}
+            // tick={{ fontSize: 10 }}
+            tick={false}
+            axisLine={{ stroke: "transparent" }}
+            tickLine={false}
           />
           <Tooltip content={<CustomTooltip />} />
           <Bar dataKey="value" fill="#B8C5FF" radius={[4, 4, 0, 0]} />

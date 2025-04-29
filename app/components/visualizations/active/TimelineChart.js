@@ -6,9 +6,7 @@ import {
   Line,
   XAxis,
   YAxis,
-  CartesianGrid,
   Tooltip,
-  Legend,
 } from "recharts";
 
 export default function TimelineChart({ data }) {
@@ -31,9 +29,8 @@ export default function TimelineChart({ data }) {
         Number of tenders published in the last 30 days
       </p>
 
-      <ResponsiveContainer width="100%" height={300}>
-        <LineChart data={data}>
-          <CartesianGrid strokeDasharray="3 3" />
+      <ResponsiveContainer width="100%" height="85%">
+        <LineChart data={data} margin={{ left: -20, right: 20 }}>
           <XAxis
             dataKey="date"
             tickFormatter={formatXAxis}
@@ -41,8 +38,14 @@ export default function TimelineChart({ data }) {
             textAnchor="end"
             height={60}
             tick={{ fill: "#6B7280", fontSize: 12 }}
+            axisLine={{ stroke: "transparent" }}
+            tickLine={false}
           />
-          <YAxis tick={{ fill: "#6B7280", fontSize: 12 }} />
+          <YAxis
+            tick={false}
+            axisLine={{ stroke: "transparent" }}
+            tickLine={false}
+          />
           <Tooltip
             labelFormatter={(value) => {
               const date = new Date(value);

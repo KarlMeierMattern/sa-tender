@@ -57,7 +57,7 @@ export default function CategoryPieChart({ data }) {
               data={chartData}
               cx="50%"
               cy="50%"
-              outerRadius="90%"
+              outerRadius="100%"
               fill="#8884d8"
               dataKey="count"
               nameKey="category"

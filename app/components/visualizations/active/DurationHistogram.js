@@ -6,7 +6,6 @@ import {
   Bar,
   XAxis,
   YAxis,
-  CartesianGrid,
   Tooltip,
 } from "recharts";
 
@@ -20,7 +19,7 @@ export default function DurationHistogram({ data }) {
       return (
         <div className="bg-white p-3 border border-gray-200 shadow-md rounded text-xs">
           <p className="font-semibold">{`${payload[0].payload.label}`}</p>
-          <p>{`Count: ${payload[0].value}`}</p>
+          <p>{`${payload[0].value} tenders`}</p>
         </div>
       );
     }
@@ -35,17 +34,24 @@ export default function DurationHistogram({ data }) {
       <p className="text-sm text-gray-500 mb-2 text-center">
         Days between advertisement and closing date
       </p>
-      <ResponsiveContainer width="100%" height={300}>
+      <ResponsiveContainer width="100%" height="85%">
         <BarChart data={data}>
-          <CartesianGrid strokeDasharray="3 3" />
           <XAxis
             dataKey="range"
             interval="preserveStartEnd"
             textAnchor="end"
-            height={60}
-            tick={{ fill: "#6B7280", fontSize: 12 }}
+            // tick={{ fill: "#6B7280", fontSize: 12 }}
+            tick={false}
+            height={0}
+            axisLine={{ stroke: "transparent" }}
+            tickLine={false}
           />
-          <YAxis tick={{ fill: "#6B7280", fontSize: 12 }} />
+          <YAxis
+            tick={false}
+            axisLine={{ stroke: "transparent" }}
+            tickLine={false}
+            width={0}
+          />
           <Tooltip content={customTooltip} />
           <Bar dataKey="count" fill="#B8C5FF" radius={[4, 4, 0, 0]} />
         </BarChart>

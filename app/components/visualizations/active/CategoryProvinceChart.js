@@ -6,7 +6,6 @@ import {
   Bar,
   XAxis,
   YAxis,
-  CartesianGrid,
   Tooltip,
   Legend,
 } from "recharts";
@@ -76,7 +75,6 @@ export default function CategoryProvinceChart({ data }) {
           }}
           layout="vertical"
         >
-          <CartesianGrid strokeDasharray="3 3" />
           <XAxis
             type="number"
             interval="preserveStartEnd"

@@ -8,7 +8,6 @@ import {
   YAxis,
   ResponsiveContainer,
   Tooltip,
-  CartesianGrid,
   Legend,
 } from "recharts";
 
@@ -56,47 +55,35 @@ export default function DepartmentBarChart({ data }) {
       <p className="text-sm text-gray-500 mb-2 text-center">
         Top 10 procuring departments by number of tenders
       </p>
-
-      <div className="h-[calc(100%-2rem)]">
-        <ResponsiveContainer width="100%" height="100%">
-          <BarChart
-            data={chartData}
-            layout="vertical"
-            margin={{ bottom: 40 }}
-            barSize={20}
-          >
-            <CartesianGrid
-              stroke="#E5E7EB"
-              strokeDasharray="3 3"
-              horizontal={true}
-              vertical={true}
-            />
-            <XAxis
-              type="number"
-              tickMargin={8}
-              tick={{ fill: "#6B7280", fontSize: 12 }}
-              axisLine={{ stroke: "#E5E7EB" }}
-              tickLine={{ stroke: "#E5E7EB" }}
-            />
-            <YAxis
-              type="category"
-              dataKey="department"
-              width={100}
-              tickMargin={8}
-              tick={{ fill: "#6B7280", fontSize: 12 }}
-              axisLine={{ stroke: "#E5E7EB" }}
-              tickLine={{ stroke: "#E5E7EB" }}
-            />
-            <Tooltip content={<CustomTooltip />} />
-            <Bar dataKey="count" fill={COLORS[0]} radius={[0, 4, 4, 0]} />
-            <Legend
-              verticalAlign="top"
-              height={0}
-              wrapperStyle={{ display: "none" }}
-            />
-          </BarChart>
-        </ResponsiveContainer>
-      </div>
+      <ResponsiveContainer width="100%" height="85%">
+        <BarChart data={chartData} layout="vertical" barSize={20}>
+          <XAxis
+            type="number"
+            tickMargin={8}
+            // tick={{ fill: "#6B7280", fontSize: 12 }}
+            tick={false}
+            height={0}
+            axisLine={{ stroke: "transparent" }}
+            tickLine={false}
+          />
+          <YAxis
+            type="category"
+            dataKey="department"
+            width={0}
+            tickMargin={8}
+            tick={false}
+            axisLine={{ stroke: "transparent" }}
+            tickLine={false}
+          />
+          <Tooltip content={<CustomTooltip />} />
+          <Bar dataKey="count" fill={COLORS[0]} radius={[0, 4, 4, 0]} />
+          <Legend
+            verticalAlign="top"
+            height={0}
+            wrapperStyle={{ display: "none" }}
+          />
+        </BarChart>
+      </ResponsiveContainer>
     </div>
   );
 }

@@ -6,7 +6,6 @@ import {
   Bar,
   XAxis,
   YAxis,
-  CartesianGrid,
   Tooltip,
 } from "recharts";
 import { useEffect } from "react";
@@ -28,6 +27,9 @@ export default function TopSuppliersChart({ data }) {
 
   // Custom formatter for the x-axis (currency)
   const formatCurrency = (value) => {
+    if (value >= 1_000_000_000) {
+      return `R ${(value / 1_000_000_000).toFixed(1)}B`;
+    }
     return `R ${value.toLocaleString()}`;
   };
 
@@ -58,30 +60,24 @@ export default function TopSuppliersChart({ data }) {
         Top 10 suppliers by awarded value
       </p>
       <ResponsiveContainer width="100%" height={400}>
-        <BarChart
-          data={chartData}
-          layout="vertical"
-          barSize={20}
-          margin={{
-            top: 5,
-            right: 20,
-            left: 40,
-            bottom: 5,
-          }}
-        >
-          <CartesianGrid strokeDasharray="3 3" />
+        <BarChart data={chartData} layout="vertical" barSize={20}>
           <XAxis
             type="number"
             tickFormatter={formatCurrency}
             textAnchor="end"
-            height={60}
-            tick={{ fill: "#6B7280", fontSize: 12 }}
+            height={0}
+            // tick={{ fill: "#6B7280", fontSize: 12 }}
+            tick={false}
+            axisLine={{ stroke: "transparent" }}
+            tickLine={false}
           />
           <YAxis
             type="category"
             dataKey="supplier"
-            width={120}
-            tick={{ fill: "#6B7280", fontSize: 12 }}
+            width={0}
+            tick={false}
+            axisLine={{ stroke: "transparent" }}
+            tickLine={false}
           />
           <Tooltip content={<CustomTooltip />} />
           <Bar
@@ -89,7 +85,7 @@ export default function TopSuppliersChart({ data }) {
             fill="#B8C5FF"
             stroke="#C2CDFF"
             strokeWidth={1}
-            radius={[0, 4, 4, 0]}
+            radius={[4, 4, 4, 4]}
           />
         </BarChart>
       </ResponsiveContainer>
