@@ -42,37 +42,34 @@ export default function CategoryPieChart({ data }) {
   }, [data]);
 
   return (
-    <div className="w-full h-[400px]">
+    <div className="w-full">
       <h3 className="text-lg font-semibold mb-2 text-center">
         Tenders by Category
       </h3>
       <p className="text-sm text-gray-500 mb-2 text-center">
-        Number of tenders by category
+        The categories of tenders advertised
       </p>
-
-      <div className="h-[calc(100%-2rem)]">
-        <ResponsiveContainer width="100%" height="100%">
-          <PieChart>
-            <Pie
-              data={chartData}
-              cx="50%"
-              cy="50%"
-              outerRadius="100%"
-              fill="#8884d8"
-              dataKey="count"
-              nameKey="category"
-            >
-              {chartData.map((entry, index) => (
-                <Cell
-                  key={`cell-${index}`}
-                  fill={COLORS[index % COLORS.length]}
-                />
-              ))}
-            </Pie>
-            <Tooltip content={<CustomTooltip />} />
-          </PieChart>
-        </ResponsiveContainer>
-      </div>
+      <ResponsiveContainer width="100%" height={400}>
+        <PieChart>
+          <Pie
+            data={chartData}
+            cx="50%"
+            cy="50%"
+            outerRadius="100%"
+            fill="#8884d8"
+            dataKey="count"
+            nameKey="category"
+          >
+            {chartData.map((entry, index) => (
+              <Cell
+                key={`cell-${index}`}
+                fill={COLORS[index % COLORS.length]}
+              />
+            ))}
+          </Pie>
+          <Tooltip content={<CustomTooltip />} />
+        </PieChart>
+      </ResponsiveContainer>
     </div>
   );
 }

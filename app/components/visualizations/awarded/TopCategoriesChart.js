@@ -98,7 +98,6 @@ export default function TopCategoriesChart({ data }) {
             ))}
           </Pie>
           <Tooltip content={<CustomTooltip />} />
-          {/* <Legend /> */}
         </PieChart>
       </ResponsiveContainer>
     </div>

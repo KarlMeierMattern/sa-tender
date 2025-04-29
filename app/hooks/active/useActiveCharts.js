@@ -77,45 +77,6 @@ export function useAdvertisedCharts() {
     staleTime: 1000 * 60 * 5, // 5 minutes
   });
 
-  // Department vs Tender Type Breakdown
-  // const departmentTenderType = useQuery({
-  //   queryKey: ["departmentTenderType"],
-  //   queryFn: async () => {
-  //     const res = await fetch("/api/charts/department-tendertype");
-  //     if (!res.ok) {
-  //       throw new Error(`HTTP error! status: ${res.status}`);
-  //     }
-  //     return res.json();
-  //   },
-  //   staleTime: 1000 * 60 * 5, // 5 minutes
-  // });
-
-  // Category vs Province Breakdown
-  const categoryProvince = useQuery({
-    queryKey: ["categoryProvince"],
-    queryFn: async () => {
-      const res = await fetch("/api/charts/category-province");
-      if (!res.ok) {
-        throw new Error(`HTTP error! status: ${res.status}`);
-      }
-      return res.json();
-    },
-    staleTime: 1000 * 60 * 5, // 5 minutes
-  });
-
-  // Keyword Cloud from Descriptions
-  const keywordCloud = useQuery({
-    queryKey: ["keywordCloud"],
-    queryFn: async () => {
-      const res = await fetch("/api/charts/keyword-cloud");
-      if (!res.ok) {
-        throw new Error(`HTTP error! status: ${res.status}`);
-      }
-      return res.json();
-    },
-    staleTime: 1000 * 60 * 10, // 10 minutes, longer cache for this expensive operation
-  });
-
   return {
     provinceCount,
     provinceValue,
@@ -124,8 +85,5 @@ export function useAdvertisedCharts() {
     tenderTypeCount,
     activeTimeline,
     tenderDuration,
-    // departmentTenderType,
-    categoryProvince,
-    keywordCloud,
   };
 }

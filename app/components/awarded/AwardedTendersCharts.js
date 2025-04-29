@@ -5,7 +5,6 @@ import {
   ValueDistributionChart,
   TopSuppliersChart,
   HighestAwardTimingChart,
-  LowestAwardTimingChart,
   ProvinceMap,
   TopCategoriesChart,
 } from "../visualizations/awarded";
@@ -40,11 +39,6 @@ export default function AwardedTendersCharts({ selectedYear }) {
       <div className="bg-white rounded-xl p-6 border shadow-sm">
         <HighestAwardTimingChart data={chartQueries.awardTiming.data?.data} />
       </div>
-      {/* <div className="bg-white rounded-xl p-6 border shadow-sm">
-        <LowestAwardTimingChart
-          data={chartQueries.lowestAwardTiming.data?.data}
-        />
-      </div> */}
     </div>
   );
 }

@@ -48,14 +48,14 @@ export default function DepartmentBarChart({ data }) {
   }, [data]);
 
   return (
-    <div className="w-full h-[400px]">
+    <div className="w-full">
       <h3 className="text-lg font-semibold mb-2 text-center">
         Departments by Tenders
       </h3>
       <p className="text-sm text-gray-500 mb-2 text-center">
         Top 10 procuring departments by number of tenders
       </p>
-      <ResponsiveContainer width="100%" height="85%">
+      <ResponsiveContainer width="100%" height={400}>
         <BarChart data={chartData} layout="vertical" barSize={20}>
           <XAxis
             type="number"

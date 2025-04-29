@@ -21,15 +21,15 @@ export default function TimelineChart({ data }) {
   };
 
   return (
-    <div className="w-full h-[400px]">
+    <div className="w-full">
       <h3 className="text-lg font-semibold mb-2 text-center">
         Daily Tender Publications
       </h3>
       <p className="text-sm text-gray-500 mb-2 text-center">
-        Number of tenders published in the last 30 days
+        The number of tenders published in the last 30 days
       </p>
 
-      <ResponsiveContainer width="100%" height="85%">
+      <ResponsiveContainer width="100%" height={400}>
         <LineChart data={data} margin={{ left: -20, right: 20 }}>
           <XAxis
             dataKey="date"

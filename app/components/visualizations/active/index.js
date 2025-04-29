@@ -4,8 +4,6 @@ import TenderTypeDonut from "./TenderTypeDonut";
 import DepartmentBarChart from "./DepartmentBarChart";
 import ProvinceMap from "./ProvinceMap";
 import CategoryPieChart from "./CategoryPieChart";
-import CategoryProvinceChart from "./CategoryProvinceChart";
-import KeywordCloud from "./KeywordCloud";
 
 export {
   TimelineChart,
@@ -14,6 +12,4 @@ export {
   DepartmentBarChart,
   ProvinceMap,
   CategoryPieChart,
-  CategoryProvinceChart,
-  KeywordCloud,
 };

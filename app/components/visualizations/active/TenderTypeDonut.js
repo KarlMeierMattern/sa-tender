@@ -40,38 +40,36 @@ export default function TenderTypeDonut({ data }) {
   }, [data]);
 
   return (
-    <div className="w-full h-[400px]">
+    <div className="w-full">
       <h3 className="text-lg font-semibold mb-2 text-center">
         Tenders by Type
       </h3>
       <p className="text-sm text-gray-500 mb-2 text-center">
-        Number of tenders by type
+        The number of tenders by request type
       </p>
 
-      <div className="h-[calc(100%-2rem)]">
-        <ResponsiveContainer width="100%" height="100%">
-          <PieChart>
-            <Pie
-              data={chartData}
-              cx="50%"
-              cy="50%"
-              innerRadius="60%"
-              outerRadius="100%"
-              fill="#8884d8"
-              dataKey="count"
-              nameKey="name"
-            >
-              {chartData.map((entry, index) => (
-                <Cell
-                  key={`cell-${index}`}
-                  fill={COLORS[index % COLORS.length]}
-                />
-              ))}
-            </Pie>
-            <Tooltip content={<CustomTooltip />} />
-          </PieChart>
-        </ResponsiveContainer>
-      </div>
+      <ResponsiveContainer width="100%" height={400}>
+        <PieChart>
+          <Pie
+            data={chartData}
+            cx="50%"
+            cy="50%"
+            innerRadius="60%"
+            outerRadius="100%"
+            fill="#8884d8"
+            dataKey="count"
+            nameKey="name"
+          >
+            {chartData.map((entry, index) => (
+              <Cell
+                key={`cell-${index}`}
+                fill={COLORS[index % COLORS.length]}
+              />
+            ))}
+          </Pie>
+          <Tooltip content={<CustomTooltip />} />
+        </PieChart>
+      </ResponsiveContainer>
     </div>
   );
 }

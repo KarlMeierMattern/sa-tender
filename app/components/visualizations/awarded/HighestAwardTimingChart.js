@@ -42,7 +42,6 @@ export default function HighestAwardTimingChart({ data }) {
         <BarChart data={chartData} barSize={60}>
           <XAxis
             dataKey="label"
-            // tick={{ fontSize: 12 }}
             tick={false}
             height={0}
             axisLine={{ stroke: "transparent" }}

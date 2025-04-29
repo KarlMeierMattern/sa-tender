@@ -27,20 +27,19 @@ export default function DurationHistogram({ data }) {
   };
 
   return (
-    <div className="w-full h-[400px]">
+    <div className="w-full">
       <h3 className="text-lg font-semibold mb-2 text-center">
         Tender Duration Distribution
       </h3>
       <p className="text-sm text-gray-500 mb-2 text-center">
-        Days between advertisement and closing date
+        The expected length of time between advertisement and closing date
       </p>
-      <ResponsiveContainer width="100%" height="85%">
-        <BarChart data={data}>
+      <ResponsiveContainer width="100%" height={400}>
+        <BarChart data={data} barSize={60}>
           <XAxis
             dataKey="range"
             interval="preserveStartEnd"
             textAnchor="end"
-            // tick={{ fill: "#6B7280", fontSize: 12 }}
             tick={false}
             height={0}
             axisLine={{ stroke: "transparent" }}
