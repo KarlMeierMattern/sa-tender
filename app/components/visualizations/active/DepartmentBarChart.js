@@ -50,10 +50,10 @@ export default function DepartmentBarChart({ data }) {
   return (
     <div className="w-full">
       <h3 className="text-lg font-semibold mb-2 text-center">
-        Departments by Tenders
+        Tenders by Department
       </h3>
       <p className="text-sm text-gray-500 mb-2 text-center">
-        Top 10 procuring departments by number of tenders
+        The departments with the most tenders currently advertised
       </p>
       <ResponsiveContainer width="100%" height={400}>
         <BarChart data={chartData} layout="vertical" barSize={20}>
