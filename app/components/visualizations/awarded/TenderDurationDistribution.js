@@ -6,29 +6,32 @@ import {
   Bar,
   XAxis,
   YAxis,
-  CartesianGrid,
   Tooltip,
 } from "recharts";
+import React from "react";
+
+// Custom tooltip component
+const CustomTooltip = ({ active, payload }) => {
+  if (active && payload && payload.length) {
+    const item = payload[0].payload;
+    return (
+      <div className="bg-white p-3 border border-gray-200 shadow-md rounded text-xs">
+        <p className="font-semibold mb-1">{`${item.label} days`}</p>
+        <p>{`Number of Tenders: ${item.count}`}</p>
+      </div>
+    );
+  }
+  return null;
+};
 
 export default function TenderDurationDistribution({ data }) {
-  if (!data) return null;
-
-  // Use data as provided from the backend: [{ label, count }, ...]
-  const chartData = data;
-
-  // Custom tooltip component
-  const CustomTooltip = ({ active, payload }) => {
-    if (active && payload && payload.length) {
-      const item = payload[0].payload;
-      return (
-        <div className="bg-white p-3 border border-gray-200 shadow-md rounded text-xs">
-          <p className="font-semibold mb-1">{`${item.label} days`}</p>
-          <p>{`Number of Tenders: ${item.count}`}</p>
-        </div>
-      );
-    }
-    return null;
-  };
+  const chartData = React.useMemo(() => {
+    if (!data) return [];
+    return data.map((item) => ({
+      label: item.label,
+      count: item.count,
+    }));
+  }, [data]);
 
   return (
     <div className="w-full">

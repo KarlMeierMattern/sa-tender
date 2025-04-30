@@ -8,22 +8,38 @@ import {
   YAxis,
   Tooltip,
 } from "recharts";
-import { useEffect } from "react";
+import React from "react";
+
+// Custom tooltip component
+const CustomTooltip = ({ active, payload }) => {
+  if (active && payload && payload.length) {
+    const item = payload[0].payload;
+    return (
+      <div className="bg-white p-3 border border-gray-200 shadow-md rounded text-xs">
+        <p className="font-semibold mb-1">{item.supplier}</p>
+        <p>{`Total Value: R ${item.value.toLocaleString()}`}</p>
+        <p>{`Number of Tenders: ${item.count}`}</p>
+        <p>{`Categories: ${
+          item.categories ? item?.categories.join(", ") : "na"
+        }`}</p>
+      </div>
+    );
+  }
+  return null;
+};
 
 export default function ContractorsByAwardedValue({ data }) {
-  useEffect(() => {
-    console.log("TopSuppliersChart received data:", data);
+  const chartData = React.useMemo(() => {
+    if (!data) return [];
+    return data.map((item) => ({
+      supplier: item.supplier,
+      value: item.totalValue,
+      count: item.count,
+      categories: item.categories,
+    }));
   }, [data]);
 
   if (!data) return null;
-
-  // Format data for recharts
-  const chartData = data.map((item) => ({
-    supplier: item.supplier,
-    value: item.totalValue,
-    count: item.count,
-    categories: item.categories,
-  }));
 
   // Custom formatter for the x-axis (currency)
   const formatCurrency = (value) => {
@@ -31,24 +47,6 @@ export default function ContractorsByAwardedValue({ data }) {
       return `R ${(value / 1_000_000_000).toFixed(1)}B`;
     }
     return `R ${value.toLocaleString()}`;
-  };
-
-  // Custom tooltip component
-  const CustomTooltip = ({ active, payload, label }) => {
-    if (active && payload && payload.length) {
-      const item = payload[0].payload;
-      return (
-        <div className="bg-white p-3 border border-gray-200 shadow-md rounded text-xs">
-          <p className="font-semibold mb-1">{item.supplier}</p>
-          <p>{`Total Value: R ${item.value.toLocaleString()}`}</p>
-          <p>{`Number of Tenders: ${item.count}`}</p>
-          <p>{`Categories: ${
-            item.categories ? item?.categories.join(", ") : "na"
-          }`}</p>
-        </div>
-      );
-    }
-    return null;
   };
 
   return (

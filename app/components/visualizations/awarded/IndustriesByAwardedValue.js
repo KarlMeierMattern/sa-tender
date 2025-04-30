@@ -1,5 +1,6 @@
 "use client";
 
+import React from "react";
 import {
   ResponsiveContainer,
   PieChart,
@@ -9,34 +10,55 @@ import {
   Legend,
 } from "recharts";
 
+const CustomTooltip = ({ active, payload, totalValue }) => {
+  if (active && payload && payload.length) {
+    const item = payload[0].payload;
+    return (
+      <div className="bg-white p-3 border border-gray-200 shadow-md rounded text-xs">
+        <p className="font-semibold mb-1">{item.name}</p>
+        <p>{`R ${item.value.toLocaleString()} (${(
+          (item.value / totalValue) *
+          100
+        ).toFixed(2)}%)`}</p>
+        <p>{`${item.count} tenders`}</p>
+      </div>
+    );
+  }
+  return null;
+};
+
 export default function IndustriesByAwardedValue({ data }) {
-  if (!data) return null;
-
   // Calculate total value
-  const totalValue = data.reduce((acc, item) => acc + item.totalValue, 0);
+  const totalValue = data
+    ? data.reduce((acc, item) => acc + item.totalValue, 0)
+    : 0;
 
-  // Sort data by value and take top 10
-  const sortedData = [...data].sort((a, b) => b.totalValue - a.totalValue);
-  const top10 = sortedData.slice(0, 10);
+  // Memoize chartData
+  const chartData = React.useMemo(() => {
+    if (!data) return [];
+    // Sort data by value and take top 10
+    const sortedData = [...data].sort((a, b) => b.totalValue - a.totalValue);
+    const top10 = sortedData.slice(0, 10);
 
-  // Calculate "Other" category value
-  const otherValue =
-    totalValue - top10.reduce((acc, item) => acc + item.totalValue, 0);
-  const otherCount = data.length - 10;
+    // Calculate "Other" category value
+    const otherValue =
+      totalValue - top10.reduce((acc, item) => acc + item.totalValue, 0);
+    const otherCount = data.length - 10;
 
-  // Format data for pie chart
-  const chartData = [
-    ...top10.map((item) => ({
-      name: item.category,
-      value: item.totalValue,
-      count: item.count,
-    })),
-    {
-      name: "Other",
-      value: otherValue,
-      count: otherCount,
-    },
-  ];
+    // Format data for pie chart
+    return [
+      ...top10.map((item) => ({
+        name: item.category,
+        value: item.totalValue,
+        count: item.count,
+      })),
+      {
+        name: "Other",
+        value: otherValue,
+        count: otherCount,
+      },
+    ];
+  }, [data, totalValue]);
 
   // Color scheme
   const COLORS = [
@@ -52,24 +74,6 @@ export default function IndustriesByAwardedValue({ data }) {
     "#FDFCFF", // Lightest periwinkle
     "#E5E7EB", // Gray for "Other"
   ];
-
-  // Custom tooltip component
-  const CustomTooltip = ({ active, payload }) => {
-    if (active && payload && payload.length) {
-      const item = payload[0].payload;
-      return (
-        <div className="bg-white p-3 border border-gray-200 shadow-md rounded text-xs">
-          <p className="font-semibold mb-1">{item.name}</p>
-          <p>{`R ${item.value.toLocaleString()} (${(
-            (item.value / totalValue) *
-            100
-          ).toFixed(2)}%)`}</p>
-          <p>{`${item.count} tenders`}</p>
-        </div>
-      );
-    }
-    return null;
-  };
 
   return (
     <div className="w-full">
@@ -97,7 +101,7 @@ export default function IndustriesByAwardedValue({ data }) {
               />
             ))}
           </Pie>
-          <Tooltip content={<CustomTooltip />} />
+          <Tooltip content={<CustomTooltip totalValue={totalValue} />} />
         </PieChart>
       </ResponsiveContainer>
     </div>

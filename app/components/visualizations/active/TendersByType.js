@@ -31,6 +31,7 @@ const CustomTooltip = ({ active, payload }) => {
 };
 
 export default function TendersByType({ data }) {
+  // useMemo - same array reference is reused unless data changes, avoids unnecessary updates and re-renders
   const chartData = React.useMemo(() => {
     if (!data) return [];
     return data.map((item) => ({

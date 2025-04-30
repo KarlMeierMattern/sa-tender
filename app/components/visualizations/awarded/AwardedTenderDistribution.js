@@ -1,5 +1,6 @@
 "use client";
 
+import React from "react";
 import {
   ResponsiveContainer,
   PieChart,
@@ -9,43 +10,45 @@ import {
   Legend,
 } from "recharts";
 
-export default function AwardedTenderDistribution({ data }) {
-  if (!data) return null;
+const CustomTooltip = ({ active, payload, totalTenders }) => {
+  if (active && payload && payload.length) {
+    const item = payload[0].payload;
+    const percentage = ((item.value / totalTenders) * 100).toFixed(1);
 
-  // Format data for recharts
-  const chartData = data.map((item) => ({
-    name: item.range,
-    value: item.count,
-    totalValue: item.totalValue,
-  }));
+    return (
+      <div className="bg-white p-3 border border-gray-200 shadow-md rounded text-xs">
+        <p className="font-semibold mb-1">{item.name}</p>
+        <p>{`${item.value} tenders (${percentage}%)`}</p>
+        <p>{`Total Value: R ${item.totalValue.toLocaleString()}`}</p>
+      </div>
+    );
+  }
+  return null;
+};
+
+export default function AwardedTenderDistribution({ data }) {
+  const chartData = React.useMemo(() => {
+    if (!data) return [];
+    return data.map((item) => ({
+      name: item.range,
+      value: item.count,
+      totalValue: item.totalValue,
+    }));
+  }, [data]);
+
+  const totalTenders = Array.isArray(data)
+    ? data.reduce((sum, item) => sum + item.count, 0)
+    : 0;
 
   // Colors for the pie segments
   const COLORS = [
     "#B8C5FF", // Base periwinkle
-    "#C2CDFF",
     "#CCD5FF",
-    "#D6DDFF",
     "#E0E5FF",
+    "#F4F1FF",
+    "#FBFAFF",
+    "#E5E7EB", // Lightest periwinkle
   ];
-
-  const totalTenders = data.reduce((sum, item) => sum + item.count, 0);
-
-  // Custom tooltip
-  const CustomTooltip = ({ active, payload }) => {
-    if (active && payload && payload.length) {
-      const item = payload[0].payload;
-      const percentage = ((item.value / totalTenders) * 100).toFixed(1);
-
-      return (
-        <div className="bg-white p-3 border border-gray-200 shadow-md rounded text-xs">
-          <p className="font-semibold mb-1">{item.name}</p>
-          <p>{`${item.value} tenders (${percentage}%)`}</p>
-          <p>{`Total Value: R ${item.totalValue.toLocaleString()}`}</p>
-        </div>
-      );
-    }
-    return null;
-  };
 
   return (
     <div className="w-full">
@@ -74,7 +77,7 @@ export default function AwardedTenderDistribution({ data }) {
                 />
               ))}
             </Pie>
-            <Tooltip content={<CustomTooltip />} />
+            <Tooltip content={<CustomTooltip totalTenders={totalTenders} />} />
           </PieChart>
         </ResponsiveContainer>
       </div>

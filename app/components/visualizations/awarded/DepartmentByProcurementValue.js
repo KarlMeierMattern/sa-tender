@@ -1,5 +1,6 @@
 "use client";
 
+import React from "react";
 import {
   ResponsiveContainer,
   BarChart,
@@ -9,15 +10,33 @@ import {
   Tooltip,
 } from "recharts";
 
-export default function DepartmentByProcurementValue({ data }) {
-  if (!data) return null;
+const CustomTooltip = ({ active, payload, label, totalValue }) => {
+  if (active && payload && payload.length) {
+    const item = payload[0].payload;
+    return (
+      <div className="bg-white p-3 border border-gray-200 shadow-md rounded text-xs">
+        <p className="font-semibold mb-1">{label}</p>
+        <p>{`R ${item.value.toLocaleString()} (${(
+          (item.value / totalValue) *
+          100
+        ).toFixed(2)}%)`}</p>
+        <p>{`${item.count} tenders`}</p>
+      </div>
+    );
+  }
+  return null;
+};
 
-  // Format the data for recharts
-  const chartData = data.map((item) => ({
-    department: item.department,
-    value: item.totalValue,
-    count: item.count,
-  }));
+export default function DepartmentByProcurementValue({ data }) {
+  // Memoize chartData
+  const chartData = React.useMemo(() => {
+    if (!data) return [];
+    return data.map((item) => ({
+      department: item.department,
+      value: item.totalValue,
+      count: item.count,
+    }));
+  }, [data]);
 
   // Custom formatter for the y-axis (currency)
   const formatCurrency = (value) => {
@@ -27,26 +46,9 @@ export default function DepartmentByProcurementValue({ data }) {
     return `R ${value.toLocaleString()}`;
   };
 
-  const totalValue = data.reduce((acc, item) => acc + item.totalValue, 0);
-
-  // Custom tooltip formatter
-  const CustomTooltip = ({ active, payload, label }) => {
-    if (active && payload && payload.length) {
-      const item = payload[0].payload;
-
-      return (
-        <div className="bg-white p-3 border border-gray-200 shadow-md rounded text-xs">
-          <p className="font-semibold mb-1">{label}</p>
-          <p>{`R ${item.value.toLocaleString()} (${(
-            (item.value / totalValue) *
-            100
-          ).toFixed(2)}%)`}</p>
-          <p>{`${item.count} tenders`}</p>
-        </div>
-      );
-    }
-    return null;
-  };
+  const totalValue = Array.isArray(data)
+    ? data.reduce((acc, item) => acc + item.totalValue, 0)
+    : 0;
 
   return (
     <div className="w-full">
@@ -72,7 +74,7 @@ export default function DepartmentByProcurementValue({ data }) {
             axisLine={{ stroke: "transparent" }}
             tickLine={false}
           />
-          <Tooltip content={<CustomTooltip />} />
+          <Tooltip content={<CustomTooltip totalValue={totalValue} />} />
           <Bar dataKey="value" fill="#B8C5FF" radius={[4, 4, 4, 4]} />
         </BarChart>
       </ResponsiveContainer>
