@@ -42,8 +42,12 @@ export default function TenderLayout() {
         onValueChange={(value) => updateUrlParams({ tab: value })}
       >
         <TabsList className="mb-8">
-          <TabsTrigger value="advertised">advertised</TabsTrigger>
-          <TabsTrigger value="awarded">awarded</TabsTrigger>
+          <TabsTrigger className="cursor-pointer" value="advertised">
+            advertised
+          </TabsTrigger>
+          <TabsTrigger className="cursor-pointer" value="awarded">
+            awarded
+          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="advertised">

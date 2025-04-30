@@ -157,7 +157,7 @@ export default function TenderTable({
               <CalendarIcon className="mr-2 h-4 w-4" />
               {selectedAdvertisedDate
                 ? format(selectedAdvertisedDate, "PPP")
-                : "Filter by Advertised Date"}
+                : "Advertised Date"}
             </Button>
           </PopoverTrigger>
           <PopoverContent className="w-auto p-0" align="start">
@@ -182,7 +182,7 @@ export default function TenderTable({
               <CalendarIcon className="mr-2 h-4 w-4" />
               {selectedClosingDate
                 ? format(selectedClosingDate, "PPP")
-                : "Filter by Closing Date"}
+                : "Closing Date"}
             </Button>
           </PopoverTrigger>
           <PopoverContent className="w-auto p-0" align="start">

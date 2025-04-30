@@ -42,11 +42,6 @@ import {
   awardTimingFn,
 } from "../../hooks/awarded/useAwardedCharts";
 
-// import {
-//   lowestAwardTimingKey,
-//   lowestAwardTimingFn,
-// } from "../../hooks/awarded/useAwardedCharts";
-
 import {
   awardedTenderFiltersKey,
   awardedTenderFiltersFn,
@@ -105,10 +100,6 @@ export default function AdvertisedTenders({
       queryKey: awardTimingKey(selectedYear),
       queryFn: awardTimingFn(selectedYear),
     });
-    // queryClient.prefetchQuery({
-    //   queryKey: lowestAwardTimingKey(selectedYear),
-    //   queryFn: lowestAwardTimingFn(selectedYear),
-    // });
     queryClient.prefetchQuery({
       queryKey: awardedTenderFiltersKey,
       queryFn: awardedTenderFiltersFn,
@@ -132,9 +123,13 @@ export default function AdvertisedTenders({
       className="w-full"
       onValueChange={(value) => updateUrlParams({ view: value })}
     >
-      <TabsList>
-        <TabsTrigger value="visualizations">charts</TabsTrigger>
-        <TabsTrigger value="table">table</TabsTrigger>
+      <TabsList className="hidden md:flex">
+        <TabsTrigger className="cursor-pointer" value="visualizations">
+          charts
+        </TabsTrigger>
+        <TabsTrigger className="cursor-pointer" value="table">
+          table
+        </TabsTrigger>
       </TabsList>
 
       <TabsContent value="visualizations">
@@ -142,7 +137,7 @@ export default function AdvertisedTenders({
         <AdvertisedTendersCharts />
       </TabsContent>
 
-      <TabsContent value="table">
+      <TabsContent value="table" className="hidden md:block">
         <TenderTable
           allTenders={allData.data?.data || []}
           currentPage={page}
