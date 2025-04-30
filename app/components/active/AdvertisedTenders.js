@@ -55,6 +55,7 @@ export default function AdvertisedTenders({
   const [selectedAdvertisedDate, setSelectedAdvertisedDate] = useState(null);
   const [selectedClosingDate, setSelectedClosingDate] = useState(null);
 
+  // prefetch data
   const queryClient = useQueryClient();
 
   // Hook for filter options
@@ -68,11 +69,8 @@ export default function AdvertisedTenders({
 
   // Move prefetch to run after initial data is loaded
   useEffect(() => {
-    if (filterOptions && !paginatedData.isLoading) {
-      import("../awarded/AwardedTenders"); // prefetch awarded tenders component
-      import("../awarded/AwardedTendersCharts"); // prefetch awarded tenders charts component
-      import("../awarded/AwardedTendersCard"); // prefetch awarded tenders card component
-
+    // Only prefetch data, not components
+    if (filterOptions) {
       Promise.all([
         queryClient.prefetchQuery({
           queryKey: awardedTendersKey(selectedYear),
@@ -106,7 +104,14 @@ export default function AdvertisedTenders({
         console.error("Error prefetching data:", error);
       });
     }
-  }, [queryClient, selectedYear, filterOptions, paginatedData.isLoading]);
+  }, [queryClient, selectedYear, filterOptions]);
+
+  // Prefetch components in a separate effect
+  useEffect(() => {
+    import("../awarded/AwardedTenders");
+    import("../awarded/AwardedTendersCharts");
+    import("../awarded/AwardedTendersCard");
+  }, []);
 
   if (paginatedData.isLoading || allData.isLoading) return <TableSkeleton />;
 
