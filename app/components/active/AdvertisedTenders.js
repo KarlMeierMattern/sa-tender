@@ -12,40 +12,40 @@ import AdvertisedTendersCharts from "./AdvertisedTendersCharts";
 // import hooks for awarded tenders to prefetch data when the advertised component mounts
 import { useQueryClient } from "@tanstack/react-query";
 
-import {
-  awardedTendersKey,
-  awardedTendersFn,
-} from "../../hooks/awarded/useAllAwardedTendersTable";
+// import {
+//   awardedTendersKey,
+//   awardedTendersFn,
+// } from "../../hooks/awarded/useAllAwardedTendersTable";
 
-import {
-  departmentValueKey,
-  departmentValueFn,
-} from "../../hooks/awarded/useAwardedCharts";
+// import {
+//   departmentValueKey,
+//   departmentValueFn,
+// } from "../../hooks/awarded/useAwardedCharts";
 
-import {
-  provinceValueKey,
-  provinceValueFn,
-} from "../../hooks/awarded/useAwardedCharts";
+// import {
+//   provinceValueKey,
+//   provinceValueFn,
+// } from "../../hooks/awarded/useAwardedCharts";
 
-import {
-  valueDistributionKey,
-  valueDistributionFn,
-} from "../../hooks/awarded/useAwardedCharts";
+// import {
+//   valueDistributionKey,
+//   valueDistributionFn,
+// } from "../../hooks/awarded/useAwardedCharts";
 
-import {
-  topSuppliersKey,
-  topSuppliersFn,
-} from "../../hooks/awarded/useAwardedCharts";
+// import {
+//   topSuppliersKey,
+//   topSuppliersFn,
+// } from "../../hooks/awarded/useAwardedCharts";
 
-import {
-  awardTimingKey,
-  awardTimingFn,
-} from "../../hooks/awarded/useAwardedCharts";
+// import {
+//   awardTimingKey,
+//   awardTimingFn,
+// } from "../../hooks/awarded/useAwardedCharts";
 
-import {
-  awardedTenderFiltersKey,
-  awardedTenderFiltersFn,
-} from "../../hooks/awarded/useAwardedTenderFilters";
+// import {
+//   awardedTenderFiltersKey,
+//   awardedTenderFiltersFn,
+// } from "../../hooks/awarded/useAwardedTenderFilters";
 
 const ITEMS_PER_PAGE = 10;
 
@@ -68,43 +68,42 @@ export default function AdvertisedTenders({
   const [selectedAdvertisedDate, setSelectedAdvertisedDate] = useState(null);
   const [selectedClosingDate, setSelectedClosingDate] = useState(null);
 
-  // prefetch data
-  const queryClient = useQueryClient();
+  // const queryClient = useQueryClient();
 
-  useEffect(() => {
-    import("../awarded/AwardedTenders"); // prefetch awarded tenders component
-    import("../awarded/AwardedTendersCharts"); // prefetch awarded tenders charts component
-    import("../awarded/AwardedTendersCard"); // prefetch awarded tenders card component
+  // useEffect(() => {
+  //   import("../awarded/AwardedTenders");
+  //   import("../awarded/AwardedTendersCharts");
+  //   import("../awarded/AwardedTendersCard");
 
-    queryClient.prefetchQuery({
-      queryKey: awardedTendersKey(selectedYear),
-      queryFn: awardedTendersFn(selectedYear),
-    });
-    queryClient.prefetchQuery({
-      queryKey: departmentValueKey(selectedYear),
-      queryFn: departmentValueFn(selectedYear),
-    });
-    queryClient.prefetchQuery({
-      queryKey: provinceValueKey(selectedYear),
-      queryFn: provinceValueFn(selectedYear),
-    });
-    queryClient.prefetchQuery({
-      queryKey: valueDistributionKey(selectedYear),
-      queryFn: valueDistributionFn(selectedYear),
-    });
-    queryClient.prefetchQuery({
-      queryKey: topSuppliersKey(selectedYear),
-      queryFn: topSuppliersFn(selectedYear),
-    });
-    queryClient.prefetchQuery({
-      queryKey: awardTimingKey(selectedYear),
-      queryFn: awardTimingFn(selectedYear),
-    });
-    queryClient.prefetchQuery({
-      queryKey: awardedTenderFiltersKey,
-      queryFn: awardedTenderFiltersFn,
-    });
-  }, [queryClient, selectedYear]);
+  //   queryClient.prefetchQuery({
+  //     queryKey: awardedTendersKey(selectedYear),
+  //     queryFn: awardedTendersFn(selectedYear),
+  //   });
+  //   queryClient.prefetchQuery({
+  //     queryKey: departmentValueKey(selectedYear),
+  //     queryFn: departmentValueFn(selectedYear),
+  //   });
+  //   queryClient.prefetchQuery({
+  //     queryKey: provinceValueKey(selectedYear),
+  //     queryFn: provinceValueFn(selectedYear),
+  //   });
+  //   queryClient.prefetchQuery({
+  //     queryKey: valueDistributionKey(selectedYear),
+  //     queryFn: valueDistributionFn(selectedYear),
+  //   });
+  //   queryClient.prefetchQuery({
+  //     queryKey: topSuppliersKey(selectedYear),
+  //     queryFn: topSuppliersFn(selectedYear),
+  //   });
+  //   queryClient.prefetchQuery({
+  //     queryKey: awardTimingKey(selectedYear),
+  //     queryFn: awardTimingFn(selectedYear),
+  //   });
+  //   queryClient.prefetchQuery({
+  //     queryKey: awardedTenderFiltersKey,
+  //     queryFn: awardedTenderFiltersFn,
+  //   });
+  // }, [queryClient, selectedYear]);
 
   // Hook for filter options
   const { data: filterOptions } = useActiveTenderFilters();
