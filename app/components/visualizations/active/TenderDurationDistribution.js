@@ -1,5 +1,6 @@
 "use client";
 
+import React from "react";
 import {
   ResponsiveContainer,
   BarChart,
@@ -9,22 +10,27 @@ import {
   Tooltip,
 } from "recharts";
 
-export default function DurationHistogram({ data }) {
-  if (!data || data.length === 0) {
-    return <div className="text-center p-4">No duration data available.</div>;
+const customTooltip = ({ active, payload }) => {
+  if (active && payload && payload.length) {
+    const data = payload[0].payload;
+    return (
+      <div className="bg-white p-3 border border-gray-200 shadow-md rounded text-xs">
+        <p className="font-semibold">{`${data.range}`}</p>
+        <p>{`${data.count} tenders`}</p>
+      </div>
+    );
   }
+  return null;
+};
 
-  const customTooltip = ({ active, payload, label }) => {
-    if (active && payload && payload.length) {
-      return (
-        <div className="bg-white p-3 border border-gray-200 shadow-md rounded text-xs">
-          <p className="font-semibold">{`${payload[0].payload.label}`}</p>
-          <p>{`${payload[0].value} tenders`}</p>
-        </div>
-      );
-    }
-    return null;
-  };
+export default function TenderDurationDistribution({ data }) {
+  const chartData = React.useMemo(() => {
+    if (!data) return [];
+    return data.map((item) => ({
+      range: item.label,
+      count: item.count,
+    }));
+  }, [data]);
 
   return (
     <div className="w-full">
@@ -35,7 +41,7 @@ export default function DurationHistogram({ data }) {
         The expected length of time between advertisement and closing date
       </p>
       <ResponsiveContainer width="100%" height={400}>
-        <BarChart data={data} barSize={60}>
+        <BarChart data={chartData} barSize={80}>
           <XAxis
             dataKey="range"
             interval="preserveStartEnd"
@@ -52,7 +58,7 @@ export default function DurationHistogram({ data }) {
             width={0}
           />
           <Tooltip content={customTooltip} />
-          <Bar dataKey="count" fill="#B8C5FF" radius={[4, 4, 0, 0]} />
+          <Bar dataKey="count" fill="#B8C5FF" radius={[4, 4, 4, 4]} />
         </BarChart>
       </ResponsiveContainer>
     </div>

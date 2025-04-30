@@ -9,7 +9,7 @@ import {
   Legend,
 } from "recharts";
 
-export default function TopCategoriesChart({ data }) {
+export default function IndustriesByAwardedValue({ data }) {
   if (!data) return null;
 
   // Calculate total value

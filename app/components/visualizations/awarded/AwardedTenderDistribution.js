@@ -9,7 +9,7 @@ import {
   Legend,
 } from "recharts";
 
-export default function ValueDistributionChart({ data }) {
+export default function AwardedTenderDistribution({ data }) {
   if (!data) return null;
 
   // Format data for recharts

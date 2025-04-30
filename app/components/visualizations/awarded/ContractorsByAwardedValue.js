@@ -10,7 +10,7 @@ import {
 } from "recharts";
 import { useEffect } from "react";
 
-export default function TopSuppliersChart({ data }) {
+export default function ContractorsByAwardedValue({ data }) {
   useEffect(() => {
     console.log("TopSuppliersChart received data:", data);
   }, [data]);

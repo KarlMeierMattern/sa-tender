@@ -10,7 +10,7 @@ import {
   Tooltip,
 } from "recharts";
 
-export default function HighestAwardTimingChart({ data }) {
+export default function TenderDurationDistribution({ data }) {
   if (!data) return null;
 
   // Use data as provided from the backend: [{ label, count }, ...]
@@ -59,7 +59,7 @@ export default function HighestAwardTimingChart({ data }) {
             fill="#B8C5FF"
             stroke="#C2CDFF"
             strokeWidth={1}
-            radius={[4, 4, 0, 0]}
+            radius={[4, 4, 4, 4]}
           />
         </BarChart>
       </ResponsiveContainer>

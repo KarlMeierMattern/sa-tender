@@ -31,7 +31,7 @@ const CustomTooltip = ({ active, payload }) => {
   return null;
 };
 
-export default function CategoryPieChart({ data }) {
+export default function TendersByCategory({ data }) {
   const chartData = React.useMemo(() => {
     if (!data) return [];
 

@@ -2,11 +2,11 @@
 
 import {
   ProvinceMap,
-  CategoryPieChart,
-  DepartmentBarChart,
-  TenderTypeDonut,
-  TimelineChart,
-  DurationHistogram,
+  TendersByDepartment,
+  TenderDurationDistribution,
+  DailyTenderPublication,
+  TendersByCategory,
+  TendersByType,
 } from "../visualizations/active";
 import TableSkeleton from "../ui/table-skeleton";
 import { useAdvertisedCharts } from "../../hooks/active/useActiveCharts";
@@ -23,19 +23,21 @@ export default function AdvertisedTendersCharts() {
         <ProvinceMap data={chartQueries.provinceCount.data?.data} />
       </div>
       <div className="bg-white rounded-xl p-6 border shadow-sm">
-        <DepartmentBarChart data={chartQueries.departmentCount.data?.data} />
+        <TendersByDepartment data={chartQueries.departmentCount.data?.data} />
       </div>
       <div className="bg-white rounded-xl p-6 border shadow-sm">
-        <DurationHistogram data={chartQueries.tenderDuration.data?.data} />
+        <TenderDurationDistribution
+          data={chartQueries.tenderDuration.data?.data}
+        />
       </div>
       <div className="bg-white rounded-xl p-6 border shadow-sm">
-        <TimelineChart data={chartQueries.activeTimeline.data?.data} />
+        <DailyTenderPublication data={chartQueries.activeTimeline.data?.data} />
       </div>
       <div className="bg-white rounded-xl p-6 border shadow-sm">
-        <CategoryPieChart data={chartQueries.categoryCount.data?.data} />
+        <TendersByCategory data={chartQueries.categoryCount.data?.data} />
       </div>
       <div className="bg-white rounded-xl p-6 border shadow-sm">
-        <TenderTypeDonut data={chartQueries.tenderTypeCount.data?.data} />
+        <TendersByType data={chartQueries.tenderTypeCount.data?.data} />
       </div>
     </div>
   );

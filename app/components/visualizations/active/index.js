@@ -1,15 +1,15 @@
-import TimelineChart from "./TimelineChart";
-import DurationHistogram from "./DurationHistogram";
-import TenderTypeDonut from "./TenderTypeDonut";
-import DepartmentBarChart from "./DepartmentBarChart";
 import ProvinceMap from "./ProvinceMap";
-import CategoryPieChart from "./CategoryPieChart";
+import TendersByDepartment from "./TendersByDepartment";
+import TenderDurationDistribution from "./TenderDurationDistribution";
+import DailyTenderPublication from "./DailyTenderPublication";
+import TendersByCategory from "./TendersByCategory";
+import TendersByType from "./TendersByType";
 
 export {
-  TimelineChart,
-  DurationHistogram,
-  TenderTypeDonut,
-  DepartmentBarChart,
   ProvinceMap,
-  CategoryPieChart,
+  TendersByDepartment,
+  TenderDurationDistribution,
+  DailyTenderPublication,
+  TendersByCategory,
+  TendersByType,
 };

@@ -9,7 +9,7 @@ import {
   Tooltip,
 } from "recharts";
 
-export default function DepartmentValueChart({ data }) {
+export default function DepartmentByProcurementValue({ data }) {
   if (!data) return null;
 
   // Format the data for recharts
@@ -73,7 +73,7 @@ export default function DepartmentValueChart({ data }) {
             tickLine={false}
           />
           <Tooltip content={<CustomTooltip />} />
-          <Bar dataKey="value" fill="#B8C5FF" radius={[4, 4, 0, 0]} />
+          <Bar dataKey="value" fill="#B8C5FF" radius={[4, 4, 4, 4]} />
         </BarChart>
       </ResponsiveContainer>
     </div>

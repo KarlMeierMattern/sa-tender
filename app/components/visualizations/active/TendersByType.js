@@ -30,7 +30,7 @@ const CustomTooltip = ({ active, payload }) => {
   return null;
 };
 
-export default function TenderTypeDonut({ data }) {
+export default function TendersByType({ data }) {
   const chartData = React.useMemo(() => {
     if (!data) return [];
     return data.map((item) => ({

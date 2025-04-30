@@ -1,12 +1,12 @@
 "use client";
 
 import {
-  DepartmentValueChart,
-  ValueDistributionChart,
-  TopSuppliersChart,
-  HighestAwardTimingChart,
   ProvinceMap,
-  TopCategoriesChart,
+  DepartmentByProcurementValue,
+  IndustriesByAwardedValue,
+  AwardedTenderDistribution,
+  ContractorsByAwardedValue,
+  TenderDurationDistribution,
 } from "../visualizations/awarded";
 import { useAwardedCharts } from "../../hooks/awarded/useAwardedCharts.js";
 import TableSkeleton from "../ui/table-skeleton";
@@ -23,21 +23,29 @@ export default function AwardedTendersCharts({ selectedYear }) {
         <ProvinceMap data={chartQueries.provinceValue.data?.data} />
       </div>
       <div className="bg-white rounded-xl p-6 border shadow-sm">
-        <DepartmentValueChart data={chartQueries.departmentValue.data?.data} />
+        <DepartmentByProcurementValue
+          data={chartQueries.departmentValue.data?.data}
+        />
       </div>
       <div className="bg-white rounded-xl p-6 border shadow-sm">
-        <TopCategoriesChart data={chartQueries.topCategories.data?.data} />
+        <IndustriesByAwardedValue
+          data={chartQueries.topCategories.data?.data}
+        />
       </div>
       <div className="bg-white rounded-xl p-6 border shadow-sm">
-        <ValueDistributionChart
+        <AwardedTenderDistribution
           data={chartQueries.valueDistribution.data?.data}
         />
       </div>
       <div className="bg-white rounded-xl p-6 border shadow-sm">
-        <TopSuppliersChart data={chartQueries.topSuppliers.data?.data} />
+        <ContractorsByAwardedValue
+          data={chartQueries.topSuppliers.data?.data}
+        />
       </div>
       <div className="bg-white rounded-xl p-6 border shadow-sm">
-        <HighestAwardTimingChart data={chartQueries.awardTiming.data?.data} />
+        <TenderDurationDistribution
+          data={chartQueries.awardTiming.data?.data}
+        />
       </div>
     </div>
   );

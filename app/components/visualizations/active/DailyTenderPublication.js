@@ -8,11 +8,16 @@ import {
   YAxis,
   Tooltip,
 } from "recharts";
+import React from "react";
 
-export default function TimelineChart({ data }) {
-  if (!data || data.length === 0) {
-    return <div className="text-center p-4">No timeline data available.</div>;
-  }
+export default function DailyTenderPublication({ data }) {
+  const chartData = React.useMemo(() => {
+    if (!data) return [];
+    return data.map((item) => ({
+      date: item.date,
+      count: item.count,
+    }));
+  }, [data]);
 
   // Format the date to show day and month
   const formatXAxis = (tickItem) => {
@@ -30,7 +35,7 @@ export default function TimelineChart({ data }) {
       </p>
 
       <ResponsiveContainer width="100%" height={400}>
-        <LineChart data={data} margin={{ left: -20, right: 20 }}>
+        <LineChart data={chartData} margin={{ left: -20, right: 20 }}>
           <XAxis
             dataKey="date"
             tickFormatter={formatXAxis}

@@ -1,15 +1,15 @@
-import DepartmentValueChart from "./DepartmentValueChart";
-import ValueDistributionChart from "./ValueDistributionChart";
-import TopSuppliersChart from "./TopSuppliersChart";
-import HighestAwardTimingChart from "./HighestAwardTimingChart";
 import ProvinceMap from "./ProvinceMap";
-import TopCategoriesChart from "./TopCategoriesChart";
+import DepartmentByProcurementValue from "./DepartmentByProcurementValue";
+import IndustriesByAwardedValue from "./IndustriesByAwardedValue";
+import AwardedTenderDistribution from "./AwardedTenderDistribution";
+import ContractorsByAwardedValue from "./ContractorsByAwardedValue";
+import TenderDurationDistribution from "./TenderDurationDistribution";
 
 export {
-  DepartmentValueChart,
-  ValueDistributionChart,
-  TopSuppliersChart,
-  HighestAwardTimingChart,
   ProvinceMap,
-  TopCategoriesChart,
+  DepartmentByProcurementValue,
+  IndustriesByAwardedValue,
+  AwardedTenderDistribution,
+  ContractorsByAwardedValue,
+  TenderDurationDistribution,
 };

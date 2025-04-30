@@ -38,7 +38,7 @@ const CustomTooltip = ({ active, payload }) => {
   return null;
 };
 
-export default function DepartmentBarChart({ data }) {
+export default function TendersByDepartment({ data }) {
   const chartData = React.useMemo(() => {
     if (!data) return [];
     return data.map((item) => ({
@@ -76,7 +76,7 @@ export default function DepartmentBarChart({ data }) {
             tickLine={false}
           />
           <Tooltip content={<CustomTooltip />} />
-          <Bar dataKey="count" fill={COLORS[0]} radius={[0, 4, 4, 0]} />
+          <Bar dataKey="count" fill={COLORS[0]} radius={[4, 4, 4, 4]} />
           <Legend
             verticalAlign="top"
             height={0}
