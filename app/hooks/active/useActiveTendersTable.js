@@ -17,7 +17,7 @@ export function useActiveTendersTable() {
       const res = await fetch("/api/active-tenders-all?limit=999999");
       return res.json();
     },
-    staleTime: 1000 * 60 * 5, // 5 minutes
+    staleTime: 1000 * 60 * 60 * 24, // 24 hours
   });
 
   return {

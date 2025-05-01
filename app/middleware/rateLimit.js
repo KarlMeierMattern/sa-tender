@@ -1,3 +1,6 @@
+// Hadles rate limiting
+// Used in ./middleware.js for rate limiting
+
 import { NextResponse } from "next/server";
 import redis from "../lib/redisClient.js";
 

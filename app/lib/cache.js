@@ -1,5 +1,5 @@
-// Used in ../middleware.js for rate limiting
-// Used in ../api/index.js for caching
+// Handles caching
+// Used in ../api for caching
 
 import redis from "./redisClient.js";
 

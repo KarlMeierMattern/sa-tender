@@ -62,37 +62,37 @@ export function useAwardedCharts(selectedYear = "all") {
   const departmentValue = useQuery({
     queryKey: departmentValueKey(selectedYear),
     queryFn: () => departmentValueFn(selectedYear),
-    staleTime: 1000 * 60 * 5,
+    staleTime: 1000 * 60 * 60 * 24,
   });
 
   const provinceValue = useQuery({
     queryKey: provinceValueKey(selectedYear),
     queryFn: () => provinceValueFn(selectedYear),
-    staleTime: 1000 * 60 * 5,
+    staleTime: 1000 * 60 * 60 * 24,
   });
 
   const valueDistribution = useQuery({
     queryKey: valueDistributionKey(selectedYear),
     queryFn: () => valueDistributionFn(selectedYear),
-    staleTime: 1000 * 60 * 5,
+    staleTime: 1000 * 60 * 60 * 24,
   });
 
   const topSuppliers = useQuery({
     queryKey: topSuppliersKey(selectedYear),
     queryFn: () => topSuppliersFn(selectedYear),
-    staleTime: 1000 * 60 * 5,
+    staleTime: 1000 * 60 * 60 * 24,
   });
 
   const awardTiming = useQuery({
     queryKey: awardTimingKey(selectedYear),
     queryFn: () => awardTimingFn(selectedYear),
-    staleTime: 1000 * 60 * 5,
+    staleTime: 1000 * 60 * 60 * 24,
   });
 
   const topCategories = useQuery({
     queryKey: topCategoriesKey(selectedYear),
     queryFn: () => topCategoriesFn(selectedYear),
-    staleTime: 1000 * 60 * 5,
+    staleTime: 1000 * 60 * 60 * 24,
   });
 
   return {

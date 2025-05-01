@@ -17,6 +17,6 @@ export const useActiveTenderFilters = () => {
       const data = await res.json();
       return data.data; // Return just the data object with [categories, departments, provinces]
     },
-    staleTime: 1000 * 60 * 10, // cache for 10 minutes
+    staleTime: 1000 * 60 * 60 * 24, // 24 hours
   });
 };

@@ -1,3 +1,5 @@
+// Used to extract state logic into a reducer
+
 "use client";
 
 import { useReducer } from "react";

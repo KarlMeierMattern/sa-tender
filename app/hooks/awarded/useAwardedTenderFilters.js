@@ -14,6 +14,6 @@ export const useAwardedTenderFilters = () => {
   return useQuery({
     queryKey: awardedTenderFiltersKey,
     queryFn: awardedTenderFiltersFn,
-    staleTime: 1000 * 60 * 10, // cache for 10 minutes
+    staleTime: 1000 * 60 * 60 * 24, // 24 hours
   });
 };
