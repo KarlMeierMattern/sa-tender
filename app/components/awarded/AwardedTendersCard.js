@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect } from "react";
+import React, { useEffect, useMemo } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useAwardedTenderFilters } from "../../hooks/awarded/useAwardedTenderFilters";
 import { useAllAwardedTenders } from "../../hooks/awarded/useAllAwardedTendersTable.js";
@@ -14,7 +14,7 @@ export default function AwardedTendersCard({
   // Hook for filter optionsa
   const filterOptions = useAwardedTenderFilters();
 
-  // Hook for all awarded tenders data filtered by selected year
+  // Used by cards -> Hook for all awarded tenders data filtered by selected year
   const allData = useAllAwardedTenders(selectedYear);
 
   // Notify parent that loading is done
@@ -24,30 +24,35 @@ export default function AwardedTendersCard({
     }
   }, [filterOptions.isLoading, allData.isLoading, setIsCardLoading]);
 
-  // Extract years from awarded dates
-  const availableYears = Array.from(
-    new Set(
-      filterOptions?.data?.data?.awarded
-        ?.map((date) => new Date(date).getFullYear())
-        .filter(Boolean)
-    )
-  ).sort((a, b) => b - a);
+  // Used by card filter for year selection -> Extract unique years from awarded dates
+  const availableYears = useMemo(() => {
+    return Array.from(
+      new Set(
+        filterOptions?.data?.data?.awarded
+          ?.map((date) => new Date(date).getFullYear())
+          .filter(Boolean)
+      )
+    ).sort((a, b) => b - a);
+  }, [filterOptions?.data?.data?.awarded]);
 
-  if (filterOptions.isLoading || allData.isLoading) return <TableSkeleton />;
-
-  // Calculdate total value
-  const calculateTotalValue = (tenders) => {
-    return tenders.reduce(
-      (sum, tender) => sum + (parseFloat(tender?.successfulBidderAmount) || 0),
-      0
+  // Calculate total value
+  const totalValue = useMemo(() => {
+    return (
+      allData?.data?.data?.reduce(
+        (sum, tender) =>
+          sum + (parseFloat(tender?.successfulBidderAmount) || 0),
+        0
+      ) || 0
     );
-  };
+  }, [allData?.data?.data]);
 
   // Calculate average value
-  const calculateAverageValue = (tenders) => {
-    const total = calculateTotalValue(tenders);
-    return tenders.length ? total / tenders.length : 0;
-  };
+  const averageValue = useMemo(() => {
+    const tenders = allData?.data?.data || [];
+    return tenders.length ? totalValue / tenders.length : 0;
+  }, [totalValue, allData?.data?.data]);
+
+  if (filterOptions.isLoading || allData.isLoading) return <TableSkeleton />;
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
@@ -87,9 +92,7 @@ export default function AwardedTendersCard({
         <CardContent>
           <p className="text-3xl font-bold">
             R{" "}
-            {(
-              calculateTotalValue(allData?.data?.data || []) / 1000000000
-            ).toLocaleString(undefined, {
+            {(totalValue / 1000000000).toLocaleString(undefined, {
               minimumFractionDigits: 1,
               maximumFractionDigits: 1,
             })}
@@ -104,9 +107,7 @@ export default function AwardedTendersCard({
         <CardContent>
           <p className="text-3xl font-bold">
             R{" "}
-            {(
-              calculateAverageValue(allData?.data?.data || []) / 1000000
-            ).toLocaleString(undefined, {
+            {(averageValue / 1000000).toLocaleString(undefined, {
               minimumFractionDigits: 1,
               maximumFractionDigits: 1,
             })}

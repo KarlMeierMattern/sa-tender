@@ -1,3 +1,7 @@
+// API route for filters for awarded tenders
+// ./app/hooks/awarded/useAwardedTenderFilters.js
+// ./app/components/awarded/AwardedTendersCard.js
+
 import { NextResponse } from "next/server";
 import { AwardedTenderModel } from "../../model/awardedTenderModel.js";
 import { cache } from "../../lib/cache.js";
@@ -17,29 +21,14 @@ export async function GET() {
     // Connect to DB
     await connectDB();
 
-    // Get distinct values for each field
-    const [categories, departments, provinces, awardedDates] =
-      await Promise.all([
-        AwardedTenderModel.distinct("category").then((values) =>
-          values.filter(Boolean).sort()
-        ),
-        AwardedTenderModel.distinct("department").then((values) =>
-          values.filter(Boolean).sort()
-        ),
-        AwardedTenderModel.distinct("province").then((values) =>
-          values.filter(Boolean).sort()
-        ),
-        AwardedTenderModel.distinct("awarded").then((values) =>
-          values.filter(Boolean).sort()
-        ),
-      ]);
+    // Get distinct awarded dates to be used for year filter
+    const awardedDates = await AwardedTenderModel.distinct("awarded").then(
+      (values) => values.filter(Boolean).sort()
+    );
 
     const response = {
       success: true,
       data: {
-        categories,
-        departments,
-        provinces,
         awarded: awardedDates,
       },
     };
