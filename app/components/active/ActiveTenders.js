@@ -40,7 +40,7 @@ import {
 const ITEMS_PER_PAGE = 10;
 
 // Lazy load the table component
-const TenderTable = dynamic(() => import("./TenderTable"), {
+const ActiveTenderTable = dynamic(() => import("./ActiveTenderTable"), {
   loading: () => <TableSkeleton />,
   ssr: false,
 });
@@ -135,7 +135,7 @@ export default function ActiveTenders({
       </TabsContent>
 
       <TabsContent value="table" className="hidden md:block">
-        <TenderTable
+        <ActiveTenderTable
           allTenders={allData.data?.data || []}
           currentPage={page}
           isLoading={allData.isLoading}

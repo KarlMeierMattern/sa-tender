@@ -25,13 +25,12 @@ import { useRouter, useSearchParams } from "next/navigation";
 import Pagination from "../Pagination";
 import TableSkeleton from "../ui/table-skeleton";
 
-export default function TenderTable({
+export default function ActiveTenderTable({
   allTenders = [],
   currentPage,
   isLoading,
   totalItems,
   itemsPerPage = 10,
-  // paginateData,
   selectedCategories = [],
   setSelectedCategories,
   selectedDepartments = [],

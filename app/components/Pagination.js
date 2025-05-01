@@ -18,7 +18,7 @@ export default function Pagination({ currentPage, totalPages, onPageChange }) {
           key={i}
           variant={currentPage === i ? "default" : "outline"}
           onClick={() => onPageChange(i)}
-          className="w-10 h-10"
+          className="w-10 h-10 cursor-pointer"
         >
           {i}
         </Button>
@@ -42,7 +42,7 @@ export default function Pagination({ currentPage, totalPages, onPageChange }) {
             key={i}
             variant={currentPage === i ? "default" : "outline"}
             onClick={() => onPageChange(i)}
-            className="w-10 h-10"
+            className="w-10 h-10 cursor-pointer"
           >
             {i}
           </Button>
@@ -54,14 +54,14 @@ export default function Pagination({ currentPage, totalPages, onPageChange }) {
   };
 
   return (
-    <div className="flex items-center justify-center space-x-2 py-4">
+    <div className="flex items-center justify-center space-x-2 py-4 ">
       <Button
         variant="outline"
         onClick={() => onPageChange(currentPage - 1)}
         disabled={currentPage === 1}
-        className="w-10 h-10 p-0"
+        className="w-10 h-10 p-0 cursor-pointer"
       >
-        <ChevronLeft className="h-4 w-4" />
+        <ChevronLeft className="h-4 w-4 cursor-pointer" />
       </Button>
 
       {renderPageNumbers()}
@@ -70,9 +70,9 @@ export default function Pagination({ currentPage, totalPages, onPageChange }) {
         variant="outline"
         onClick={() => onPageChange(currentPage + 1)}
         disabled={currentPage === totalPages}
-        className="w-10 h-10 p-0"
+        className="w-10 h-10 p-0 cursor-pointer"
       >
-        <ChevronRight className="h-4 w-4" />
+        <ChevronRight className="h-4 w-4 cursor-pointer" />
       </Button>
     </div>
   );
