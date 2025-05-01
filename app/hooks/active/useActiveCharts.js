@@ -1,3 +1,7 @@
+// Fetches data for the charts on the active tenders page
+
+// ./app/components/active/AdvertisedTendersCharts.js
+
 "use client";
 
 import { useQuery } from "@tanstack/react-query";

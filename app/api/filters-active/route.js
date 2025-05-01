@@ -1,5 +1,8 @@
-// ./app/components/active/AdvertisedTenders.js
-// ./app/hooks/active/useActiveTenderFilters.js
+// Fetches unique values for categories, departments, and provinces from the active tenders
+// To be used in the filter component of the active tenders page
+
+// ./app/hooks/active/useActiveTenderFilters.js -> query this route
+// ./app/components/active/AdvertisedTenders.js -> parent component
 
 import { NextResponse } from "next/server";
 import { TenderModel } from "../../model/tenderModel";

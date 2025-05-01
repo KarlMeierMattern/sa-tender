@@ -1,3 +1,8 @@
+// Fetches all awarded tenders
+
+// ./app/api/tenders-detail-awarded/route.js -> fetch data
+// ./app/components/active/AdvertisedTenders.js -> prefetch data
+// ./app/components/awarded/AwardedTendersCard.js -> parent component
 "use client";
 
 import { useQuery } from "@tanstack/react-query";

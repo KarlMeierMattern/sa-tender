@@ -3,7 +3,7 @@
 import React, { useEffect, useMemo } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useAwardedTenderFilters } from "../../hooks/awarded/useAwardedTenderFilters";
-import { useAllAwardedTenders } from "../../hooks/awarded/useAllAwardedTendersTable.js";
+import { useAllAwardedTenders } from "../../hooks/awarded/useAllAwardedTenders.js";
 import TableSkeleton from "../ui/table-skeleton";
 
 export default function AwardedTendersCard({

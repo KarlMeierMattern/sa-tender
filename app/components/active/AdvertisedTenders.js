@@ -14,7 +14,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import {
   awardedTendersKey,
   awardedTendersFn,
-} from "../../hooks/awarded/useAllAwardedTendersTable";
+} from "../../hooks/awarded/useAllAwardedTenders";
 
 import {
   awardedTenderFiltersKey,

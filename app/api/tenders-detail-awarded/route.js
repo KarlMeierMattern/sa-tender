@@ -1,5 +1,10 @@
-// .route.js handles HTTP request parsing and response handling
-// receives request from TenderLayout.js
+// Fetches all awarded tenders to be displayed in cards on the awarded tenders page
+// Data is initially prefetched in ./AdvertisedTenders
+// Component is mounted in ./AwardedTendersCard
+
+// ./app/hooks/awarded/useAllAwardedTenders.js -> query this route
+// ./app/components/active/AdvertisedTenders.js -> prefetch data
+// ./app/components/awarded/AwardedTendersCard.js -> parent component
 
 import { NextResponse } from "next/server";
 import { AwardedTenderModel } from "../../model/awardedTenderModel";
