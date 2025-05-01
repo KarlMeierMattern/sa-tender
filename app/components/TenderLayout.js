@@ -6,7 +6,7 @@ import { useSearchParams, useRouter } from "next/navigation";
 import { useState } from "react";
 
 // Lazy load the components
-const AdvertisedTenders = dynamic(() => import("./active/AdvertisedTenders"), {
+const ActiveTenders = dynamic(() => import("./active/ActiveTenders"), {
   ssr: false,
 });
 
@@ -51,7 +51,7 @@ export default function TenderLayout() {
         </TabsList>
 
         <TabsContent value="advertised">
-          <AdvertisedTenders
+          <ActiveTenders
             selectedYear={selectedYear}
             page={page}
             currentView={currentView}

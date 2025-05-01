@@ -1,7 +1,7 @@
 // Fetches unique values for categories, departments, and provinces from the active tenders
 // To be used in the filter component of the active tenders page
 
-// ./app/components/active/AdvertisedTenders.js -> prefetch data
+// ./app/components/active/ActiveTenders.js -> prefetch data
 // ./app/api/filters-active/route.js -> fetch data
 
 "use client";

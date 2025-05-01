@@ -1,6 +1,7 @@
 // Fetches data for the charts on the active tenders page
 
-// ./app/components/active/AdvertisedTendersCharts.js
+// ./app/components/active/ActiveTenders -> data fetched
+// ./app/components/active/ActiveTendersCharts.js -> data passed as prop
 
 "use client";
 
@@ -14,7 +15,7 @@ const fetchActiveTimeline = async () => {
   return res.json();
 };
 
-export function useAdvertisedCharts() {
+export function useActiveCharts() {
   // Active: Province Count Chart
   const provinceCount = useQuery({
     queryKey: ["province-count-chart"],

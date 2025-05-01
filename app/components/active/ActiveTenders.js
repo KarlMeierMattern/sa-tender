@@ -4,23 +4,26 @@ import React, { useState, useEffect } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import dynamic from "next/dynamic";
 import TableSkeleton from "../ui/table-skeleton";
-import { useAdvertisedTenders } from "../../hooks/active/useActiveTendersTable";
+
+// Hooks for active tenders
+import { useActiveTendersTable } from "../../hooks/active/useActiveTendersTable";
+import { useActiveCharts } from "../../hooks/active/useActiveCharts";
 import { useActiveTenderFilters } from "../../hooks/active/useActiveTenderFilters";
-import AdvertisedTendersCard from "./AvertisedTendersCard";
-import AdvertisedTendersCharts from "./AdvertisedTendersCharts";
 
+// Components for active tenders
+import ActiveTendersCard from "./ActiveTendersCard";
+import ActiveTendersCharts from "./ActiveTendersCharts";
+
+// Hooks for awarded tenders
 import { useQueryClient } from "@tanstack/react-query";
-
 import {
   awardedTendersKey,
   awardedTendersFn,
 } from "../../hooks/awarded/useAllAwardedTenders";
-
 import {
   awardedTenderFiltersKey,
   awardedTenderFiltersFn,
 } from "../../hooks/awarded/useAwardedTenderFilters";
-
 import {
   departmentValueKey,
   departmentValueFn,
@@ -42,7 +45,7 @@ const TenderTable = dynamic(() => import("./TenderTable"), {
   ssr: false,
 });
 
-export default function AdvertisedTenders({
+export default function ActiveTenders({
   page,
   currentView,
   updateUrlParams,
@@ -55,21 +58,19 @@ export default function AdvertisedTenders({
   const [selectedAdvertisedDate, setSelectedAdvertisedDate] = useState(null);
   const [selectedClosingDate, setSelectedClosingDate] = useState(null);
 
-  // prefetch data
-  const queryClient = useQueryClient();
-
   // Hook for filter options
   const { data: filterOptions } = useActiveTenderFilters();
 
   // Hook for paginated data and all data
-  const { paginatedData, allData, paginateData } = useAdvertisedTenders({
-    page,
-    limit: ITEMS_PER_PAGE,
-  });
+  const { allData } = useActiveTendersTable();
 
-  // Move prefetch to run after initial data is loaded
+  const chartQueries = useActiveCharts();
+
+  // prefetch data
+  const queryClient = useQueryClient();
+
+  // Prefetch to run after initial data is loaded
   useEffect(() => {
-    // Only prefetch data, not components
     Promise.all([
       queryClient.prefetchQuery({
         queryKey: awardedTendersKey(selectedYear),
@@ -111,7 +112,7 @@ export default function AdvertisedTenders({
     import("../awarded/AwardedTendersCard");
   }, []);
 
-  if (paginatedData.isLoading || allData.isLoading) return <TableSkeleton />;
+  if (allData.isLoading) return <TableSkeleton />;
 
   return (
     <Tabs
@@ -129,18 +130,17 @@ export default function AdvertisedTenders({
       </TabsList>
 
       <TabsContent value="visualizations">
-        <AdvertisedTendersCard />
-        <AdvertisedTendersCharts />
+        <ActiveTendersCard allData={allData} />
+        <ActiveTendersCharts chartQueries={chartQueries} />
       </TabsContent>
 
       <TabsContent value="table" className="hidden md:block">
         <TenderTable
           allTenders={allData.data?.data || []}
           currentPage={page}
-          isLoading={paginatedData.isLoading || allData.isLoading}
+          isLoading={allData.isLoading}
           totalItems={allData.data?.pagination?.total || 0}
           itemsPerPage={ITEMS_PER_PAGE}
-          paginateData={paginateData}
           selectedCategories={selectedCategories}
           setSelectedCategories={setSelectedCategories}
           selectedDepartments={selectedDepartments}

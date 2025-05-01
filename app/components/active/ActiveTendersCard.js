@@ -9,30 +9,30 @@ import {
 } from "@/components/ui/card";
 import { differenceInDays } from "date-fns";
 import TableSkeleton from "../ui/table-skeleton";
-import { useAdvertisedTenders } from "../../hooks/active/useActiveTendersTable";
+import { useMemo } from "react";
 
-export default function AdvertisedTendersCard() {
-  // Hook for paginated data and all data
-  const { allData } = useAdvertisedTenders();
-
-  // Calculate metrics
-  const calculateClosingSoon = (tenders) => {
+export default function ActiveTendersCard({ allData }) {
+  const calculateClosingSoon = useMemo(() => {
     const now = new Date();
-    return tenders.filter((tender) => {
-      const closingDate = new Date(tender.closingDate);
-      const daysUntilClosing = differenceInDays(closingDate, now);
-      return daysUntilClosing >= 0 && daysUntilClosing <= 7;
-    }).length;
-  };
+    return (
+      allData?.data?.data?.filter((tender) => {
+        const closingDate = new Date(tender.closingDate);
+        const daysUntilClosing = differenceInDays(closingDate, now);
+        return daysUntilClosing >= 0 && daysUntilClosing <= 7;
+      }).length || 0
+    );
+  }, [allData?.data?.data]);
 
-  const calculateRecentlyAdded = (tenders) => {
+  const calculateRecentlyAdded = useMemo(() => {
     const now = new Date();
-    return tenders.filter((tender) => {
-      const publishDate = new Date(tender.advertised);
-      const daysAgo = differenceInDays(now, publishDate);
-      return daysAgo >= 0 && daysAgo <= 7;
-    }).length;
-  };
+    return (
+      allData?.data?.data?.filter((tender) => {
+        const publishDate = new Date(tender.advertised);
+        const daysAgo = differenceInDays(now, publishDate);
+        return daysAgo >= 0 && daysAgo <= 7;
+      }).length || 0
+    );
+  }, [allData?.data?.data]);
 
   if (allData.isLoading) return <TableSkeleton />;
 
@@ -52,9 +52,7 @@ export default function AdvertisedTendersCard() {
           <CardDescription>In next 7 days</CardDescription>
         </CardHeader>
         <CardContent>
-          <p className="text-3xl font-bold">
-            {calculateClosingSoon(allData?.data?.data || [])}
-          </p>
+          <p className="text-3xl font-bold">{calculateClosingSoon}</p>
         </CardContent>
       </Card>
       <Card>
@@ -63,9 +61,7 @@ export default function AdvertisedTendersCard() {
           <CardDescription>In last 7 days</CardDescription>
         </CardHeader>
         <CardContent>
-          <p className="text-3xl font-bold">
-            {calculateRecentlyAdded(allData?.data?.data || [])}
-          </p>
+          <p className="text-3xl font-bold">{calculateRecentlyAdded}</p>
         </CardContent>
       </Card>
     </div>

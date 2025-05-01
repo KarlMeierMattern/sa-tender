@@ -31,7 +31,7 @@ export default function TenderTable({
   isLoading,
   totalItems,
   itemsPerPage = 10,
-  paginateData,
+  // paginateData,
   selectedCategories = [],
   setSelectedCategories,
   selectedDepartments = [],
@@ -85,6 +85,13 @@ export default function TenderTable({
         );
       })
     : [];
+
+  // Helper function to paginate filtered data
+  const paginateData = (filteredData, currentPage, itemsPerPage) => {
+    const start = (currentPage - 1) * itemsPerPage;
+    const end = start + itemsPerPage;
+    return filteredData.slice(start, end);
+  };
 
   // Get the current page of filtered data
   const currentPageData = paginateData

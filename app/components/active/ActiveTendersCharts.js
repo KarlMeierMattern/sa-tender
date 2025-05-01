@@ -9,11 +9,11 @@ import {
   TendersByType,
 } from "../visualizations/active";
 import TableSkeleton from "../ui/table-skeleton";
-import { useAdvertisedCharts } from "../../hooks/active/useActiveCharts";
+// import { useAdvertisedCharts } from "../../hooks/active/useActiveCharts";
 
-export default function AdvertisedTendersCharts() {
+export default function ActiveTendersCharts({ chartQueries }) {
   // Hook for chart data
-  const chartQueries = useAdvertisedCharts();
+  // const chartQueries = useAdvertisedCharts();
 
   if (chartQueries.isLoading) return <TableSkeleton />;
 
