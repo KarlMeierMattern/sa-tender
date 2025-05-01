@@ -1,16 +1,27 @@
 "use client";
 
-import React, { useState } from "react";
-import AwardedTendersCard from "./AwardedTendersCard";
-// import { useAwardedTenderFilters } from "../../hooks/awarded/useAwardedTenderFilters";
+import React from "react";
+import dynamic from "next/dynamic";
+
+// import AwardedTendersCard from "./AwardedTendersCard";
 import { useAwardedTenderFilters } from "@/app/hooks/awarded/useAwardedTenderFilters";
 import { useAllAwardedTenders } from "@/app/hooks/awarded/useAllAwardedTenders";
 import { useAwardedCharts } from "@/app/hooks/awarded/useAwardedCharts";
-const AwardedTendersCharts = React.lazy(() => import("./AwardedTendersCharts")); // Lazy-loads AwardedTendersCharts only when it needs to render
+import TableSkeleton from "../ui/table-skeleton";
+
+// Lazy-loads AwardedTendersCard
+const AwardedTendersCard = dynamic(() => import("./AwardedTendersCard"), {
+  loading: () => <TableSkeleton />,
+  ssr: false,
+});
+
+// Lazy-loads AwardedTendersCharts
+const AwardedTendersCharts = dynamic(() => import("./AwardedTendersCharts"), {
+  loading: () => <TableSkeleton />,
+  ssr: false,
+});
 
 export default function AwardedTenders({ selectedYear, setSelectedYear }) {
-  // const [isCardLoading, setIsCardLoading] = useState(true);
-
   // Data passed to AwardedTendersCard for filter options
   const filterOptions = useAwardedTenderFilters();
 
@@ -25,15 +36,10 @@ export default function AwardedTenders({ selectedYear, setSelectedYear }) {
       <AwardedTendersCard
         selectedYear={selectedYear}
         setSelectedYear={setSelectedYear}
-        // setIsCardLoading={setIsCardLoading}
         filterOptions={filterOptions}
         allData={allData}
       />
-      {/* {isCardLoading ? (
-        <div className="h-[300px] w-full bg-gray-100 rounded-xl animate-pulse" />
-      ) : ( */}
       <AwardedTendersCharts chartQueries={chartQueries} />
-      {/* )} */}
     </div>
   );
 }

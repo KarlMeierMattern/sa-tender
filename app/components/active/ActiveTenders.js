@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect } from "react";
+import React from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import dynamic from "next/dynamic";
 import TableSkeleton from "../ui/table-skeleton";
@@ -14,11 +14,17 @@ import { usePrefetchAwardedData } from "@/app/hooks/active/usePrefetchAwardedDat
 // Context
 import { ActiveFiltersProvider } from "@/app/context/ActiveFiltersContext";
 
-// Components for active tenders
-import ActiveTendersCard from "./ActiveTendersCard";
-import ActiveTendersCharts from "./ActiveTendersCharts";
+// Lazy load the card component
+const ActiveTendersCard = dynamic(() => import("./ActiveTendersCard"), {
+  loading: () => <TableSkeleton />,
+  ssr: false,
+});
 
-const ITEMS_PER_PAGE = 10;
+// Lazy load the charts component
+const ActiveTendersCharts = dynamic(() => import("./ActiveTendersCharts"), {
+  loading: () => <TableSkeleton />,
+  ssr: false,
+});
 
 // Lazy load the table component
 const ActiveTenderTable = dynamic(() => import("./ActiveTenderTable"), {
@@ -43,15 +49,6 @@ const ActiveTendersContent = ({
 
   // Prefetch awarded data
   usePrefetchAwardedData(selectedYear);
-
-  // Prefetch components in a separate effect
-  useEffect(() => {
-    import("../awarded/AwardedTenders");
-    import("../awarded/AwardedTendersCharts");
-    import("../awarded/AwardedTendersCard");
-  }, []);
-
-  if (allData.isLoading) return <TableSkeleton />;
 
   return (
     <Tabs
@@ -79,7 +76,6 @@ const ActiveTendersContent = ({
           currentPage={page}
           isLoading={allData.isLoading}
           totalItems={allData.data?.pagination?.total || 0}
-          itemsPerPage={ITEMS_PER_PAGE}
           allCategories={filterOptions?.categories || []}
           allDepartments={filterOptions?.departments || []}
           allProvinces={filterOptions?.provinces || []}

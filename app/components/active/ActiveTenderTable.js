@@ -31,13 +31,13 @@ export default function ActiveTenderTable({
   currentPage,
   isLoading,
   totalItems,
-  itemsPerPage = 10,
   allCategories = [],
   allDepartments = [],
   allProvinces = [],
 }) {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const itemsPerPage = 10;
 
   // Get filters from context
   const {

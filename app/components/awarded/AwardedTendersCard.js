@@ -7,16 +7,9 @@ import TableSkeleton from "../ui/table-skeleton";
 export default function AwardedTendersCard({
   selectedYear,
   setSelectedYear,
-  // setIsCardLoading,
   filterOptions,
   allData,
 }) {
-  // useEffect(() => {
-  //   if (!filterOptions.isLoading && !allData.isLoading) {
-  //     setIsCardLoading(false);
-  //   }
-  // }, [filterOptions.isLoading, allData.isLoading, setIsCardLoading]);
-
   // Used by card filter for year selection -> Extract unique years from awarded dates
   const availableYears = useMemo(() => {
     return Array.from(
