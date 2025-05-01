@@ -14,7 +14,7 @@ export function useActiveTendersTable() {
   const allData = useQuery({
     queryKey: ["advertised-tenders-full"],
     queryFn: async () => {
-      const res = await fetch("/api/tenders-detail?limit=999999");
+      const res = await fetch("/api/active-tenders-all?limit=999999");
       return res.json();
     },
     staleTime: 1000 * 60 * 5, // 5 minutes

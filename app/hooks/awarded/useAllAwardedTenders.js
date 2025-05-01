@@ -15,7 +15,7 @@ export const awardedTendersKey = (year = "all") => [
 export const awardedTendersFn = async (year = "all") => {
   const params = new URLSearchParams({ limit: "999999" });
   if (year && year !== "all") params.append("year", year);
-  const res = await fetch(`/api/tenders-detail-awarded?${params.toString()}`);
+  const res = await fetch(`/api/awarded-tenders-all?${params.toString()}`);
   return res.json();
 };
 

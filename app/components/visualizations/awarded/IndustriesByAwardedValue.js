@@ -29,9 +29,10 @@ const CustomTooltip = ({ active, payload, totalValue }) => {
 
 export default function IndustriesByAwardedValue({ data }) {
   // Calculate total value
-  const totalValue = data
-    ? data.reduce((acc, item) => acc + item.totalValue, 0)
-    : 0;
+  const totalValue = React.useMemo(
+    () => (data ? data.reduce((acc, item) => acc + item.totalValue, 0) : 0),
+    [data]
+  );
 
   // Memoize chartData
   const chartData = React.useMemo(() => {

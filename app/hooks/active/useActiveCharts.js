@@ -7,29 +7,12 @@
 
 import { useQuery } from "@tanstack/react-query";
 
-const fetchActiveTimeline = async () => {
-  const res = await fetch("/api/charts/active-timeline");
-  if (!res.ok) {
-    throw new Error(`HTTP error! status: ${res.status}`);
-  }
-  return res.json();
-};
-
 export function useActiveCharts() {
   // Active: Province Count Chart
   const provinceCount = useQuery({
     queryKey: ["province-count-chart"],
     queryFn: async () => {
-      const res = await fetch("/api/charts/province-count-active");
-      return res.json();
-    },
-    staleTime: 1000 * 60 * 5, // 5 minutes
-  });
-
-  const provinceValue = useQuery({
-    queryKey: ["province-value-active"],
-    queryFn: async () => {
-      const res = await fetch("/api/charts/province-value-active");
+      const res = await fetch("/api/charts/active/province-count");
       return res.json();
     },
     staleTime: 1000 * 60 * 5, // 5 minutes
@@ -38,7 +21,7 @@ export function useActiveCharts() {
   const departmentCount = useQuery({
     queryKey: ["department-count-active"],
     queryFn: async () => {
-      const res = await fetch("/api/charts/department-count-active");
+      const res = await fetch("/api/charts/active/department-count");
       return res.json();
     },
     staleTime: 1000 * 60 * 5, // 5 minutes
@@ -47,7 +30,7 @@ export function useActiveCharts() {
   const categoryCount = useQuery({
     queryKey: ["category-count-active"],
     queryFn: async () => {
-      const res = await fetch("/api/charts/category-count-active");
+      const res = await fetch("/api/charts/active/category-count");
       return res.json();
     },
     staleTime: 1000 * 60 * 5, // 5 minutes
@@ -56,7 +39,7 @@ export function useActiveCharts() {
   const tenderTypeCount = useQuery({
     queryKey: ["tender-type-count-active"],
     queryFn: async () => {
-      const res = await fetch("/api/charts/tender-type-count-active");
+      const res = await fetch("/api/charts/active/tender-type-count");
       return res.json();
     },
     staleTime: 1000 * 60 * 5, // 5 minutes
@@ -65,7 +48,10 @@ export function useActiveCharts() {
   // Active Timeline Chart
   const activeTimeline = useQuery({
     queryKey: ["activeTimeline"],
-    queryFn: fetchActiveTimeline,
+    queryFn: async () => {
+      const res = await fetch("/api/charts/active/timeline");
+      return res.json();
+    },
     staleTime: 1000 * 60 * 5, // 5 minutes
   });
 
@@ -73,7 +59,7 @@ export function useActiveCharts() {
   const tenderDuration = useQuery({
     queryKey: ["tenderDuration"],
     queryFn: async () => {
-      const res = await fetch("/api/charts/tender-duration");
+      const res = await fetch("/api/charts/active/tender-duration");
       if (!res.ok) {
         throw new Error(`HTTP error! status: ${res.status}`);
       }
@@ -84,7 +70,6 @@ export function useActiveCharts() {
 
   return {
     provinceCount,
-    provinceValue,
     departmentCount,
     categoryCount,
     tenderTypeCount,

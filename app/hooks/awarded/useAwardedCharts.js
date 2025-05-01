@@ -25,34 +25,34 @@ export const topCategoriesKey = (year = "all") => [
 
 // Query Fns
 export const departmentValueFn = async (year = "all") => {
-  const res = await fetch(`/api/charts/department-value-awarded?year=${year}`);
+  const res = await fetch(`/api/charts/awarded/department-value?year=${year}`);
   return res.json();
 };
 
 export const provinceValueFn = async (year = "all") => {
-  const res = await fetch(`/api/charts/province-value-awarded?year=${year}`);
+  const res = await fetch(`/api/charts/awarded/province-value?year=${year}`);
   return res.json();
 };
 
 export const valueDistributionFn = async (year = "all") => {
   const res = await fetch(
-    `/api/charts/value-distribution-awarded?year=${year}`
+    `/api/charts/awarded/value-distribution?year=${year}`
   );
   return res.json();
 };
 
 export const topSuppliersFn = async (year = "all") => {
-  const res = await fetch(`/api/charts/top-suppliers-awarded?year=${year}`);
+  const res = await fetch(`/api/charts/awarded/top-suppliers?year=${year}`);
   return res.json();
 };
 
 export const awardTimingFn = async (year = "all") => {
-  const res = await fetch(`/api/charts/award-timing?year=${year}`);
+  const res = await fetch(`/api/charts/awarded/award-timing?year=${year}`);
   return res.json();
 };
 
 export const topCategoriesFn = async (year = "all") => {
-  const res = await fetch(`/api/charts/top-categories-awarded?year=${year}`);
+  const res = await fetch(`/api/charts/awarded/top-categories?year=${year}`);
   return res.json();
 };
 
