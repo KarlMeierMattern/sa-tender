@@ -29,11 +29,11 @@ export default function AwardedTenders({ selectedYear, setSelectedYear }) {
         filterOptions={filterOptions}
         allData={allData}
       />
-      {isCardLoading ? (
+      {/* {isCardLoading ? (
         <div className="h-[300px] w-full bg-gray-100 rounded-xl animate-pulse" />
-      ) : (
-        <AwardedTendersCharts chartQueries={chartQueries} />
-      )}
+      ) : ( */}
+      <AwardedTendersCharts chartQueries={chartQueries} />
+      {/* )} */}
     </div>
   );
 }
