@@ -70,41 +70,39 @@ export default function AdvertisedTenders({
   // Move prefetch to run after initial data is loaded
   useEffect(() => {
     // Only prefetch data, not components
-    if (filterOptions) {
-      Promise.all([
-        queryClient.prefetchQuery({
-          queryKey: awardedTendersKey(selectedYear),
-          queryFn: awardedTendersFn(selectedYear),
-        }),
-        queryClient.prefetchQuery({
-          queryKey: departmentValueKey(selectedYear),
-          queryFn: departmentValueFn(selectedYear),
-        }),
-        queryClient.prefetchQuery({
-          queryKey: provinceValueKey(selectedYear),
-          queryFn: provinceValueFn(selectedYear),
-        }),
-        queryClient.prefetchQuery({
-          queryKey: valueDistributionKey(selectedYear),
-          queryFn: valueDistributionFn(selectedYear),
-        }),
-        queryClient.prefetchQuery({
-          queryKey: topSuppliersKey(selectedYear),
-          queryFn: topSuppliersFn(selectedYear),
-        }),
-        queryClient.prefetchQuery({
-          queryKey: awardTimingKey(selectedYear),
-          queryFn: awardTimingFn(selectedYear),
-        }),
-        queryClient.prefetchQuery({
-          queryKey: awardedTenderFiltersKey,
-          queryFn: awardedTenderFiltersFn,
-        }),
-      ]).catch((error) => {
-        console.error("Error prefetching data:", error);
-      });
-    }
-  }, [queryClient, selectedYear, filterOptions]);
+    Promise.all([
+      queryClient.prefetchQuery({
+        queryKey: awardedTendersKey(selectedYear),
+        queryFn: awardedTendersFn(selectedYear),
+      }),
+      queryClient.prefetchQuery({
+        queryKey: departmentValueKey(selectedYear),
+        queryFn: departmentValueFn(selectedYear),
+      }),
+      queryClient.prefetchQuery({
+        queryKey: provinceValueKey(selectedYear),
+        queryFn: provinceValueFn(selectedYear),
+      }),
+      queryClient.prefetchQuery({
+        queryKey: valueDistributionKey(selectedYear),
+        queryFn: valueDistributionFn(selectedYear),
+      }),
+      queryClient.prefetchQuery({
+        queryKey: topSuppliersKey(selectedYear),
+        queryFn: topSuppliersFn(selectedYear),
+      }),
+      queryClient.prefetchQuery({
+        queryKey: awardTimingKey(selectedYear),
+        queryFn: awardTimingFn(selectedYear),
+      }),
+      queryClient.prefetchQuery({
+        queryKey: awardedTenderFiltersKey,
+        queryFn: awardedTenderFiltersFn,
+      }),
+    ]).catch((error) => {
+      console.error("Error prefetching data:", error);
+    });
+  }, [queryClient, selectedYear]);
 
   // Prefetch components in a separate effect
   useEffect(() => {
@@ -153,9 +151,9 @@ export default function AdvertisedTenders({
           setSelectedAdvertisedDate={setSelectedAdvertisedDate}
           selectedClosingDate={selectedClosingDate}
           setSelectedClosingDate={setSelectedClosingDate}
-          allCategories={filterOptions?.categories || []}
-          allDepartments={filterOptions?.departments || []}
-          allProvinces={filterOptions?.provinces || []}
+          allCategories={filterOptions?.categories || []} // categories to be displayed in the filter
+          allDepartments={filterOptions?.departments || []} // departments to be displayed in the filter
+          allProvinces={filterOptions?.provinces || []} // provinces to be displayed in the filter
         />
       </TabsContent>
     </Tabs>

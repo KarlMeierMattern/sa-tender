@@ -1,3 +1,6 @@
+// ./app/components/active/AdvertisedTenders.js
+// ./app/api/filters-active/route.js
+
 "use client";
 
 import { useQuery } from "@tanstack/react-query";

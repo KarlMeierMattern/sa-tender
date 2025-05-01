@@ -18,8 +18,8 @@ export default function TenderLayout() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const page = parseInt(searchParams.get("page")) || 1;
-  const currentView = searchParams.get("view") || "visualizations";
   const currentTab = searchParams.get("tab") || "advertised";
+  const currentView = searchParams.get("view") || "visualizations";
   const [selectedYear, setSelectedYear] = useState("all");
 
   const updateUrlParams = (params) => {

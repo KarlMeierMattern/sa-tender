@@ -1,3 +1,6 @@
+// ./app/components/active/AdvertisedTenders.js
+// ./app/hooks/active/useActiveTenderFilters.js
+
 import { NextResponse } from "next/server";
 import { TenderModel } from "../../model/tenderModel";
 import { cache } from "../../lib/cache";
