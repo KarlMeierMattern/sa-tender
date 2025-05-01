@@ -24,6 +24,7 @@ import { cn } from "@/lib/utils";
 import { useRouter, useSearchParams } from "next/navigation";
 import Pagination from "../Pagination";
 import TableSkeleton from "../ui/table-skeleton";
+import { useActiveFiltersContext } from "@/app/context/ActiveFiltersContext";
 
 export default function ActiveTenderTable({
   allTenders = [],
@@ -31,22 +32,22 @@ export default function ActiveTenderTable({
   isLoading,
   totalItems,
   itemsPerPage = 10,
-  selectedCategories = [],
-  setSelectedCategories,
-  selectedDepartments = [],
-  setSelectedDepartments,
-  selectedProvinces = [],
-  setSelectedProvinces,
-  selectedAdvertisedDate,
-  setSelectedAdvertisedDate,
-  selectedClosingDate,
-  setSelectedClosingDate,
   allCategories = [],
   allDepartments = [],
   allProvinces = [],
 }) {
   const router = useRouter();
   const searchParams = useSearchParams();
+
+  // Get filters from context
+  const {
+    filters,
+    setCategories,
+    setDepartments,
+    setProvinces,
+    setAdvertisedDate,
+    setClosingDate,
+  } = useActiveFiltersContext();
 
   if (isLoading) {
     return <TableSkeleton />;
@@ -56,24 +57,24 @@ export default function ActiveTenderTable({
   const filteredTenders = Array.isArray(allTenders)
     ? allTenders.filter((tender) => {
         const matchesCategory =
-          selectedCategories.length === 0 ||
-          selectedCategories.includes(tender.category);
+          filters.categories.length === 0 ||
+          filters.categories.includes(tender.category);
         const matchesDepartment =
-          selectedDepartments.length === 0 ||
-          selectedDepartments.includes(tender.department);
+          filters.departments.length === 0 ||
+          filters.departments.includes(tender.department);
         const matchesProvince =
-          selectedProvinces.length === 0 ||
-          selectedProvinces.includes(tender.province);
+          filters.provinces.length === 0 ||
+          filters.provinces.includes(tender.province);
 
         const matchesAdvertisedDate =
-          !selectedAdvertisedDate ||
+          !filters.advertisedDate ||
           format(new Date(tender.advertised), "yyyy-MM-dd") ===
-            format(selectedAdvertisedDate, "yyyy-MM-dd");
+            format(filters.advertisedDate, "yyyy-MM-dd");
 
         const matchesClosingDate =
-          !selectedClosingDate ||
+          !filters.closingDate ||
           format(new Date(tender.closingDate), "yyyy-MM-dd") ===
-            format(selectedClosingDate, "yyyy-MM-dd");
+            format(filters.closingDate, "yyyy-MM-dd");
 
         return (
           matchesCategory &&
@@ -132,22 +133,22 @@ export default function ActiveTenderTable({
         <MultiSelect
           label="Category"
           options={allCategories}
-          selected={selectedCategories}
-          onSelect={setSelectedCategories}
+          selected={filters.categories}
+          onSelect={setCategories}
           placeholder="Select Category"
         />
         <MultiSelect
           label="Department"
           options={allDepartments}
-          selected={selectedDepartments}
-          onSelect={setSelectedDepartments}
+          selected={filters.departments}
+          onSelect={setDepartments}
           placeholder="Select Department"
         />
         <MultiSelect
           label="Province"
           options={allProvinces}
-          selected={selectedProvinces}
-          onSelect={setSelectedProvinces}
+          selected={filters.provinces}
+          onSelect={setProvinces}
           placeholder="Select Province"
         />
 
@@ -157,20 +158,20 @@ export default function ActiveTenderTable({
               variant={"outline"}
               className={cn(
                 "w-[240px] justify-start text-left font-normal",
-                !selectedAdvertisedDate && "text-muted-foreground"
+                !filters.advertisedDate && "text-muted-foreground"
               )}
             >
               <CalendarIcon className="mr-2 h-4 w-4" />
-              {selectedAdvertisedDate
-                ? format(selectedAdvertisedDate, "PPP")
+              {filters.advertisedDate
+                ? format(filters.advertisedDate, "PPP")
                 : "Advertised Date"}
             </Button>
           </PopoverTrigger>
           <PopoverContent className="w-auto p-0" align="start">
             <Calendar
               mode="single"
-              selected={selectedAdvertisedDate}
-              onSelect={setSelectedAdvertisedDate}
+              selected={filters.advertisedDate}
+              onSelect={setAdvertisedDate}
               initialFocus
             />
           </PopoverContent>
@@ -182,20 +183,20 @@ export default function ActiveTenderTable({
               variant={"outline"}
               className={cn(
                 "w-[240px] justify-start text-left font-normal",
-                !selectedClosingDate && "text-muted-foreground"
+                !filters.closingDate && "text-muted-foreground"
               )}
             >
               <CalendarIcon className="mr-2 h-4 w-4" />
-              {selectedClosingDate
-                ? format(selectedClosingDate, "PPP")
+              {filters.closingDate
+                ? format(filters.closingDate, "PPP")
                 : "Closing Date"}
             </Button>
           </PopoverTrigger>
           <PopoverContent className="w-auto p-0" align="start">
             <Calendar
               mode="single"
-              selected={selectedClosingDate}
-              onSelect={setSelectedClosingDate}
+              selected={filters.closingDate}
+              onSelect={setClosingDate}
               initialFocus
             />
           </PopoverContent>
