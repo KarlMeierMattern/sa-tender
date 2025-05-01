@@ -8,13 +8,9 @@ import {
   ContractorsByAwardedValue,
   TenderDurationDistribution,
 } from "../visualizations/awarded";
-import { useAwardedCharts } from "../../hooks/awarded/useAwardedCharts.js";
 import TableSkeleton from "../ui/table-skeleton";
 
-export default function AwardedTendersCharts({ selectedYear }) {
-  // Fetch chart data
-  const chartQueries = useAwardedCharts(selectedYear);
-
+export default function AwardedTendersCharts({ chartQueries }) {
   if (chartQueries.isLoading) return <TableSkeleton />;
 
   return (

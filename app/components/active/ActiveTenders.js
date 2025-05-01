@@ -6,9 +6,9 @@ import dynamic from "next/dynamic";
 import TableSkeleton from "../ui/table-skeleton";
 
 // Hooks for active tenders
-import { useActiveTendersTable } from "../../hooks/active/useActiveTendersTable";
-import { useActiveCharts } from "../../hooks/active/useActiveCharts";
-import { useActiveTenderFilters } from "../../hooks/active/useActiveTenderFilters";
+import { useActiveTendersTable } from "@/app/hooks/active/useActiveTendersTable";
+import { useActiveCharts } from "@/app/hooks/active/useActiveCharts";
+import { useActiveTenderFilters } from "@/app/hooks/active/useActiveTenderFilters";
 
 // Components for active tenders
 import ActiveTendersCard from "./ActiveTendersCard";
@@ -19,11 +19,11 @@ import { useQueryClient } from "@tanstack/react-query";
 import {
   awardedTendersKey,
   awardedTendersFn,
-} from "../../hooks/awarded/useAllAwardedTenders";
+} from "@/app/hooks/awarded/useAllAwardedTenders";
 import {
   awardedTenderFiltersKey,
   awardedTenderFiltersFn,
-} from "../../hooks/awarded/useAwardedTenderFilters";
+} from "@/app/hooks/awarded/useAwardedTenderFilters";
 import {
   departmentValueKey,
   departmentValueFn,
@@ -35,7 +35,7 @@ import {
   topSuppliersFn,
   awardTimingKey,
   awardTimingFn,
-} from "../../hooks/awarded/useAwardedCharts";
+} from "@/app/hooks/awarded/useAwardedCharts";
 
 const ITEMS_PER_PAGE = 10;
 
@@ -58,13 +58,14 @@ export default function ActiveTenders({
   const [selectedAdvertisedDate, setSelectedAdvertisedDate] = useState(null);
   const [selectedClosingDate, setSelectedClosingDate] = useState(null);
 
-  // Hook for filter options
-  const { data: filterOptions } = useActiveTenderFilters();
+  // Data passed to ActiveTendersCharts
+  const chartQueries = useActiveCharts();
 
-  // Hook for paginated data and all data
+  // Data passed to ActiveTendersCard and ActiveTenderTable
   const { allData } = useActiveTendersTable();
 
-  const chartQueries = useActiveCharts();
+  // Data passed to ActiveTenderTable
+  const { data: filterOptions } = useActiveTenderFilters();
 
   // prefetch data
   const queryClient = useQueryClient();

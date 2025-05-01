@@ -1,28 +1,21 @@
 "use client";
 
-import React, { useEffect, useMemo } from "react";
+import React, { useMemo } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { useAwardedTenderFilters } from "../../hooks/awarded/useAwardedTenderFilters";
-import { useAllAwardedTenders } from "../../hooks/awarded/useAllAwardedTenders.js";
 import TableSkeleton from "../ui/table-skeleton";
 
 export default function AwardedTendersCard({
   selectedYear,
   setSelectedYear,
-  setIsCardLoading,
+  // setIsCardLoading,
+  filterOptions,
+  allData,
 }) {
-  // Hook for filter optionsa
-  const filterOptions = useAwardedTenderFilters();
-
-  // Used by cards -> Hook for all awarded tenders data filtered by selected year
-  const allData = useAllAwardedTenders(selectedYear);
-
-  // Notify parent that loading is done
-  useEffect(() => {
-    if (!filterOptions.isLoading && !allData.isLoading) {
-      setIsCardLoading(false);
-    }
-  }, [filterOptions.isLoading, allData.isLoading, setIsCardLoading]);
+  // useEffect(() => {
+  //   if (!filterOptions.isLoading && !allData.isLoading) {
+  //     setIsCardLoading(false);
+  //   }
+  // }, [filterOptions.isLoading, allData.isLoading, setIsCardLoading]);
 
   // Used by card filter for year selection -> Extract unique years from awarded dates
   const availableYears = useMemo(() => {
