@@ -1,15 +1,15 @@
 "use client";
 
 import React from "react";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import dynamic from "next/dynamic";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import TableSkeleton from "../ui/table-skeleton";
 
 // Hooks for active tenders
 import { useActiveTendersTable } from "@/app/hooks/active/useActiveTendersTable";
 import { useActiveCharts } from "@/app/hooks/active/useActiveCharts";
 import { useActiveTenderFilters } from "@/app/hooks/active/useActiveTenderFilters";
-import { usePrefetchAwardedData } from "@/app/hooks/active/usePrefetchAwardedData";
+// import { usePrefetchAwardedData } from "@/app/hooks/active/usePrefetchAwardedData";
 
 // Context
 import { ActiveFiltersProvider } from "@/app/context/ActiveFiltersContext";
@@ -48,7 +48,7 @@ const ActiveTendersContent = ({
   const { data: filterOptions } = useActiveTenderFilters();
 
   // Prefetch awarded data
-  usePrefetchAwardedData(selectedYear);
+  // usePrefetchAwardedData(selectedYear);
 
   return (
     <Tabs
