@@ -1,5 +1,5 @@
 import "./globals.css";
-import Providers from "./providers";
+import QueryClientProvider from "./providers";
 import { GeistMono } from "geist/font/mono";
 
 export const metadata = {
@@ -11,7 +11,7 @@ export default async function RootLayout({ children }) {
   return (
     <html lang="en">
       <body className={GeistMono.className}>
-        <Providers>{children}</Providers>
+        <QueryClientProvider>{children}</QueryClientProvider>
       </body>
     </html>
   );
