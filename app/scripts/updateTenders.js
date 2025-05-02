@@ -1,11 +1,10 @@
 // Performs a single database update when manually executed
 // This file also gets exported to be used by cron job
-// npm run db:update
+// npm run db:update:active
 
 import mongoose from "mongoose";
 import { TenderModel } from "../model/tenderModel.js";
 import { scrapeTendersDetail } from "../lib/scrapers/tenders-detail.js";
-import { cache } from "../lib/cache.js";
 import {
   parseAdvertisedDate,
   parseDatePublished,
@@ -63,11 +62,6 @@ export async function updateTenders() {
         result.upsertedCount + result.modifiedCount
       } tenders`
     );
-
-    // After database update is complete
-    console.log("Invalidating tender caches...");
-    await cache.invalidatePattern("tenders:*");
-    console.log("Successfully invalidated tender caches");
   } catch (error) {
     console.error("Error updating tenders:", error);
     process.exit(1);

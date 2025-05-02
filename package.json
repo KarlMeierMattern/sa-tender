@@ -9,7 +9,9 @@
     "start": "next start",
     "lint": "next lint",
     "db:seed": "node app/scripts/seed.js",
-    "db:seed:awarded": "node app/scripts/seed-awarded.js"
+    "db:seed:awarded": "node app/scripts/seed-awarded.js",
+    "db:update:awarded": "node app/scripts/updateAwardedTenders.js",
+    "db:update:active": "node app/scripts/updateTenders.js"
   },
   "dependencies": {
     "@ai-sdk/openai": "^1.3.6",
