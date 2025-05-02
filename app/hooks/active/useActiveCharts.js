@@ -15,7 +15,8 @@ export function useActiveCharts() {
       const res = await fetch("/api/charts/active/province-count");
       return res.json();
     },
-    staleTime: 1000 * 60 * 60 * 24, // 24 hours
+    staleTime: process.env.STALE_TIME,
+    cacheTime: process.env.CACHE_TIME,
   });
 
   const departmentCount = useQuery({
@@ -24,7 +25,8 @@ export function useActiveCharts() {
       const res = await fetch("/api/charts/active/department-count");
       return res.json();
     },
-    staleTime: 1000 * 60 * 60 * 24, // 24 hours
+    staleTime: process.env.STALE_TIME,
+    cacheTime: process.env.CACHE_TIME,
   });
 
   const categoryCount = useQuery({
@@ -33,7 +35,8 @@ export function useActiveCharts() {
       const res = await fetch("/api/charts/active/category-count");
       return res.json();
     },
-    staleTime: 1000 * 60 * 60 * 24, // 24 hours
+    staleTime: process.env.STALE_TIME,
+    cacheTime: process.env.CACHE_TIME,
   });
 
   const tenderTypeCount = useQuery({
@@ -42,7 +45,8 @@ export function useActiveCharts() {
       const res = await fetch("/api/charts/active/tender-type-count");
       return res.json();
     },
-    staleTime: 1000 * 60 * 60 * 24, // 24 hours
+    staleTime: process.env.STALE_TIME,
+    cacheTime: process.env.CACHE_TIME,
   });
 
   // Active Timeline Chart
@@ -52,7 +56,8 @@ export function useActiveCharts() {
       const res = await fetch("/api/charts/active/timeline");
       return res.json();
     },
-    staleTime: 1000 * 60 * 60 * 24, // 24 hours
+    staleTime: process.env.STALE_TIME,
+    cacheTime: process.env.CACHE_TIME,
   });
 
   // Tender Duration Distribution Chart
@@ -65,7 +70,8 @@ export function useActiveCharts() {
       }
       return res.json();
     },
-    staleTime: 1000 * 60 * 60 * 24, // 24 hours
+    staleTime: process.env.STALE_TIME,
+    cacheTime: process.env.CACHE_TIME,
   });
 
   return {

@@ -5,6 +5,7 @@
 import mongoose from "mongoose";
 import { TenderModel } from "../model/tenderModel.js";
 import { scrapeTendersDetail } from "../lib/scrapers/tenders-detail.js";
+import { cache } from "../lib/cache.js";
 import {
   parseAdvertisedDate,
   parseDatePublished,
@@ -30,6 +31,10 @@ async function main() {
     // Clear existing data
     await TenderModel.deleteMany({});
     console.log("Cleared existing tenders");
+
+    // Invalidate all tender caches
+    await cache.invalidatePattern("tenders:*");
+    console.log("Invalidated tender caches");
 
     console.log("Starting tender scraping...");
     const tenders = await scrapeTendersDetail({

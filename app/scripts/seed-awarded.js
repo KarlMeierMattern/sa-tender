@@ -5,6 +5,7 @@
 import mongoose from "mongoose";
 import { AwardedTenderModel } from "../model/awardedTenderModel.js";
 import { scrapeAwardedTenders } from "../lib/scrapers/tenders-awarded.js";
+import { cache } from "../lib/cache.js";
 import {
   parseAdvertisedDate,
   parseDatePublished,
@@ -30,6 +31,10 @@ async function main() {
     // Clear existing data
     await AwardedTenderModel.deleteMany({});
     console.log("Cleared existing awarded tenders");
+
+    // Invalidate all awarded tender caches
+    await cache.invalidatePattern("awarded-tender*");
+    console.log("Invalidated awarded tender caches");
 
     console.log("Starting to scrape awarded tenders...");
     let totalInserted = 0;

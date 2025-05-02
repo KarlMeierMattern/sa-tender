@@ -39,7 +39,6 @@ export async function GET() {
       console.log("Cached filter data for", cacheKey);
     } catch (cacheError) {
       console.error("Cache set error:", cacheError);
-      // Continue even if caching fails
     }
 
     return NextResponse.json(response);

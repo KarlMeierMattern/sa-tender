@@ -1,6 +1,7 @@
 import mongoose from "mongoose";
 import { AwardedTenderModel } from "../model/awardedTenderModel.js";
 import { scrapeAwardedTenders } from "../lib/scrapers/tenders-awarded.js";
+import { cache } from "../lib/cache.js";
 import {
   parseAdvertisedDate,
   parseDatePublished,
@@ -127,6 +128,11 @@ export async function updateAwardedTenders() {
       });
       console.log(`Removed ${tendersToRemove.length} old awarded tenders`);
     }
+
+    // After all database operations are complete
+    console.log("Invalidating awarded tender caches...");
+    await cache.invalidatePattern("awarded-tender*");
+    console.log("Successfully invalidated awarded tender caches");
 
     console.log("Awarded tenders database update completed successfully");
   } catch (error) {

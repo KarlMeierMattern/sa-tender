@@ -23,6 +23,7 @@ export function useAllAwardedTenders(year = "all") {
   return useQuery({
     queryKey: awardedTendersKey(year),
     queryFn: () => awardedTendersFn(year),
-    staleTime: 1000 * 60 * 60 * 24,
+    staleTime: process.env.STALE_TIME,
+    cacheTime: process.env.CACHE_TIME,
   });
 }

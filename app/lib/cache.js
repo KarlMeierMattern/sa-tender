@@ -6,6 +6,7 @@ import redis from "./redisClient.js";
 const DEFAULT_CACHE_TIME = 3600; // 1 hour in seconds
 
 export const cache = {
+  // Used in api routes to get cached data
   async get(key) {
     try {
       const value = await redis.get(key);
@@ -16,6 +17,7 @@ export const cache = {
     }
   },
 
+  // Used in api routes to set cached data
   async set(key, value, expireTime = DEFAULT_CACHE_TIME) {
     try {
       await redis.setex(key, expireTime, JSON.stringify(value));
@@ -24,11 +26,15 @@ export const cache = {
     }
   },
 
-  async invalidate(key) {
+  // Used in seed and update scripts to invalidate caches
+  async invalidatePattern(pattern) {
     try {
-      await redis.del(key);
+      const keys = await redis.keys(pattern);
+      if (keys.length > 0) {
+        await redis.del(...keys);
+      }
     } catch (error) {
-      console.error("Cache invalidation error:", error);
+      console.error("Cache pattern invalidation error:", error);
     }
   },
 };
