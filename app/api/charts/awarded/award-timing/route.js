@@ -4,11 +4,7 @@ import { cache } from "@/app/lib/cache";
 import { connectDB } from "@/app/lib/db";
 
 const BUCKETS = [
-  // { label: "1-7", min: 1, max: 7 },
-  // { label: "8-14", min: 8, max: 14 },
-  // { label: "15-21", min: 15, max: 21 },
   { label: "1-30", min: 1, max: 30 },
-  // { label: "31-60", min: 31, max: 60 },
   { label: "31-90", min: 31, max: 90 },
   { label: "91-180", min: 91, max: 180 },
   { label: "181-365", min: 181, max: 365 },
@@ -91,9 +87,9 @@ export async function GET(request) {
       count: bucketCounts[bucket.label],
     }));
 
-    // Store in Redis cache for 5 minutes
+    // Store in Redis cache
     try {
-      await cache.set(cacheKey, data, 300);
+      await cache.set(cacheKey, data, process.env.CACHE_DURATION);
       console.log("Cached data for", cacheKey);
     } catch (cacheError) {
       console.error("Cache set error:", cacheError);

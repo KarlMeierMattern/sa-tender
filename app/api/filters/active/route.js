@@ -51,10 +51,9 @@ export async function GET() {
       },
     };
 
-    // Cache the results for 10 minutes
-
+    // Cache the results
     try {
-      await cache.set(cacheKey, response, 600);
+      await cache.set(cacheKey, response, process.env.CACHE_DURATION);
       console.log("Cached filter data for", cacheKey);
     } catch (error) {
       console.error("Cache set error:", error);

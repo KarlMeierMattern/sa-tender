@@ -56,7 +56,7 @@ export async function GET(request) {
     };
 
     try {
-      await cache.set(cachekey, response, 300);
+      await cache.set(cachekey, response, process.env.CACHE_DURATION);
       console.log("Cached data for", cachekey);
     } catch (cacheError) {
       console.error("Cache set error:", cacheError);

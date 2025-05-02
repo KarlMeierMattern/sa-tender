@@ -56,9 +56,9 @@ export async function GET(request) {
       data,
     };
 
-    // 3. Store in Redis cache for 5 minutes
+    // 3. Store in Redis cache
     try {
-      await cache.set(cacheKey, response, 300);
+      await cache.set(cacheKey, response, process.env.CACHE_DURATION);
       console.log("Cached data for", cacheKey);
     } catch (cacheError) {
       console.error("Cache set error:", cacheError);

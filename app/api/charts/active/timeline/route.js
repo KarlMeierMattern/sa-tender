@@ -4,7 +4,6 @@ import { cache } from "@/app/lib/cache";
 import { connectDB } from "@/app/lib/db";
 
 const CACHE_KEY = "active-timeline";
-const CACHE_DURATION = 5 * 60; // 5 minutes
 
 async function getActiveTimelineData() {
   await connectDB();
@@ -54,7 +53,7 @@ export async function GET(request) {
     console.log(`Cache miss for ${CACHE_KEY}, fetching from DB.`);
     const data = await getActiveTimelineData();
 
-    await cache.set(CACHE_KEY, data, CACHE_DURATION);
+    await cache.set(CACHE_KEY, data, process.env.CACHE_DURATION);
     console.log(`Cache set for ${CACHE_KEY}`);
 
     return NextResponse.json({ success: true, data });
