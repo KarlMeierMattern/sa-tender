@@ -5,7 +5,6 @@
 import mongoose from "mongoose";
 import { AwardedTenderModel } from "../model/awardedTenderModel.js";
 import { scrapeAwardedTenders } from "../lib/scrapers/tenders-awarded.js";
-import { cache } from "../lib/cache.js";
 import {
   parseAdvertisedDate,
   parseDatePublished,
@@ -28,34 +27,25 @@ async function main() {
   await connectDB();
 
   try {
-    // Clear existing data
-    await AwardedTenderModel.deleteMany({});
-    console.log("Cleared existing awarded tenders");
-
-    // Invalidate all awarded tender caches
-    await cache.invalidatePattern("awarded-tender*");
-    console.log("Invalidated awarded tender caches");
+    // Remove the deleteMany call to allow duplicates
+    // await AwardedTenderModel.deleteMany({});
+    // console.log("Cleared existing awarded tenders");
 
     console.log("Starting to scrape awarded tenders...");
     let totalInserted = 0;
+    let totalProcessed = 0; // Track total tenders processed
 
-    const tenders = await scrapeAwardedTenders({
-      maxPages: 2204,
-      onBatch: async (batch) => {
-        if (batch.length === 0) return;
+    await scrapeAwardedTenders({
+      maxPages: 2235,
+      onComplete: async (tenders) => {
+        if (tenders.length === 0) return;
+
+        totalProcessed += tenders.length; // Add to total processed count
 
         // Format the tenders
-        const formattedTenders = batch
+        const formattedTenders = tenders
           .map((tender) => {
             // Ensure all required fields are present
-            if (!tender.tenderNumber || !tender.description) {
-              console.log(
-                `Skipping tender with missing required fields:`,
-                tender
-              );
-              return null;
-            }
-
             const advertisedDate =
               parseAdvertisedDate(tender.advertised) || new Date();
             const awardedDate =
@@ -83,21 +73,64 @@ async function main() {
           .filter((tender) => tender !== null);
 
         if (formattedTenders.length === 0) {
-          console.log("No valid tenders to insert in this batch");
+          console.log("No valid tenders to insert");
           return;
         }
 
-        // Save batch to database
+        // Save all tenders to database using upsert
         console.log(
-          `Inserting batch of ${formattedTenders.length} tenders into database...`
+          `Upserting ${formattedTenders.length} tenders into database...`
         );
-        const result = await AwardedTenderModel.insertMany(formattedTenders);
-        totalInserted += result.length;
-        console.log(`Successfully inserted ${totalInserted} tenders so far`);
+
+        // Use bulkWrite with upsert for each tender
+        const operations = formattedTenders.map((tender) => ({
+          updateOne: {
+            filter: { tenderNumber: tender.tenderNumber },
+            update: { $set: tender },
+            upsert: true,
+          },
+        }));
+
+        try {
+          const result = await AwardedTenderModel.bulkWrite(operations, {
+            ordered: false,
+          });
+
+          const processedCount = result.upsertedCount + result.modifiedCount;
+          totalInserted += processedCount;
+          console.log(
+            `Successfully processed ${processedCount} tenders in this batch (Total processed: ${totalProcessed}, Total inserted: ${totalInserted})`
+          );
+        } catch (error) {
+          console.error("Error during bulkWrite:", error);
+          // Try individual upserts as fallback
+          let individualSuccessCount = 0;
+          for (const tender of formattedTenders) {
+            try {
+              await AwardedTenderModel.findOneAndUpdate(
+                { tenderNumber: tender.tenderNumber },
+                tender,
+                { upsert: true }
+              );
+              individualSuccessCount++;
+            } catch (err) {
+              console.error(
+                `Failed to upsert tender ${tender.tenderNumber}:`,
+                err
+              );
+            }
+          }
+          totalInserted += individualSuccessCount;
+          console.log(
+            `Successfully processed ${individualSuccessCount} tenders individually (Total processed: ${totalProcessed}, Total inserted: ${totalInserted})`
+          );
+        }
       },
     });
 
-    console.log(`Completed scraping. Total tenders inserted: ${totalInserted}`);
+    console.log(
+      `Completed scraping. Total tenders processed: ${totalProcessed}, Total inserted: ${totalInserted}`
+    );
   } catch (error) {
     console.error("Error seeding awarded tenders database:", error);
     process.exit(1);

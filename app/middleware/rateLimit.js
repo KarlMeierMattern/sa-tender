@@ -5,7 +5,7 @@ import { NextResponse } from "next/server";
 import redis from "../lib/redisClient.js";
 
 // Rate limiting configuration
-const RATE_LIMIT_WINDOW = 60; // 1 minute window
+const RATE_LIMIT_WINDOW = 60; // 1 minute window during which we count requests
 const MAX_REQUESTS = 100; // Maximum requests per window
 
 export async function rateLimit(request) {

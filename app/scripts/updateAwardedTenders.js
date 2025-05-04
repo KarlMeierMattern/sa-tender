@@ -1,3 +1,7 @@
+// Performs a single database update when manually executed
+// This file also gets exported to be used by cron job
+// npm run db:update:awarded
+
 import mongoose from "mongoose";
 import { AwardedTenderModel } from "../model/awardedTenderModel.js";
 import { scrapeAwardedTenders } from "../lib/scrapers/tenders-awarded.js";
@@ -16,66 +20,48 @@ export async function updateAwardedTenders() {
     console.log("Connected to MongoDB");
 
     const BATCH_SIZE = 20; // pages per batch (20 pages = 200 entries)
-    let currentBatch = 0;
-    let hasMoreData = true;
     let allScrapedTenders = [];
 
     console.log("Starting batch processing...");
 
-    while (hasMoreData) {
-      console.log(
-        `Processing batch ${currentBatch + 1} (pages ${
-          currentBatch * BATCH_SIZE + 1
-        } to ${(currentBatch + 1) * BATCH_SIZE})`
-      );
+    // Scrape all pages in a single call with batching
+    await scrapeAwardedTenders({
+      maxPages: BATCH_SIZE,
+      onBatch: async (batch) => {
+        if (batch.length === 0) return;
 
-      // Scrape current batch of pages
-      const tenders = await scrapeAwardedTenders({
-        maxPages: BATCH_SIZE,
-        startPage: currentBatch * BATCH_SIZE,
-      });
+        // Format the tenders
+        const formattedTenders = batch.map((tender) => {
+          // Use our specific date parsing functions
+          const advertisedDate =
+            parseAdvertisedDate(tender.advertised) || new Date();
+          const awardedDate = parseAdvertisedDate(tender.awarded) || new Date();
+          const datePublished = parseDatePublished(tender.datePublished);
+          const closingDate = parseClosingDate(tender.closingDate);
 
-      // If we got less tenders than expected for a full batch, we've reached the end
-      if (tenders.length < BATCH_SIZE * 10) {
-        // 10 tenders per page
-        hasMoreData = false;
-      }
+          return {
+            category: tender.category,
+            description: tender.description,
+            advertised: advertisedDate,
+            awarded: awardedDate,
+            tenderNumber: tender.tenderNumber,
+            department: tender.department,
+            tenderType: tender.tenderType,
+            province: tender.province,
+            datePublished: datePublished,
+            closingDate: closingDate,
+            placeServicesRequired: tender.placeServicesRequired,
+            specialConditions: tender.specialConditions,
+            successfulBidderName: tender.successfulBidderName,
+            successfulBidderAmount: tender.successfulBidderAmount,
+          };
+        });
 
-      allScrapedTenders = allScrapedTenders.concat(tenders);
-      console.log(
-        `Batch ${currentBatch + 1} complete: Got ${
-          tenders.length
-        } tenders (Total: ${allScrapedTenders.length})`
-      );
-
-      currentBatch++;
-    }
-
-    // Format all the scraped tenders
-    const formattedTenders = allScrapedTenders.map((tender) => {
-      // Use our specific date parsing functions
-      const advertisedDate =
-        parseAdvertisedDate(tender.advertised) || new Date();
-      const awardedDate = parseAdvertisedDate(tender.awarded) || new Date();
-      const datePublished = parseDatePublished(tender.datePublished);
-      const closingDate = parseClosingDate(tender.closingDate);
-
-      return {
-        category: tender.category,
-        description: tender.description,
-        advertised: advertisedDate,
-        awarded: awardedDate,
-        tenderNumber: tender.tenderNumber,
-        department: tender.department,
-        tenderType: tender.tenderType,
-        province: tender.province,
-        datePublished: datePublished,
-        closingDate: closingDate,
-        placeServicesRequired: tender.placeServicesRequired,
-        specialConditions: tender.specialConditions,
-        successfulBidderName: tender.successfulBidderName,
-        successfulBidderAmount: tender.successfulBidderAmount,
-      };
+        allScrapedTenders = allScrapedTenders.concat(formattedTenders);
+        console.log(
+          `Processed batch: ${formattedTenders.length} tenders (Total: ${allScrapedTenders.length})`
+        );
+      },
     });
 
     // Get all existing tender numbers from DB
@@ -89,7 +75,7 @@ export async function updateAwardedTenders() {
     const updatedTenders = [];
     const scrapedTenderNumbers = new Set();
 
-    formattedTenders.forEach((tender) => {
+    allScrapedTenders.forEach((tender) => {
       scrapedTenderNumbers.add(tender.tenderNumber);
 
       if (!existingTenderNumbers.has(tender.tenderNumber)) {
