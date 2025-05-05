@@ -8,10 +8,21 @@ import {
   ContractorsByAwardedValue,
   TenderDurationDistribution,
 } from "../visualizations/awarded";
-import TableSkeleton from "../ui/table-skeleton";
+import BlockSkeleton from "../ui/block-skeleton";
 
 export default function AwardedTendersCharts({ chartQueries }) {
-  if (chartQueries.isLoading) return <TableSkeleton />;
+  if (chartQueries.isLoading) {
+    return (
+      <div className="grid md:grid-cols-1 lg:grid-cols-2 gap-8">
+        <BlockSkeleton />
+        <BlockSkeleton />
+        <BlockSkeleton />
+        <BlockSkeleton />
+        <BlockSkeleton />
+        <BlockSkeleton />
+      </div>
+    );
+  }
 
   return (
     <div className="grid md:grid-cols-1 lg:grid-cols-2 gap-8">

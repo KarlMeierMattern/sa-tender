@@ -27,9 +27,6 @@ async function main() {
   await connectDB();
 
   try {
-    // Remove the deleteMany call to allow duplicates
-    // await AwardedTenderModel.deleteMany({});
-    // console.log("Cleared existing awarded tenders");
 
     console.log("Starting to scrape awarded tenders...");
     let totalInserted = 0;

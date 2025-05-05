@@ -7,17 +7,34 @@ import dynamic from "next/dynamic";
 import { useAwardedTenderFilters } from "@/app/hooks/awarded/useAwardedTenderFilters";
 import { useAllAwardedTenders } from "@/app/hooks/awarded/useAllAwardedTenders";
 import { useAwardedCharts } from "@/app/hooks/awarded/useAwardedCharts";
-import TableSkeleton from "../ui/table-skeleton";
+import CardSkeleton from "../ui/card-skeleton";
+import BlockSkeleton from "../ui/block-skeleton";
 
 // Lazy-loads AwardedTendersCard
 const AwardedTendersCard = dynamic(() => import("./AwardedTendersCard"), {
-  loading: () => <TableSkeleton />,
+  loading: () => (
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+      <CardSkeleton />
+      <CardSkeleton />
+      <CardSkeleton />
+      <CardSkeleton />
+    </div>
+  ),
   ssr: false,
 });
 
 // Lazy-loads AwardedTendersCharts
 const AwardedTendersCharts = dynamic(() => import("./AwardedTendersCharts"), {
-  loading: () => <TableSkeleton />,
+  loading: () => (
+    <div className="grid md:grid-cols-1 lg:grid-cols-2 gap-8">
+      <BlockSkeleton />
+      <BlockSkeleton />
+      <BlockSkeleton />
+      <BlockSkeleton />
+      <BlockSkeleton />
+      <BlockSkeleton />
+    </div>
+  ),
   ssr: false,
 });
 

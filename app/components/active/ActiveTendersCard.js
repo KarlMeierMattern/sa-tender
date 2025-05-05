@@ -8,8 +8,8 @@ import {
   CardDescription,
 } from "@/components/ui/card";
 import { differenceInDays } from "date-fns";
-import TableSkeleton from "../ui/table-skeleton";
 import { useMemo } from "react";
+import CardSkeleton from "../ui/card-skeleton";
 
 export default function ActiveTendersCard({ allData }) {
   const calculateClosingSoon = useMemo(() => {
@@ -34,7 +34,15 @@ export default function ActiveTendersCard({ allData }) {
     );
   }, [allData?.data?.data]);
 
-  if (allData.isLoading) return <TableSkeleton />;
+  if (allData.isLoading) {
+    return (
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
+        <CardSkeleton />
+        <CardSkeleton />
+        <CardSkeleton />
+      </div>
+    );
+  }
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">

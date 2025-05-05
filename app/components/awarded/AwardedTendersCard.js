@@ -2,8 +2,7 @@
 
 import React, { useMemo } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import TableSkeleton from "../ui/table-skeleton";
-
+import CardSkeleton from "../ui/card-skeleton";
 export default function AwardedTendersCard({
   selectedYear,
   setSelectedYear,
@@ -38,7 +37,16 @@ export default function AwardedTendersCard({
     return tenders.length ? totalValue / tenders.length : 0;
   }, [totalValue, allData?.data?.data]);
 
-  if (filterOptions.isLoading || allData.isLoading) return <TableSkeleton />;
+  if (filterOptions.isLoading || allData.isLoading) {
+    return (
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+        <CardSkeleton />
+        <CardSkeleton />
+        <CardSkeleton />
+        <CardSkeleton />
+      </div>
+    );
+  }
 
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">

@@ -21,7 +21,8 @@ export async function GET(request) {
 
     // Build match stage based on year
     const matchStage = {
-      successfulBidderAmount: { $exists: true, $ne: 0 },
+      // successfulBidderAmount: { $exists: true, $ne: 0 },
+      successfulBidderAmount: { $exists: true, $type: "number", $gt: 0 },
     };
 
     // Add year filter if specified
