@@ -2,17 +2,14 @@ import { Button } from "./ui/button";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 
 export default function Pagination({ currentPage, totalPages, onPageChange }) {
-  // Debug logs
-  console.log("Pagination Props:", { currentPage, totalPages });
-
   if (totalPages <= 1) return null;
 
   const renderPageNumbers = () => {
     const pages = [];
     const pageWindow = 1; // Number of pages to show before/after current
 
-    // Always show first page
-    if (1 === currentPage) {
+    // Always show first page for good UX
+    if (currentPage === 1) {
       pages.push(
         <Button
           key={1}
