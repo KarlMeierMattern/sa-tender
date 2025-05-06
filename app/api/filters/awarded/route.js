@@ -23,7 +23,11 @@ export async function GET() {
 
     // Get distinct awarded dates to be used for year filter
     const awardedDates = await AwardedTenderModel.distinct("awarded").then(
-      (values) => values.filter(Boolean).sort()
+      (values) =>
+        values
+          .filter(Boolean)
+          .filter((date) => new Date(date).getFullYear() >= 2022)
+          .sort()
     );
 
     const response = {
