@@ -9,9 +9,13 @@ import provinceGeoData from "../provinceGeoData.json";
 const CustomTooltip = ({ province, value, count, percent }) => (
   <div className="bg-white p-3 rounded-lg shadow-md border border-gray-200">
     <p className="font-medium text-gray-900">{province}</p>
-    <p className="text-gray-600">R {(value || 0).toLocaleString()}</p>
-    <p className="text-gray-600">{percent?.toFixed(1)}% of total value</p>
+    <p className="text-gray-600">
+      R {(value / 1000000000).toFixed(1)}bn ({percent?.toFixed(1)}% of total)
+    </p>
     <p className="text-gray-600">{count || 0} tenders</p>
+    <p className="text-gray-600">
+      R {(value / count / 1000000).toFixed(1)}m (average tender value)
+    </p>
   </div>
 );
 
