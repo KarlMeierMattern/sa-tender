@@ -1,6 +1,5 @@
 import { Suspense } from "react";
 import TenderLayout from "./components/TenderLayout";
-// import TableSkeleton from "./components/ui/table-skeleton";
 
 export default function TendersPage() {
   return (
