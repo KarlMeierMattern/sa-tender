@@ -1,3 +1,3 @@
-export function GET(request: Request) {
+export async function GET(request) {
   return new Response("Hello from Vercel!");
 }
