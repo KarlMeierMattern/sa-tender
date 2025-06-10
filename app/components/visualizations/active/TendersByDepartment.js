@@ -11,9 +11,8 @@ import {
   Legend,
 } from "recharts";
 
-// Periwinkle color palette with incrementally lighter shades
 const COLORS = [
-  "#B8C5FF", // Base periwinkle
+  "#B8C5FF",
   "#C2CDFF",
   "#CCD5FF",
   "#D6DDFF",
@@ -22,7 +21,7 @@ const COLORS = [
   "#F4F1FF",
   "#F8F7FF",
   "#FBFAFF",
-  "#FDFCFF", // Lightest periwinkle
+  "#FDFCFF",
 ];
 
 const CustomTooltip = ({ active, payload }) => {
@@ -60,7 +59,6 @@ export default function TendersByDepartment({ data }) {
           <XAxis
             type="number"
             tickMargin={8}
-            // tick={{ fill: "#6B7280", fontSize: 12 }}
             tick={false}
             height={0}
             axisLine={{ stroke: "transparent" }}
@@ -76,7 +74,15 @@ export default function TendersByDepartment({ data }) {
             tickLine={false}
           />
           <Tooltip content={<CustomTooltip />} />
-          <Bar dataKey="count" fill={COLORS[0]} radius={[4, 4, 4, 4]} />
+          <Bar
+            dataKey="count"
+            fill={COLORS[0]}
+            radius={[4, 4, 4, 4]}
+            // onClick={(data, index) => {
+            //   console.log({ data });
+            //   alert("You clicked the bar");
+            // }}
+          />
           <Legend
             verticalAlign="top"
             height={0}
