@@ -23,7 +23,7 @@ async function connectDB() {
   }
 }
 
-async function main() {
+export default async function seedDatabase() {
   await connectDB();
 
   try {
@@ -73,7 +73,7 @@ async function main() {
 }
 
 // Run the seed function
-main().catch((e) => {
-  console.error(e);
-  process.exit(1);
-});
+// seedDatabase().catch((e) => {
+//   console.error(e);
+//   process.exit(1);
+// });

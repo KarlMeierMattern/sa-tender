@@ -23,11 +23,10 @@ async function connectDB() {
   }
 }
 
-async function main() {
+export default async function seedAwardedTenders() {
   await connectDB();
 
   try {
-
     console.log("Starting to scrape awarded tenders...");
     let totalInserted = 0;
     let totalProcessed = 0; // Track total tenders processed
@@ -138,7 +137,7 @@ async function main() {
 }
 
 // Run the seed function
-main().catch((e) => {
-  console.error(e);
-  process.exit(1);
-});
+// seedAwardedTenders().catch((e) => {
+//   console.error(e);
+//   process.exit(1);
+// });
