@@ -12,6 +12,7 @@ export async function scrapeTendersDetail(options = {}) {
     console.log("Starting scraper...");
     const browser = await puppeteer.launch({
       headless: true,
+      args: ["--no-sandbox", "--disable-setuid-sandbox"],
       slowMo: 100,
     });
 
