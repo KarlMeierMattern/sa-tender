@@ -1,0 +1,27 @@
+name: Update Advertised Tenders
+
+on:
+  schedule:
+    - cron: "0 0 * * 5" # Every Friday at midnight (adjust as needed)
+  workflow_dispatch: # Allows manual trigger from GitHub UI
+
+jobs:
+  update-advertised-tenders:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run updateTenders script
+        run: node app/scripts/updateTenders.js
+        env:
+          MONGODB_URI: ${{ secrets.MONGODB_URI }}

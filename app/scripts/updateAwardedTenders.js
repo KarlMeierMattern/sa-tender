@@ -19,13 +19,14 @@ export async function updateAwardedTenders() {
     await mongoose.connect(process.env.MONGODB_URI);
     console.log("Connected to MongoDB");
 
-    const BATCH_SIZE = 20; // pages per batch (20 pages = 200 entries)
+    // pages per batch (20 pages = 200 entries)
+    const BATCH_SIZE = 20;
 
     console.log("Starting batch processing...");
 
     // Scrape all pages in a single call with batching
     await scrapeAwardedTenders({
-      maxPages: BATCH_SIZE,
+      // maxPages: BATCH_SIZE,
       onBatch: async (batch) => {
         if (batch.length === 0) return;
 
