@@ -20,7 +20,6 @@ export async function updateAwardedTenders() {
     console.log("Connected to MongoDB");
 
     const BATCH_SIZE = 20; // pages per batch (20 pages = 200 entries)
-    let allScrapedTenders = [];
 
     console.log("Starting batch processing...");
 
@@ -57,62 +56,19 @@ export async function updateAwardedTenders() {
           };
         });
 
-        allScrapedTenders = allScrapedTenders.concat(formattedTenders);
+        // --- Batch DB write logic ---
+        for (const tender of formattedTenders) {
+          await AwardedTenderModel.findOneAndUpdate(
+            { tenderNumber: tender.tenderNumber },
+            tender,
+            { upsert: true, new: true }
+          );
+        }
         console.log(
-          `Processed batch: ${formattedTenders.length} tenders (Total: ${allScrapedTenders.length})`
+          `Processed and saved batch: ${formattedTenders.length} tenders`
         );
       },
     });
-
-    // Get all existing tender numbers from DB
-    const existingTenders = await AwardedTenderModel.find({}, "tenderNumber");
-    const existingTenderNumbers = new Set(
-      existingTenders.map((t) => t.tenderNumber)
-    );
-
-    // Separate scraped tenders into new and existing
-    const newTenders = [];
-    const updatedTenders = [];
-    const scrapedTenderNumbers = new Set();
-
-    allScrapedTenders.forEach((tender) => {
-      scrapedTenderNumbers.add(tender.tenderNumber);
-
-      if (!existingTenderNumbers.has(tender.tenderNumber)) {
-        newTenders.push(tender);
-      } else {
-        updatedTenders.push(tender);
-      }
-    });
-
-    // Find tenders that are no longer present in scraped data
-    const tendersToRemove = [...existingTenderNumbers].filter(
-      (number) => !scrapedTenderNumbers.has(number)
-    );
-
-    // Perform database operations
-    if (newTenders.length > 0) {
-      await AwardedTenderModel.insertMany(newTenders);
-      console.log(`Added ${newTenders.length} new awarded tenders`);
-    }
-
-    if (updatedTenders.length > 0) {
-      for (const tender of updatedTenders) {
-        await AwardedTenderModel.findOneAndUpdate(
-          { tenderNumber: tender.tenderNumber },
-          tender,
-          { new: true }
-        );
-      }
-      console.log(`Updated ${updatedTenders.length} existing awarded tenders`);
-    }
-
-    if (tendersToRemove.length > 0) {
-      await AwardedTenderModel.deleteMany({
-        tenderNumber: { $in: tendersToRemove },
-      });
-      console.log(`Removed ${tendersToRemove.length} old awarded tenders`);
-    }
 
     console.log("Awarded tenders database update completed successfully");
   } catch (error) {
