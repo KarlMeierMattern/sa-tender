@@ -73,17 +73,24 @@ export async function updateTenders() {
 }
 
 // Only run directly if this file is executed directly (not imported)
-if (import.meta.url === new URL(import.meta.url).href) {
-  console.log(
-    "Starting tender database update:",
-    new Date().toLocaleString("en-ZA", {
-      timeZone: "Africa/Johannesburg",
-      dateStyle: "full",
-      timeStyle: "long",
-    })
-  );
-  updateTenders().catch((error) => {
-    console.error("Update failed:", error);
-    process.exit(1);
-  });
+if (process.argv[1] === new URL(import.meta.url).pathname) {
+  (async () => {
+    try {
+      console.log(
+        "Starting tender database update:",
+        new Date().toLocaleString("en-ZA", {
+          timeZone: "Africa/Johannesburg",
+          dateStyle: "full",
+          timeStyle: "long",
+        })
+      );
+
+      const result = await updateTenders();
+      console.log("Update completed:", result);
+      process.exit(0);
+    } catch (error) {
+      console.error("Update failed:", error);
+      process.exit(1);
+    }
+  })();
 }
