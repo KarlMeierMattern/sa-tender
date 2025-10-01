@@ -139,11 +139,11 @@ export async function scrapeTendersDetail(options = {}) {
             }
 
             // Normalize department field from possible keys and trim whitespace
-            const rawDepartment = (
-              tenderDetails.department ||
-              tenderDetails["departmentname"] ||
-              ""
-            ).trim();
+            if (tenderDetails["organofstate"]) {
+              tenderDetails["department"] =
+                tenderDetails["organofstate"].trim();
+              delete tenderDetails["organofstate"];
+            }
 
             // Create complete tender object with improved validation
             const tender = {
@@ -152,7 +152,7 @@ export async function scrapeTendersDetail(options = {}) {
               advertised: tenders[index].advertised,
               closing: tenders[index].closing || "",
               tenderNumber: tenderDetails.tendernumber || "",
-              department: rawDepartment,
+              department: tenderDetails.department || "",
               tenderType: tenderDetails.tendertype || "",
               province: tenderDetails.province || "",
               datePublished: tenderDetails.datepublished,
