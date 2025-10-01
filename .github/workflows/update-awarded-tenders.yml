@@ -1,14 +1,17 @@
-name: Update Awarded Tenders
+name: Update Awarded Tenders (Split)
 
 on:
   schedule:
     - cron: "0 0 * * 5" # Every Friday at midnight (adjust as needed)
   workflow_dispatch: # Allows manual trigger from GitHub UI
 
-jobs:
-  update-awarded-tenders:
-    runs-on: ubuntu-latest
+concurrency:
+  group: awarded-scrape
+  cancel-in-progress: false
 
+jobs:
+  part1:
+    runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -21,7 +24,31 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Run updateAwardedTenders script
+      - name: Run part 1 (pages 1..K)
         run: node app/scripts/updateAwardedTenders.js
         env:
           MONGODB_URI: ${{ secrets.MONGODB_URI }}
+          START_PAGE: 1
+          MAX_PAGES: 1200
+
+  part2:
+    needs: part1
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run part 2 (pages K+1..2K)
+        run: node app/scripts/updateAwardedTenders.js
+        env:
+          MONGODB_URI: ${{ secrets.MONGODB_URI }}
+          START_PAGE: 1201
+          MAX_PAGES: 1200
