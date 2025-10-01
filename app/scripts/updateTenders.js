@@ -32,6 +32,8 @@ export async function updateTenders() {
       const datePublished = parseDatePublished(tender.datePublished);
       const closingDate = parseClosingDate(tender.closingDate);
 
+      const normalizedDepartment = (tender.department || "").toString().trim();
+
       return {
         category: tender.category,
         description: tender.description,
@@ -40,7 +42,7 @@ export async function updateTenders() {
         datePublished: datePublished,
         closingDate: closingDate,
         tenderNumber: tender.tenderNumber,
-        department: tender.department,
+        department: normalizedDepartment,
         tenderType: tender.tenderType,
         province: tender.province,
         placeServicesRequired: tender.placeServicesRequired,

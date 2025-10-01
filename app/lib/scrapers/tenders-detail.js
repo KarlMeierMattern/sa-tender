@@ -138,6 +138,13 @@ export async function scrapeTendersDetail(options = {}) {
               console.error("Error processing tender details:", error);
             }
 
+            // Normalize department field from possible keys and trim whitespace
+            const rawDepartment = (
+              tenderDetails.department ||
+              tenderDetails["departmentname"] ||
+              ""
+            ).trim();
+
             // Create complete tender object with improved validation
             const tender = {
               category: tenders[index].category || "",
@@ -145,7 +152,7 @@ export async function scrapeTendersDetail(options = {}) {
               advertised: tenders[index].advertised,
               closing: tenders[index].closing || "",
               tenderNumber: tenderDetails.tendernumber || "",
-              department: tenderDetails.department || "",
+              department: rawDepartment,
               tenderType: tenderDetails.tendertype || "",
               province: tenderDetails.province || "",
               datePublished: tenderDetails.datepublished,

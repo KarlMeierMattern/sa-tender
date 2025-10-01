@@ -1,40 +1,18 @@
 # About this app
 
-## Technologies
+This is a Next.js app that fetches tenders from the South African government's eTenders website and displays them in an interactive, visual way.  
+The data includes both active and awarded tenders in South Africa that are published on the eTenders website.  
+The app presents two views: advertised and awarded.  
+The advertised view allows you to interact with charts.  
+In the awarded view you can interact with charts as well as a table to filter by tender category, government department, province, and date.
 
-- MongoDB for database
-- Zustand for global client state (like filters)
-<!-- - React Query for API/DB for caching, re-fetching, pagination, background updates, loading & error states -->
+## Technologies used
 
-## Cloudflare
-
-CDN caching
-DDoS protection
-SSL/TLS encryption
-Smart routing
-Web Application Firewall (WAF)
-
-## Upstash (Redis) (server-side caching)
-
-- Reduces database load; and
-- Faster API responses.
-- Use for: rate limiting.
-- Controls how long the data is stored in the server-side Redis cache
-
-## Pagination at API level
-
-## React Query (client-side caaching)
-
-- Client-side caching;
-- Manages UI state and data synchronization;
-- Handles loading/error states;
-- Automatic background refetching;
-- Used in: user-specific data, frequently changing data, client-side filtering/sorting, and optimistic updates.
-
-Filtering & pagination
-• ✅ Filters parsed in route handler (category, department, province, advertised, awarded).
-• ✅ Filters passed into getAwardedTenders as an object.
-• ✅ Filters applied in MongoDB query before .skip() and .limit().
-• ✅ Date handling includes full-day range (midnight to 23:59) – perfect for equality-based filters.
-• ✅ Pagination and total count calculated using the filtered query.
-• ✅ Redis caching includes filters in the key to avoid mismatches.
+- Next.js for the front and backend.
+- React.js for the frontend.
+- Tailwind CSS for styling.
+- Vanilla JS.
+- MongoDB for database.
+- React Query for API/DB for caching, re-fetching, pagination, background updates, loading & error states.
+- Context API.
+- Vercel for hosting.

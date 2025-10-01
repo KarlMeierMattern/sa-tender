@@ -22,16 +22,36 @@ export async function GET() {
           department: { $exists: true },
         },
       },
+      // Normalize department: trim whitespace and uppercase for consistent grouping
+      {
+        $addFields: {
+          departmentNormalized: {
+            $toUpper: {
+              $ifNull: [{ $trim: { input: "$department" } }, ""],
+            },
+          },
+        },
+      },
+      // Group by normalized department, bucket blanks as "UNKNOWN"
       {
         $group: {
-          _id: "$department",
+          _id: {
+            $cond: [
+              { $eq: ["$departmentNormalized", ""] },
+              "UNKNOWN",
+              "$departmentNormalized",
+            ],
+          },
           count: { $sum: 1 },
         },
       },
+      // Project human-friendly label, mapping UNKNOWN -> "Unknown"
       {
         $project: {
           _id: 0,
-          department: "$_id",
+          department: {
+            $cond: [{ $eq: ["$_id", "UNKNOWN"] }, "Unknown", "$_id"],
+          },
           count: 1,
         },
       },
