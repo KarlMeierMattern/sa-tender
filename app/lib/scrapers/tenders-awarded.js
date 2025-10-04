@@ -27,7 +27,7 @@ export async function scrapeAwardedTenders(options = {}) {
       timeout: 600000,
     });
 
-    // Advance to startPage if needed
+    // Advance to startPage if needed (necessary for workflow 2)
     if (startPage > 1) {
       while (currentPage < startPage) {
         const nextButtonInit = await page.$(
@@ -46,10 +46,54 @@ export async function scrapeAwardedTenders(options = {}) {
 
     while (hasMorePages && pagesProcessed < maxPages) {
       console.log(`Processing page ${currentPage}...`);
-      await page.waitForSelector("table.display.dataTable", {
-        timeout: 30000,
-        visible: true,
-      });
+
+      // Retry logic for page load
+      let pageLoaded = false;
+      for (let attempt = 0; attempt < 3; attempt++) {
+        try {
+          await page.waitForSelector("table.display.dataTable", {
+            timeout: 60000,
+            visible: true,
+          });
+          pageLoaded = true;
+          break;
+        } catch (error) {
+          console.log(
+            `Attempt ${attempt + 1}/3 failed for page ${currentPage}`
+          );
+          if (attempt === 2) {
+            console.error(
+              `Skipping page ${currentPage} after 3 failed attempts`
+            );
+            const fs = await import("fs");
+            fs.appendFileSync(
+              "skipped-pages.log",
+              `${new Date().toISOString()} - Page ${currentPage}\n`
+            );
+          } else {
+            await new Promise((resolve) =>
+              setTimeout(resolve, 3000 * (attempt + 1))
+            );
+          }
+        }
+      }
+
+      if (!pageLoaded) {
+        // Move to next page attempt
+        const nextButton = await page.$(
+          "a.paginate_button.next:not(.disabled)"
+        );
+        if (nextButton && pagesProcessed < maxPages - 1) {
+          await nextButton.click();
+          await new Promise((resolve) => setTimeout(resolve, 3000));
+          currentPage++;
+          pagesProcessed++;
+          continue;
+        } else {
+          hasMorePages = false;
+          break;
+        }
+      }
 
       // Get basic tender info for current page
       console.log("Getting basic tender info...");

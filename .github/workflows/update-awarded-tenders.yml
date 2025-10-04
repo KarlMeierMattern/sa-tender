@@ -24,12 +24,20 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Run part 1 (pages 1..K)
+      - name: Run part 1 (pages 1-600)
         run: node app/scripts/updateAwardedTenders.js
         env:
           MONGODB_URI: ${{ secrets.MONGODB_URI }}
           START_PAGE: 1
-          MAX_PAGES: 1200
+          MAX_PAGES: 600
+
+      - name: Upload skipped pages log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: skipped-pages-part1
+          path: skipped-pages.log
+          if-no-files-found: ignore
 
   part2:
     needs: part1
@@ -46,9 +54,77 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Run part 2 (pages K+1..2K)
+      - name: Run part 2 (pages 601-1200)
+        run: node app/scripts/updateAwardedTenders.js
+        env:
+          MONGODB_URI: ${{ secrets.MONGODB_URI }}
+          START_PAGE: 601
+          MAX_PAGES: 600
+
+      - name: Upload skipped pages log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: skipped-pages-part2
+          path: skipped-pages.log
+          if-no-files-found: ignore
+
+  part3:
+    needs: part2
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run part 3 (pages 1201-1800)
         run: node app/scripts/updateAwardedTenders.js
         env:
           MONGODB_URI: ${{ secrets.MONGODB_URI }}
           START_PAGE: 1201
-          MAX_PAGES: 1200
+          MAX_PAGES: 600
+
+      - name: Upload skipped pages log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: skipped-pages-part3
+          path: skipped-pages.log
+          if-no-files-found: ignore
+
+  part4:
+    needs: part3
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run part 4 (pages 1801-2400)
+        run: node app/scripts/updateAwardedTenders.js
+        env:
+          MONGODB_URI: ${{ secrets.MONGODB_URI }}
+          START_PAGE: 1801
+          MAX_PAGES: 600
+
+      - name: Upload skipped pages log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: skipped-pages-part4
+          path: skipped-pages.log
+          if-no-files-found: ignore
