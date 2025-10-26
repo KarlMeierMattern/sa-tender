@@ -6,10 +6,15 @@ const AWARDED_TENDERS_URL =
 export async function scrapeAwardedTenders(options = {}) {
   const { startPage = 1, maxPages = 1, onBatch, onComplete } = options; // support start and both callback names
   console.log("Starting scraper...");
+
   const browser = await puppeteer.launch({
-    headless: true,
-    args: ["--no-sandbox", "--disable-setuid-sandbox"],
-    slowMo: 100,
+    headless: "new",
+    args: [
+      "--no-sandbox",
+      "--disable-setuid-sandbox",
+      "--disable-dev-shm-usage",
+      "--disable-gpu",
+    ],
   });
 
   let currentPage = 1; // Initialize currentPage at the start
@@ -17,15 +22,17 @@ export async function scrapeAwardedTenders(options = {}) {
   let hasMorePages = true;
   let totalCount = 0;
   let allTenders = []; // Store all tenders here
+  let page = await browser.newPage();
 
   try {
-    console.log("Opening page...");
-    const page = await browser.newPage();
-    console.log("Navigating to URL:", AWARDED_TENDERS_URL);
-    await page.goto(AWARDED_TENDERS_URL, {
-      waitUntil: "networkidle0",
-      timeout: 600000,
-    });
+    if (pagesProcessed % 100 === 0) {
+      console.log("Closing page...");
+      await page.close();
+      console.log("Opening page...");
+      page = await browser.newPage();
+      console.log("Navigating to URL:", AWARDED_TENDERS_URL);
+      await page.goto(AWARDED_TENDERS_URL, { waitUntil: "networkidle0" });
+    }
 
     // Advance to startPage if needed (necessary for workflow 2)
     if (startPage > 1) {
@@ -299,14 +306,16 @@ export async function scrapeAwardedTenders(options = {}) {
       const nextButton = await page.$("a.paginate_button.next:not(.disabled)");
       if (nextButton && pagesProcessed < maxPages - 1) {
         console.log("Clicking next page button...");
-        await nextButton.click();
-        // Wait for the table to update
-        await page.waitForSelector("table.display.dataTable", {
-          timeout: 30000,
+        await Promise.all([
+          nextButton.click(),
+          page.waitForNavigation({
+            waitUntil: "domcontentloaded",
+            timeout: 60000,
+          }),
+        ]);
+        await page.waitForSelector("table.display.dataTable tbody tr", {
           visible: true,
         });
-        // Additional wait to ensure the page has loaded
-        await new Promise((resolve) => setTimeout(resolve, 3000));
         currentPage++;
         pagesProcessed++;
         console.log(`Moved to page ${currentPage}`);
