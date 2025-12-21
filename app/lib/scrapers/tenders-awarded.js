@@ -135,13 +135,14 @@ export async function scrapeAwardedTenders(options = {}) {
           );
 
           // Click to reveal details
-          await page.evaluate((index) => {
-            const buttonCell = document
-              .querySelectorAll("table.display.dataTable tbody tr")
-              [index].querySelector("td:nth-child(1)");
-            if (buttonCell) {
-              console.log(`Clicking row ${index + 1}`);
-              buttonCell.click();
+          await page.evaluate((rowIndex) => {
+            const rows = Array.from(
+              document.querySelectorAll("table.display.dataTable tbody tr:not(.details-row)")
+            );
+            const cell = rows[rowIndex]?.querySelector("td:nth-child(1)");
+            if (cell) {
+              console.log(`Clicking row ${rowIndex + 1}`);
+              cell.click();
             }
           }, index);
 
@@ -149,30 +150,22 @@ export async function scrapeAwardedTenders(options = {}) {
           await new Promise((resolve) => setTimeout(resolve, 1000));
 
           // Get details
-          const details = await page.evaluate((index) => {
-            const detailRow = document.querySelectorAll(
-              "table.display.dataTable tbody tr"
-            )[index].nextElementSibling;
+          const details = await page.evaluate((rowIndex) => {
+            const rows = Array.from(
+              document.querySelectorAll("table.display.dataTable tbody tr:not(.details-row)")
+            );
+            const detailRow = rows[rowIndex]?.nextElementSibling;
             const detailsTable = detailRow?.querySelector("td table tbody");
             const mainDetails = detailsTable
               ? Array.from(detailsTable.querySelectorAll("tr")).map((tr) =>
-                  Array.from(tr.querySelectorAll("td")).map((td) =>
-                    td.textContent.trim()
-                  )
+                  Array.from(tr.querySelectorAll("td")).map((td) => td.textContent.trim())
                 )
               : [];
-            // Get successful bidders section
-            const biddersTable = detailRow?.querySelector(
-              "table:not(.display)" // Get the second table that's not the main table
-            );
+            const biddersTable = detailRow?.querySelector("table:not(.display)");
             const successfulBidders = biddersTable
               ? Array.from(biddersTable.querySelectorAll("tr")).map((tr) => ({
-                  name:
-                    tr.querySelector("td:first-child")?.textContent?.trim() ||
-                    "",
-                  amount:
-                    tr.querySelector("td:last-child")?.textContent?.trim() ||
-                    "",
+                  name: tr.querySelector("td:first-child")?.textContent?.trim() || "",
+                  amount: tr.querySelector("td:last-child")?.textContent?.trim() || "",
                 }))
               : [];
             return { mainDetails, successfulBidders };
@@ -271,15 +264,12 @@ export async function scrapeAwardedTenders(options = {}) {
           pageTenders.push(tender);
 
           // Click again to close details
-          await page.evaluate((index) => {
-            const buttonCell = document
-              .querySelectorAll(
-                "table.display.dataTable tbody tr:not(.details-row)"
-              )
-              [index].querySelector("td:nth-child(1)");
-            if (buttonCell) {
-              buttonCell.click();
-            }
+          await page.evaluate((rowIndex) => {
+            const rows = Array.from(
+              document.querySelectorAll("table.display.dataTable tbody tr:not(.details-row)")
+            );
+            const cell = rows[rowIndex]?.querySelector("td:nth-child(1)");
+            if (cell) cell.click();
           }, index);
 
           // Wait for details to close
