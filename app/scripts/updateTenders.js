@@ -64,6 +64,19 @@ export async function updateTenders() {
         result.upsertedCount + result.modifiedCount
       } tenders`
     );
+
+    // Get all tender numbers from current scrape
+    const currentTenderNumbers = formattedTenders
+      .map((t) => t.tenderNumber)
+      .filter(Boolean);
+
+    // Delete tenders that are no longer in the current scrape
+    const deleteResult = await TenderModel.deleteMany({
+      tenderNumber: { $nin: currentTenderNumbers },
+    });
+    console.log(
+      `Deleted ${deleteResult.deletedCount} tenders no longer in current scrape`
+    );
   } catch (error) {
     console.error("Error updating tenders:", error);
     process.exit(1);

@@ -12,6 +12,7 @@ concurrency:
 jobs:
   part1:
     runs-on: ubuntu-latest
+    timeout-minutes: 360 # 6 hours max per job
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -42,6 +43,7 @@ jobs:
   part2:
     needs: part1
     runs-on: ubuntu-latest
+    timeout-minutes: 360 # 6 hours max per job
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -72,6 +74,7 @@ jobs:
   part3:
     needs: part2
     runs-on: ubuntu-latest
+    timeout-minutes: 360 # 6 hours max per job
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -102,6 +105,7 @@ jobs:
   part4:
     needs: part3
     runs-on: ubuntu-latest
+    timeout-minutes: 360 # 6 hours max per job
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4

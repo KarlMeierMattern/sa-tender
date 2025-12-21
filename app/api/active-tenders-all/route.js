@@ -13,7 +13,7 @@ export async function GET(request) {
     const limit = parseInt(searchParams.get("limit")) || 10;
 
     // 1. Check redis cache first
-    const cacheKey = `tenders:${page}:${limit}`;
+    const cacheKey = `active-tenders:${page}:${limit}`;
     const cachedData = await cache.get(cacheKey);
 
     if (cachedData) {
@@ -38,14 +38,17 @@ export async function GET(request) {
       placeServicesRequired: 1,
     };
 
+    // Filter for active tenders only (closingDate >= today)
+    const activeFilter = { closingDate: { $gte: new Date() } };
+
     // Use Promise.all for parallel execution
     const [tenders, total] = await Promise.all([
-      TenderModel.find({}, projection)
+      TenderModel.find(activeFilter, projection)
         .sort({ datePublished: -1 }) // Use indexed field for sorting
         .skip(skip)
         .limit(limit)
         .lean(), // Use lean() for better performance
-      TenderModel.countDocuments({}),
+      TenderModel.countDocuments(activeFilter),
     ]);
 
     const response = {

@@ -20,6 +20,7 @@ export async function GET() {
       {
         $match: {
           tenderType: { $exists: true, $ne: null },
+          closingDate: { $gte: new Date() }, // Only active tenders
         },
       },
       {

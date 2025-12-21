@@ -21,6 +21,7 @@ export async function GET() {
       {
         $match: {
           category: { $exists: true, $ne: null }, // only include categories that exist
+          closingDate: { $gte: new Date() }, // Only active tenders
         },
       },
       {

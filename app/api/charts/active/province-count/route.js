@@ -20,6 +20,7 @@ export async function GET() {
       {
         $match: {
           province: { $exists: true },
+          closingDate: { $gte: new Date() }, // Only active tenders
         },
       },
       {

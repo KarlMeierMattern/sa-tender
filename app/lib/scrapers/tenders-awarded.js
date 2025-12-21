@@ -25,30 +25,90 @@ export async function scrapeAwardedTenders(options = {}) {
   let page = await browser.newPage();
 
   try {
-    if (pagesProcessed % 100 === 0) {
-      console.log("Closing page...");
-      await page.close();
-      console.log("Opening page...");
-      page = await browser.newPage();
+    // Initial navigation or refresh every 100 pages
+    if (pagesProcessed === 0 || pagesProcessed % 100 === 0) {
+      if (pagesProcessed > 0) {
+        console.log("Closing page...");
+        await page.close();
+        console.log("Opening page...");
+        page = await browser.newPage();
+      }
       console.log("Navigating to URL:", AWARDED_TENDERS_URL);
-      await page.goto(AWARDED_TENDERS_URL, { waitUntil: "networkidle0" });
+      await page.goto(AWARDED_TENDERS_URL, {
+        waitUntil: "networkidle0",
+        timeout: 300000, // 5 minutes for initial load
+      });
+      // Wait for table to be ready
+      await page.waitForSelector(
+        "table.display.dataTable tbody tr:not(.details-row)",
+        {
+          timeout: 60000,
+          visible: true,
+        }
+      );
     }
 
     // Advance to startPage if needed (necessary for workflow 2)
     if (startPage > 1) {
+      console.log(`Advancing to start page ${startPage}...`);
       while (currentPage < startPage) {
         const nextButtonInit = await page.$(
           "a.paginate_button.next:not(.disabled)"
         );
-        if (!nextButtonInit) break;
-        await nextButtonInit.click();
-        await page.waitForSelector("table.display.dataTable", {
-          timeout: 30000,
-          visible: true,
-        });
-        await new Promise((resolve) => setTimeout(resolve, 2000));
-        currentPage++;
+        if (!nextButtonInit) {
+          console.log(
+            `No next button found at page ${currentPage}, stopping advancement`
+          );
+          break;
+        }
+
+        try {
+          // Get current page before clicking
+          const currentPageBefore = await page.evaluate(() => {
+            const activePage = document.querySelector(
+              "a.paginate_button.current"
+            );
+            return activePage ? activePage.textContent.trim() : null;
+          });
+
+          await nextButtonInit.click();
+
+          // Wait for table to update
+          await page.waitForFunction(
+            (prevPage) => {
+              const activePage = document.querySelector(
+                "a.paginate_button.current"
+              );
+              const currentPageText = activePage
+                ? activePage.textContent.trim()
+                : null;
+              return currentPageText !== prevPage;
+            },
+            { timeout: 90000 },
+            currentPageBefore
+          );
+
+          await page.waitForSelector(
+            "table.display.dataTable tbody tr:not(.details-row)",
+            {
+              timeout: 30000,
+              visible: true,
+            }
+          );
+          await new Promise((resolve) => setTimeout(resolve, 2000));
+          currentPage++;
+          console.log(`Advanced to page ${currentPage}`);
+        } catch (error) {
+          console.error(
+            `Error advancing to page ${currentPage + 1}:`,
+            error.message
+          );
+          // Try to continue, but log the issue
+          await new Promise((resolve) => setTimeout(resolve, 3000));
+          currentPage++;
+        }
       }
+      console.log(`Finished advancing to start page ${currentPage}`);
     }
 
     while (hasMorePages && pagesProcessed < maxPages) {
@@ -137,7 +197,9 @@ export async function scrapeAwardedTenders(options = {}) {
           // Click to reveal details
           await page.evaluate((rowIndex) => {
             const rows = Array.from(
-              document.querySelectorAll("table.display.dataTable tbody tr:not(.details-row)")
+              document.querySelectorAll(
+                "table.display.dataTable tbody tr:not(.details-row)"
+              )
             );
             const cell = rows[rowIndex]?.querySelector("td:nth-child(1)");
             if (cell) {
@@ -152,20 +214,30 @@ export async function scrapeAwardedTenders(options = {}) {
           // Get details
           const details = await page.evaluate((rowIndex) => {
             const rows = Array.from(
-              document.querySelectorAll("table.display.dataTable tbody tr:not(.details-row)")
+              document.querySelectorAll(
+                "table.display.dataTable tbody tr:not(.details-row)"
+              )
             );
             const detailRow = rows[rowIndex]?.nextElementSibling;
             const detailsTable = detailRow?.querySelector("td table tbody");
             const mainDetails = detailsTable
               ? Array.from(detailsTable.querySelectorAll("tr")).map((tr) =>
-                  Array.from(tr.querySelectorAll("td")).map((td) => td.textContent.trim())
+                  Array.from(tr.querySelectorAll("td")).map((td) =>
+                    td.textContent.trim()
+                  )
                 )
               : [];
-            const biddersTable = detailRow?.querySelector("table:not(.display)");
+            const biddersTable = detailRow?.querySelector(
+              "table:not(.display)"
+            );
             const successfulBidders = biddersTable
               ? Array.from(biddersTable.querySelectorAll("tr")).map((tr) => ({
-                  name: tr.querySelector("td:first-child")?.textContent?.trim() || "",
-                  amount: tr.querySelector("td:last-child")?.textContent?.trim() || "",
+                  name:
+                    tr.querySelector("td:first-child")?.textContent?.trim() ||
+                    "",
+                  amount:
+                    tr.querySelector("td:last-child")?.textContent?.trim() ||
+                    "",
                 }))
               : [];
             return { mainDetails, successfulBidders };
@@ -266,7 +338,9 @@ export async function scrapeAwardedTenders(options = {}) {
           // Click again to close details
           await page.evaluate((rowIndex) => {
             const rows = Array.from(
-              document.querySelectorAll("table.display.dataTable tbody tr:not(.details-row)")
+              document.querySelectorAll(
+                "table.display.dataTable tbody tr:not(.details-row)"
+              )
             );
             const cell = rows[rowIndex]?.querySelector("td:nth-child(1)");
             if (cell) cell.click();
@@ -296,19 +370,107 @@ export async function scrapeAwardedTenders(options = {}) {
       const nextButton = await page.$("a.paginate_button.next:not(.disabled)");
       if (nextButton && pagesProcessed < maxPages - 1) {
         console.log("Clicking next page button...");
-        await Promise.all([
-          nextButton.click(),
-          page.waitForNavigation({
-            waitUntil: "domcontentloaded",
-            timeout: 60000,
-          }),
-        ]);
-        await page.waitForSelector("table.display.dataTable tbody tr", {
-          visible: true,
-        });
-        currentPage++;
-        pagesProcessed++;
-        console.log(`Moved to page ${currentPage}`);
+
+        // DataTables uses AJAX pagination, not full page navigation
+        // So we just click and wait for the table to update
+        let navigationSuccess = false;
+        for (let navAttempt = 0; navAttempt < 3; navAttempt++) {
+          try {
+            // Get current page indicator before clicking
+            const currentPageBefore = await page.evaluate(() => {
+              const activePage = document.querySelector(
+                "a.paginate_button.current"
+              );
+              return activePage ? activePage.textContent.trim() : null;
+            });
+
+            await nextButton.click();
+
+            // Wait for table to update (check if page number changed or table content refreshed)
+            await page.waitForFunction(
+              (prevPage) => {
+                const activePage = document.querySelector(
+                  "a.paginate_button.current"
+                );
+                const currentPageText = activePage
+                  ? activePage.textContent.trim()
+                  : null;
+                const tableRows = document.querySelectorAll(
+                  "table.display.dataTable tbody tr:not(.details-row)"
+                );
+                return currentPageText !== prevPage && tableRows.length > 0;
+              },
+              { timeout: 90000 },
+              currentPageBefore
+            );
+
+            // Additional wait for table to be fully loaded
+            await page.waitForSelector(
+              "table.display.dataTable tbody tr:not(.details-row)",
+              {
+                visible: true,
+                timeout: 30000,
+              }
+            );
+
+            // Small delay to ensure all content is loaded
+            await new Promise((resolve) => setTimeout(resolve, 2000));
+
+            navigationSuccess = true;
+            break;
+          } catch (error) {
+            console.log(
+              `Navigation attempt ${navAttempt + 1}/3 failed:`,
+              error.message
+            );
+            if (navAttempt < 2) {
+              // Wait before retrying
+              await new Promise((resolve) => setTimeout(resolve, 5000));
+              // Re-check if next button still exists
+              const nextButtonRetry = await page.$(
+                "a.paginate_button.next:not(.disabled)"
+              );
+              if (!nextButtonRetry) {
+                console.log("Next button no longer available");
+                hasMorePages = false;
+                break;
+              }
+            } else {
+              console.error(
+                `Failed to navigate after 3 attempts, skipping to next page`
+              );
+              // Log the skipped page
+              const fs = await import("fs");
+              fs.appendFileSync(
+                "skipped-pages.log",
+                `${new Date().toISOString()} - Navigation failed on page ${currentPage}\n`
+              );
+              // Try to continue anyway
+              await new Promise((resolve) => setTimeout(resolve, 3000));
+            }
+          }
+        }
+
+        if (navigationSuccess) {
+          currentPage++;
+          pagesProcessed++;
+          console.log(`Moved to page ${currentPage}`);
+        } else {
+          // If navigation failed after retries, check if we should continue
+          const stillHasNext = await page.$(
+            "a.paginate_button.next:not(.disabled)"
+          );
+          if (!stillHasNext) {
+            hasMorePages = false;
+          } else {
+            // Force increment to avoid infinite loop
+            currentPage++;
+            pagesProcessed++;
+            console.log(
+              `Forced increment to page ${currentPage} after navigation failure`
+            );
+          }
+        }
       } else {
         hasMorePages = false;
       }

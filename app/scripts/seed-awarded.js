@@ -137,7 +137,7 @@ export default async function seedAwardedTenders() {
 }
 
 // Run the seed function
-// seedAwardedTenders().catch((e) => {
-//   console.error(e);
-//   process.exit(1);
-// });
+seedAwardedTenders().catch((e) => {
+  console.error(e);
+  process.exit(1);
+});

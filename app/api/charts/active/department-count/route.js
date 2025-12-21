@@ -20,6 +20,7 @@ export async function GET() {
       {
         $match: {
           department: { $exists: true },
+          closingDate: { $gte: new Date() }, // Only active tenders
         },
       },
       // Normalize department: trim whitespace and uppercase for consistent grouping
