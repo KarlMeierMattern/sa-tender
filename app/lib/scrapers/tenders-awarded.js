@@ -267,6 +267,12 @@ export async function scrapeAwardedTenders(options = {}) {
             delete tenderDetails["placewheregoods,worksorservicesarerequired"];
           }
 
+          // Normalize department field from possible keys and trim whitespace
+          if (tenderDetails["organofstate"]) {
+            tenderDetails["department"] = tenderDetails["organofstate"].trim();
+            delete tenderDetails["organofstate"];
+          }
+
           // Process successful bidders
           let successfulBidderName = "";
           let successfulBidderAmount = 0;
