@@ -3,118 +3,201 @@ import puppeteer from "puppeteer";
 const AWARDED_TENDERS_URL =
   "https://www.etenders.gov.za/Home/opportunities?id=2#";
 
+const TABLE_SELECTOR = "table.display.dataTable tbody tr:not(.details-row)";
+const NEXT_BUTTON_SELECTOR = "a.paginate_button.next:not(.disabled)";
+const PAGE_REFRESH_INTERVAL = 50;
+
+const BROWSER_ARGS = [
+  "--no-sandbox",
+  "--disable-setuid-sandbox",
+  "--disable-dev-shm-usage",
+  "--disable-gpu",
+];
+
+function isProtocolError(error) {
+  const message = error?.message || "";
+  return (
+    error?.name === "ProtocolError" ||
+    message.includes("ProtocolError") ||
+    message.includes("Runtime.callFunctionOn timed out")
+  );
+}
+
+async function launchBrowser() {
+  return puppeteer.launch({
+    headless: "new",
+    protocolTimeout: 300000,
+    args: BROWSER_ARGS,
+  });
+}
+
+async function configurePage(page) {
+  page.setDefaultTimeout(120000);
+  page.setDefaultNavigationTimeout(300000);
+}
+
+async function navigateToAwardedList(page) {
+  console.log("Navigating to URL:", AWARDED_TENDERS_URL);
+  await page.goto(AWARDED_TENDERS_URL, {
+    waitUntil: "networkidle2",
+    timeout: 300000,
+  });
+  await page.waitForSelector(TABLE_SELECTOR, {
+    timeout: 60000,
+    visible: true,
+  });
+}
+
+async function getCurrentPageNumber(page) {
+  return page.evaluate(() => {
+    const activePage = document.querySelector("a.paginate_button.current");
+    return activePage ? activePage.textContent.trim() : null;
+  });
+}
+
+async function clickNextPage(page) {
+  for (let navAttempt = 0; navAttempt < 3; navAttempt++) {
+    try {
+      const nextButton = await page.$(NEXT_BUTTON_SELECTOR);
+      if (!nextButton) {
+        return false;
+      }
+
+      const currentPageBefore = await getCurrentPageNumber(page);
+      await nextButton.click();
+
+      await page.waitForFunction(
+        (prevPage) => {
+          const activePage = document.querySelector(
+            "a.paginate_button.current"
+          );
+          const currentPageText = activePage
+            ? activePage.textContent.trim()
+            : null;
+          const tableRows = document.querySelectorAll(
+            "table.display.dataTable tbody tr:not(.details-row)"
+          );
+          return currentPageText !== prevPage && tableRows.length > 0;
+        },
+        { timeout: 90000 },
+        currentPageBefore
+      );
+
+      await page.waitForSelector(TABLE_SELECTOR, {
+        visible: true,
+        timeout: 30000,
+      });
+      await new Promise((resolve) => setTimeout(resolve, 2000));
+      return true;
+    } catch (error) {
+      console.log(
+        `Navigation attempt ${navAttempt + 1}/3 failed:`,
+        error.message
+      );
+      if (navAttempt < 2) {
+        await new Promise((resolve) => setTimeout(resolve, 5000));
+      }
+    }
+  }
+
+  return false;
+}
+
+async function advanceToPage(page, targetPage) {
+  let current = 1;
+
+  while (current < targetPage) {
+    const nextButton = await page.$(NEXT_BUTTON_SELECTOR);
+    if (!nextButton) {
+      console.log(
+        `No next button found at page ${current}, stopping advancement`
+      );
+      break;
+    }
+
+    const moved = await clickNextPage(page);
+    if (!moved) {
+      console.log(`Failed to advance past page ${current}`);
+      break;
+    }
+
+    current++;
+    if (current % 10 === 0 || current === targetPage) {
+      console.log(`Advanced to page ${current}`);
+    }
+  }
+
+  return current;
+}
+
+async function recoverPageSession(browser, page, targetPage) {
+  console.log(`Recovering browser session at page ${targetPage}...`);
+
+  try {
+    await page.close();
+  } catch {
+    // Page may already be closed or unresponsive.
+  }
+
+  const newPage = await browser.newPage();
+  await configurePage(newPage);
+  await navigateToAwardedList(newPage);
+
+  if (targetPage > 1) {
+    await advanceToPage(newPage, targetPage);
+  }
+
+  return newPage;
+}
+
+async function logSkippedPage(currentPage, reason) {
+  const fs = await import("fs");
+  fs.appendFileSync(
+    "skipped-pages.log",
+    `${new Date().toISOString()} - Page ${currentPage} (${reason})\n`
+  );
+}
+
 export async function scrapeAwardedTenders(options = {}) {
-  const { startPage = 1, maxPages = 1, onBatch, onComplete } = options; // support start and both callback names
+  const { startPage = 1, maxPages = 1, onBatch, onComplete } = options;
   console.log("Starting scraper...");
 
-  const browser = await puppeteer.launch({
-    headless: "new",
-    args: [
-      "--no-sandbox",
-      "--disable-setuid-sandbox",
-      "--disable-dev-shm-usage",
-      "--disable-gpu",
-    ],
-  });
+  const browser = await launchBrowser();
 
-  let currentPage = 1; // Initialize currentPage at the start
+  let currentPage = 1;
   let pagesProcessed = 0;
   let hasMorePages = true;
   let totalCount = 0;
-  let allTenders = []; // Store all tenders here
+  let allTenders = [];
   let page = await browser.newPage();
+  await configurePage(page);
 
   try {
-    // Initial navigation or refresh every 100 pages
-    if (pagesProcessed === 0 || pagesProcessed % 100 === 0) {
-      if (pagesProcessed > 0) {
-        console.log("Closing page...");
-        await page.close();
-        console.log("Opening page...");
-        page = await browser.newPage();
-      }
-      console.log("Navigating to URL:", AWARDED_TENDERS_URL);
-      await page.goto(AWARDED_TENDERS_URL, {
-        waitUntil: "networkidle0",
-        timeout: 300000, // 5 minutes for initial load
-      });
-      // Wait for table to be ready
-      await page.waitForSelector(
-        "table.display.dataTable tbody tr:not(.details-row)",
-        {
-          timeout: 60000,
-          visible: true,
-        }
-      );
-    }
+    await navigateToAwardedList(page);
 
-    // Advance to startPage if needed (necessary for workflow 2)
     if (startPage > 1) {
       console.log(`Advancing to start page ${startPage}...`);
-      while (currentPage < startPage) {
-        const nextButtonInit = await page.$(
-          "a.paginate_button.next:not(.disabled)"
-        );
-        if (!nextButtonInit) {
-          console.log(
-            `No next button found at page ${currentPage}, stopping advancement`
-          );
-          break;
-        }
-
-        try {
-          // Get current page before clicking
-          const currentPageBefore = await page.evaluate(() => {
-            const activePage = document.querySelector(
-              "a.paginate_button.current"
-            );
-            return activePage ? activePage.textContent.trim() : null;
-          });
-
-          await nextButtonInit.click();
-
-          // Wait for table to update
-          await page.waitForFunction(
-            (prevPage) => {
-              const activePage = document.querySelector(
-                "a.paginate_button.current"
-              );
-              const currentPageText = activePage
-                ? activePage.textContent.trim()
-                : null;
-              return currentPageText !== prevPage;
-            },
-            { timeout: 90000 },
-            currentPageBefore
-          );
-
-          await page.waitForSelector(
-            "table.display.dataTable tbody tr:not(.details-row)",
-            {
-              timeout: 30000,
-              visible: true,
-            }
-          );
-          await new Promise((resolve) => setTimeout(resolve, 2000));
-          currentPage++;
-          console.log(`Advanced to page ${currentPage}`);
-        } catch (error) {
-          console.error(
-            `Error advancing to page ${currentPage + 1}:`,
-            error.message
-          );
-          // Try to continue, but log the issue
-          await new Promise((resolve) => setTimeout(resolve, 3000));
-          currentPage++;
-        }
-      }
+      currentPage = await advanceToPage(page, startPage);
       console.log(`Finished advancing to start page ${currentPage}`);
     }
 
     while (hasMorePages && pagesProcessed < maxPages) {
+      if (pagesProcessed > 0 && pagesProcessed % PAGE_REFRESH_INTERVAL === 0) {
+        console.log(
+          `Refreshing page session after ${pagesProcessed} processed pages...`
+        );
+        try {
+          page = await recoverPageSession(browser, page, currentPage);
+        } catch (refreshError) {
+          console.error(
+            "Page refresh failed:",
+            refreshError.message || refreshError
+          );
+        }
+      }
+
       console.log(`Processing page ${currentPage}...`);
 
-      // Retry logic for page load
       let pageLoaded = false;
       for (let attempt = 0; attempt < 3; attempt++) {
         try {
@@ -132,11 +215,7 @@ export async function scrapeAwardedTenders(options = {}) {
             console.error(
               `Skipping page ${currentPage} after 3 failed attempts`
             );
-            const fs = await import("fs");
-            fs.appendFileSync(
-              "skipped-pages.log",
-              `${new Date().toISOString()} - Page ${currentPage}\n`
-            );
+            await logSkippedPage(currentPage, "load failed");
           } else {
             await new Promise((resolve) =>
               setTimeout(resolve, 3000 * (attempt + 1))
@@ -146,23 +225,17 @@ export async function scrapeAwardedTenders(options = {}) {
       }
 
       if (!pageLoaded) {
-        // Move to next page attempt
-        const nextButton = await page.$(
-          "a.paginate_button.next:not(.disabled)"
-        );
-        if (nextButton && pagesProcessed < maxPages - 1) {
-          await nextButton.click();
-          await new Promise((resolve) => setTimeout(resolve, 3000));
+        const moved = await clickNextPage(page);
+        if (moved && pagesProcessed < maxPages - 1) {
           currentPage++;
           pagesProcessed++;
           continue;
-        } else {
-          hasMorePages = false;
-          break;
         }
+
+        hasMorePages = false;
+        break;
       }
 
-      // Get basic tender info for current page
       console.log("Getting basic tender info...");
       const tenders = await page.evaluate(() => {
         const rows = Array.from(
@@ -170,7 +243,6 @@ export async function scrapeAwardedTenders(options = {}) {
             "table.display.dataTable tbody tr:not(.details-row)"
           )
         );
-        console.log(`Found ${rows.length} rows on page`);
         return rows.map((row) => ({
           category:
             row.querySelector("td:nth-child(2)")?.textContent?.trim() || "",
@@ -184,7 +256,6 @@ export async function scrapeAwardedTenders(options = {}) {
       });
 
       const pageTenders = [];
-      // Process each row on the current page
       for (let index = 0; index < tenders.length; index++) {
         try {
           totalCount++;
@@ -194,7 +265,6 @@ export async function scrapeAwardedTenders(options = {}) {
             }/10): ${tenders[index].description}`
           );
 
-          // Click to reveal details
           await page.evaluate((rowIndex) => {
             const rows = Array.from(
               document.querySelectorAll(
@@ -203,15 +273,12 @@ export async function scrapeAwardedTenders(options = {}) {
             );
             const cell = rows[rowIndex]?.querySelector("td:nth-child(1)");
             if (cell) {
-              console.log(`Clicking row ${rowIndex + 1}`);
               cell.click();
             }
           }, index);
 
-          // Wait for details to load
           await new Promise((resolve) => setTimeout(resolve, 1000));
 
-          // Get details
           const details = await page.evaluate((rowIndex) => {
             const rows = Array.from(
               document.querySelectorAll(
@@ -243,9 +310,6 @@ export async function scrapeAwardedTenders(options = {}) {
             return { mainDetails, successfulBidders };
           }, index);
 
-          // console.log("Successful Bidders: ", details.successfulBidders);
-
-          // Process details with improved validation
           const tenderDetails = {};
           details.mainDetails.forEach((detail) => {
             const [key, value] = detail;
@@ -258,7 +322,6 @@ export async function scrapeAwardedTenders(options = {}) {
             }
           });
 
-          // Handle special key rename with validation
           if (tenderDetails["placewheregoods,worksorservicesarerequired"]) {
             tenderDetails["placeServicesRequired"] =
               tenderDetails[
@@ -267,13 +330,11 @@ export async function scrapeAwardedTenders(options = {}) {
             delete tenderDetails["placewheregoods,worksorservicesarerequired"];
           }
 
-          // Normalize department field from possible keys and trim whitespace
           if (tenderDetails["organofstate"]) {
             tenderDetails["department"] = tenderDetails["organofstate"].trim();
             delete tenderDetails["organofstate"];
           }
 
-          // Process successful bidders
           let successfulBidderName = "";
           let successfulBidderAmount = 0;
 
@@ -281,10 +342,8 @@ export async function scrapeAwardedTenders(options = {}) {
             details.successfulBidders &&
             details.successfulBidders.length > 0
           ) {
-            // Find the row with the actual bidder information
             const bidder = details.successfulBidders.find((b) => {
               const nameLC = b.name.toLowerCase();
-              // Look for rows that don't contain any field labels and have an amount with 'R'
               return (
                 !nameLC.includes(":") &&
                 b.amount &&
@@ -294,35 +353,25 @@ export async function scrapeAwardedTenders(options = {}) {
             });
 
             if (bidder) {
-              // Extract name by splitting on 'R' and taking the first part
               const nameParts = bidder.name.split(/(?=R[\d\s,]+$)/);
               successfulBidderName = nameParts[0].trim();
 
-              // Parse amount - handle the format "R951 930,40"
               if (bidder.amount) {
-                // Extract just the numeric part after R, preserving the structure
                 const amountMatch = bidder.amount.match(/R([\d\s]+)(,\d+)?/);
                 if (amountMatch) {
-                  // Remove spaces and combine the parts
                   const wholeNumber = amountMatch[1].replace(/\s/g, "");
                   const decimal = amountMatch[2]
                     ? amountMatch[2].replace(",", "")
                     : "00";
                   const fullNumber = wholeNumber + decimal;
-
-                  // Convert to integer and remove cents (divide by 100)
-                  const amountWithoutCents = Math.round(
+                  successfulBidderAmount = Math.round(
                     parseInt(fullNumber, 10) / 100
                   );
-                  successfulBidderAmount = amountWithoutCents;
                 }
               }
             }
           }
 
-          // console.log(`Details: ${JSON.stringify({ tenderDetails })}`);
-
-          // Create complete tender object with improved validation
           const tender = {
             category: tenders[index].category || "",
             description: tenders[index].description || "",
@@ -341,7 +390,6 @@ export async function scrapeAwardedTenders(options = {}) {
           };
           pageTenders.push(tender);
 
-          // Click again to close details
           await page.evaluate((rowIndex) => {
             const rows = Array.from(
               document.querySelectorAll(
@@ -352,19 +400,29 @@ export async function scrapeAwardedTenders(options = {}) {
             if (cell) cell.click();
           }, index);
 
-          // Wait for details to close
           await new Promise((resolve) => setTimeout(resolve, 500));
         } catch (error) {
           console.log(
             `Error processing tender ${index + 1} on page ${currentPage}:`,
             error
           );
+
+          if (isProtocolError(error)) {
+            try {
+              page = await recoverPageSession(browser, page, currentPage);
+            } catch (recoverError) {
+              console.error(
+                "Failed to recover after row error:",
+                recoverError.message || recoverError
+              );
+              throw recoverError;
+            }
+          }
         }
       }
 
-      // Process tenders for this page
       if (pageTenders.length > 0) {
-        allTenders.push(...pageTenders); // Add to all tenders
+        allTenders.push(...pageTenders);
         if (onBatch) {
           await onBatch(pageTenders);
         } else if (onComplete) {
@@ -372,119 +430,58 @@ export async function scrapeAwardedTenders(options = {}) {
         }
       }
 
-      // Try to navigate to next page
-      const nextButton = await page.$("a.paginate_button.next:not(.disabled)");
-      if (nextButton && pagesProcessed < maxPages - 1) {
-        console.log("Clicking next page button...");
-
-        // DataTables uses AJAX pagination, not full page navigation
-        // So we just click and wait for the table to update
-        let navigationSuccess = false;
-        for (let navAttempt = 0; navAttempt < 3; navAttempt++) {
-          try {
-            // Get current page indicator before clicking
-            const currentPageBefore = await page.evaluate(() => {
-              const activePage = document.querySelector(
-                "a.paginate_button.current"
-              );
-              return activePage ? activePage.textContent.trim() : null;
-            });
-
-            await nextButton.click();
-
-            // Wait for table to update (check if page number changed or table content refreshed)
-            await page.waitForFunction(
-              (prevPage) => {
-                const activePage = document.querySelector(
-                  "a.paginate_button.current"
-                );
-                const currentPageText = activePage
-                  ? activePage.textContent.trim()
-                  : null;
-                const tableRows = document.querySelectorAll(
-                  "table.display.dataTable tbody tr:not(.details-row)"
-                );
-                return currentPageText !== prevPage && tableRows.length > 0;
-              },
-              { timeout: 90000 },
-              currentPageBefore
-            );
-
-            // Additional wait for table to be fully loaded
-            await page.waitForSelector(
-              "table.display.dataTable tbody tr:not(.details-row)",
-              {
-                visible: true,
-                timeout: 30000,
-              }
-            );
-
-            // Small delay to ensure all content is loaded
-            await new Promise((resolve) => setTimeout(resolve, 2000));
-
-            navigationSuccess = true;
-            break;
-          } catch (error) {
-            console.log(
-              `Navigation attempt ${navAttempt + 1}/3 failed:`,
-              error.message
-            );
-            if (navAttempt < 2) {
-              // Wait before retrying
-              await new Promise((resolve) => setTimeout(resolve, 5000));
-              // Re-check if next button still exists
-              const nextButtonRetry = await page.$(
-                "a.paginate_button.next:not(.disabled)"
-              );
-              if (!nextButtonRetry) {
-                console.log("Next button no longer available");
-                hasMorePages = false;
-                break;
-              }
-            } else {
-              console.error(
-                `Failed to navigate after 3 attempts, skipping to next page`
-              );
-              // Log the skipped page
-              const fs = await import("fs");
-              fs.appendFileSync(
-                "skipped-pages.log",
-                `${new Date().toISOString()} - Navigation failed on page ${currentPage}\n`
-              );
-              // Try to continue anyway
-              await new Promise((resolve) => setTimeout(resolve, 3000));
-            }
-          }
-        }
-
-        if (navigationSuccess) {
-          currentPage++;
-          pagesProcessed++;
-          console.log(`Moved to page ${currentPage}`);
-        } else {
-          // If navigation failed after retries, check if we should continue
-          const stillHasNext = await page.$(
-            "a.paginate_button.next:not(.disabled)"
-          );
-          if (!stillHasNext) {
-            hasMorePages = false;
-          } else {
-            // Force increment to avoid infinite loop
-            currentPage++;
-            pagesProcessed++;
-            console.log(
-              `Forced increment to page ${currentPage} after navigation failure`
-            );
-          }
-        }
-      } else {
+      if (pagesProcessed >= maxPages - 1) {
         hasMorePages = false;
+        break;
       }
+
+      console.log("Clicking next page button...");
+      let navigationSuccess = false;
+
+      try {
+        navigationSuccess = await clickNextPage(page);
+      } catch (error) {
+        console.error("Navigation error:", error.message || error);
+      }
+
+      if (!navigationSuccess) {
+        console.log("Navigation failed, attempting session recovery...");
+        try {
+          page = await recoverPageSession(browser, page, currentPage);
+          navigationSuccess = await clickNextPage(page);
+        } catch (recoverError) {
+          console.error(
+            "Recovery after navigation failure failed:",
+            recoverError.message || recoverError
+          );
+        }
+      }
+
+      if (navigationSuccess) {
+        currentPage++;
+        pagesProcessed++;
+        console.log(`Moved to page ${currentPage}`);
+        continue;
+      }
+
+      await logSkippedPage(currentPage + 1, "navigation failed");
+      console.error(
+        `Stopping early after page ${currentPage}. Re-run with START_PAGE=${currentPage + 1} to continue.`
+      );
+      hasMorePages = false;
     }
 
-    return allTenders; // Return all collected tenders
+    return allTenders;
   } catch (error) {
     console.log(`Scraping error on page ${currentPage}:`, error);
+
+    if (allTenders.length > 0) {
+      console.log(
+        `Returning ${allTenders.length} tenders collected before the error. Re-run with START_PAGE=${currentPage} to continue.`
+      );
+      return allTenders;
+    }
+
     throw error;
   } finally {
     await browser.close();
