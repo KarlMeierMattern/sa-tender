@@ -9,6 +9,7 @@ import {
   YAxis,
   Tooltip,
 } from "recharts";
+import { CHART_HEIGHT } from "@/app/lib/chartHelpers";
 
 const customTooltip = ({ active, payload }) => {
   if (active && payload && payload.length) {
@@ -40,22 +41,21 @@ export default function TenderDurationDistribution({ data }) {
       <p className="text-sm text-gray-500 mb-2 text-center">
         The expected length of time between advertisement and closing date
       </p>
-      <ResponsiveContainer width="100%" height={400}>
-        <BarChart data={chartData} barSize={80}>
+      <ResponsiveContainer width="100%" height={CHART_HEIGHT}>
+        <BarChart data={chartData} barSize={48} margin={{ bottom: 8 }}>
           <XAxis
             dataKey="range"
             interval="preserveStartEnd"
-            textAnchor="end"
-            tick={false}
-            height={0}
+            tick={{ fontSize: 10 }}
+            height={48}
             axisLine={{ stroke: "transparent" }}
             tickLine={false}
           />
           <YAxis
-            tick={false}
+            tick={{ fontSize: 10 }}
+            width={36}
             axisLine={{ stroke: "transparent" }}
             tickLine={false}
-            width={0}
           />
           <Tooltip content={customTooltip} />
           <Bar dataKey="count" fill="#B8C5FF" radius={[4, 4, 4, 4]} />

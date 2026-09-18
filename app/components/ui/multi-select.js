@@ -24,11 +24,15 @@ export default function MultiSelect({
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="outline" className="w-[200px] justify-between">
+        <Button
+          variant="outline"
+          className="w-full min-w-[160px] sm:w-[200px] justify-between"
+          aria-label={label || placeholder}
+        >
           {safeSelected.length > 0
-            ? `${safeSelected.length} selected`
+            ? `${label ? `${label}: ` : ""}${safeSelected.length} selected`
             : placeholder}
-          <ChevronDown className="ml-2 h-4 w-4" />
+          <ChevronDown className="ml-2 h-4 w-4 shrink-0" />
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent className="w-[200px]">
@@ -36,7 +40,7 @@ export default function MultiSelect({
           {safeOptions.map((option) => (
             <div key={option} className="flex items-center space-x-2 p-2">
               <Checkbox
-                id={option}
+                id={`${label}-${option}`}
                 checked={safeSelected.includes(option)}
                 onCheckedChange={(checked) => {
                   if (checked) {
@@ -47,7 +51,7 @@ export default function MultiSelect({
                 }}
               />
               <label
-                htmlFor={option}
+                htmlFor={`${label}-${option}`}
                 className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
               >
                 {option}

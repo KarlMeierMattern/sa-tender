@@ -9,6 +9,7 @@ import {
   YAxis,
   Tooltip,
 } from "recharts";
+import { truncateLabel, verticalBarChartHeight } from "@/app/lib/chartHelpers";
 
 const CustomTooltip = ({ active, payload, label, totalValue }) => {
   if (active && payload && payload.length) {
@@ -50,6 +51,8 @@ export default function DepartmentByProcurementValue({ data }) {
     ? data.reduce((acc, item) => acc + item.totalValue, 0)
     : 0;
 
+  const chartHeight = verticalBarChartHeight(chartData.length);
+
   return (
     <div className="w-full">
       <h3 className="text-lg font-semibold mb-2 text-center">
@@ -58,19 +61,21 @@ export default function DepartmentByProcurementValue({ data }) {
       <p className="text-sm text-gray-500 mb-2 text-center">
         The departments that spent the most money on tenders
       </p>
-      <ResponsiveContainer width="100%" height={400}>
-        <BarChart data={chartData} barSize={60}>
+      <ResponsiveContainer width="100%" height={chartHeight}>
+        <BarChart data={chartData} layout="vertical" barSize={20} margin={{ left: 8 }}>
           <XAxis
-            dataKey="department"
-            tick={false}
-            axisLine={false}
-            height={0}
+            type="number"
+            tickFormatter={formatCurrency}
+            tick={{ fontSize: 10 }}
+            axisLine={{ stroke: "transparent" }}
+            tickLine={false}
           />
           <YAxis
-            tickFormatter={formatCurrency}
-            width={0}
-            // tick={{ fontSize: 10 }}
-            tick={false}
+            type="category"
+            dataKey="department"
+            width={96}
+            tick={{ fontSize: 10 }}
+            tickFormatter={(v) => truncateLabel(v, 12)}
             axisLine={{ stroke: "transparent" }}
             tickLine={false}
           />

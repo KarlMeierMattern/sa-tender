@@ -9,6 +9,7 @@ import {
   Tooltip,
 } from "recharts";
 import React from "react";
+import { truncateLabel, verticalBarChartHeight } from "@/app/lib/chartHelpers";
 
 // Custom tooltip component
 const CustomTooltip = ({ active, payload }) => {
@@ -39,7 +40,7 @@ export default function ContractorsByAwardedValue({ data }) {
     }));
   }, [data]);
 
-  if (!data) return null;
+  if (!data?.length) return null;
 
   // Custom formatter for the x-axis (currency)
   const formatCurrency = (value) => {
@@ -49,6 +50,8 @@ export default function ContractorsByAwardedValue({ data }) {
     return `R ${value.toLocaleString()}`;
   };
 
+  const chartHeight = verticalBarChartHeight(chartData.length);
+
   return (
     <div className="w-full">
       <h3 className="text-lg font-semibold mb-2 text-center">
@@ -57,23 +60,21 @@ export default function ContractorsByAwardedValue({ data }) {
       <p className="text-sm text-gray-500 mb-2 text-center">
         The contractors that received the most money from tenders
       </p>
-      <ResponsiveContainer width="100%" height={400}>
-        <BarChart data={chartData} layout="vertical" barSize={20}>
+      <ResponsiveContainer width="100%" height={chartHeight}>
+        <BarChart data={chartData} layout="vertical" barSize={20} margin={{ left: 8 }}>
           <XAxis
             type="number"
             tickFormatter={formatCurrency}
-            textAnchor="end"
-            height={0}
-            // tick={{ fill: "#6B7280", fontSize: 12 }}
-            tick={false}
+            tick={{ fontSize: 10 }}
             axisLine={{ stroke: "transparent" }}
             tickLine={false}
           />
           <YAxis
             type="category"
             dataKey="supplier"
-            width={0}
-            tick={false}
+            width={96}
+            tick={{ fontSize: 10 }}
+            tickFormatter={(v) => truncateLabel(v, 12)}
             axisLine={{ stroke: "transparent" }}
             tickLine={false}
           />

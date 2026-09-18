@@ -3,13 +3,14 @@
 import React, { useMemo } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import CardSkeleton from "../ui/card-skeleton";
+import DataStateMessage from "../DataStateMessage";
+
 export default function AwardedTendersCard({
   selectedYear,
   setSelectedYear,
   filterOptions,
   allData,
 }) {
-  // Used by card filter for year selection -> Extract unique years from awarded dates
   const availableYears = useMemo(() => {
     return Array.from(
       new Set(
@@ -20,7 +21,6 @@ export default function AwardedTendersCard({
     ).sort((a, b) => b - a);
   }, [filterOptions?.data?.data?.awarded]);
 
-  // Calculate total value
   const totalValue = useMemo(() => {
     return (
       allData?.data?.data?.reduce(
@@ -31,7 +31,6 @@ export default function AwardedTendersCard({
     );
   }, [allData?.data?.data]);
 
-  // Calculate average value
   const averageValue = useMemo(() => {
     const tenders = allData?.data?.data || [];
     return tenders.length ? totalValue / tenders.length : 0;
@@ -48,6 +47,21 @@ export default function AwardedTendersCard({
     );
   }
 
+  if (filterOptions.isError || allData.isError) {
+    return (
+      <div className="mb-8">
+        <DataStateMessage
+          variant="error"
+          message="Could not load awarded tender summary."
+          onRetry={() => {
+            filterOptions.refetch?.();
+            allData.refetch?.();
+          }}
+        />
+      </div>
+    );
+  }
+
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
       <Card>
@@ -58,7 +72,8 @@ export default function AwardedTendersCard({
           <select
             value={selectedYear}
             onChange={(e) => setSelectedYear(e.target.value)}
-            className="w-full p-2 border rounded-md"
+            className="w-full rounded-md border bg-background p-2 text-sm"
+            aria-label="Filter awarded tenders by year"
           >
             <option value="all">All Years</option>
             {availableYears.map((year) => (
@@ -74,7 +89,7 @@ export default function AwardedTendersCard({
           <CardTitle>Total Tenders Awarded</CardTitle>
         </CardHeader>
         <CardContent>
-          <p className="text-3xl font-bold">
+          <p className="text-2xl md:text-3xl font-bold tabular-nums">
             {allData?.data?.data?.length || 0}
           </p>
         </CardContent>
@@ -84,7 +99,7 @@ export default function AwardedTendersCard({
           <CardTitle>Total Value Awarded</CardTitle>
         </CardHeader>
         <CardContent>
-          <p className="text-3xl font-bold">
+          <p className="text-2xl md:text-3xl font-bold tabular-nums">
             R{" "}
             {(totalValue / 1000000000).toLocaleString(undefined, {
               minimumFractionDigits: 1,
@@ -99,7 +114,7 @@ export default function AwardedTendersCard({
           <CardTitle>Average Award Value</CardTitle>
         </CardHeader>
         <CardContent>
-          <p className="text-3xl font-bold">
+          <p className="text-2xl md:text-3xl font-bold tabular-nums">
             R{" "}
             {(averageValue / 1000000).toLocaleString(undefined, {
               minimumFractionDigits: 1,

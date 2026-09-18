@@ -1,7 +1,5 @@
 "use client";
 
-import { useEffect } from "react";
-import { useQueryClient } from "@tanstack/react-query";
 import {
   awardedTendersKey,
   awardedTendersFn,
@@ -21,49 +19,43 @@ import {
   topSuppliersFn,
   awardTimingKey,
   awardTimingFn,
+  topCategoriesKey,
+  topCategoriesFn,
 } from "@/app/hooks/awarded/useAwardedCharts";
 
-export const usePrefetchAwardedData = (selectedYear) => {
-  const queryClient = useQueryClient();
-
-  useEffect(() => {
-    const prefetchData = async () => {
-      try {
-        await Promise.all([
-          queryClient.prefetchQuery({
-            queryKey: awardedTendersKey(selectedYear),
-            queryFn: awardedTendersFn(selectedYear),
-          }),
-          queryClient.prefetchQuery({
-            queryKey: departmentValueKey(selectedYear),
-            queryFn: departmentValueFn(selectedYear),
-          }),
-          queryClient.prefetchQuery({
-            queryKey: provinceValueKey(selectedYear),
-            queryFn: provinceValueFn(selectedYear),
-          }),
-          queryClient.prefetchQuery({
-            queryKey: valueDistributionKey(selectedYear),
-            queryFn: valueDistributionFn(selectedYear),
-          }),
-          queryClient.prefetchQuery({
-            queryKey: topSuppliersKey(selectedYear),
-            queryFn: topSuppliersFn(selectedYear),
-          }),
-          queryClient.prefetchQuery({
-            queryKey: awardTimingKey(selectedYear),
-            queryFn: awardTimingFn(selectedYear),
-          }),
-          queryClient.prefetchQuery({
-            queryKey: awardedTenderFiltersKey,
-            queryFn: awardedTenderFiltersFn,
-          }),
-        ]);
-      } catch (error) {
-        console.error("Error prefetching data:", error);
-      }
-    };
-
-    prefetchData();
-  }, [queryClient, selectedYear]);
-};
+export async function prefetchAwardedData(queryClient, selectedYear = "all") {
+  await Promise.all([
+    queryClient.prefetchQuery({
+      queryKey: awardedTendersKey(selectedYear),
+      queryFn: () => awardedTendersFn(selectedYear),
+    }),
+    queryClient.prefetchQuery({
+      queryKey: departmentValueKey(selectedYear),
+      queryFn: () => departmentValueFn(selectedYear),
+    }),
+    queryClient.prefetchQuery({
+      queryKey: provinceValueKey(selectedYear),
+      queryFn: () => provinceValueFn(selectedYear),
+    }),
+    queryClient.prefetchQuery({
+      queryKey: valueDistributionKey(selectedYear),
+      queryFn: () => valueDistributionFn(selectedYear),
+    }),
+    queryClient.prefetchQuery({
+      queryKey: topSuppliersKey(selectedYear),
+      queryFn: () => topSuppliersFn(selectedYear),
+    }),
+    queryClient.prefetchQuery({
+      queryKey: awardTimingKey(selectedYear),
+      queryFn: () => awardTimingFn(selectedYear),
+    }),
+    queryClient.prefetchQuery({
+      queryKey: topCategoriesKey(selectedYear),
+      queryFn: () => topCategoriesFn(selectedYear),
+    }),
+    queryClient.prefetchQuery({
+      queryKey: awardedTenderFiltersKey,
+      queryFn: awardedTenderFiltersFn,
+    }),
+  ]);
+}

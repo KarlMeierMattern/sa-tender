@@ -10,11 +10,10 @@ export const awardedTenderFiltersFn = async () => {
   return res.json(); // data.data includes [categories, departments, provinces]
 };
 
-export const useAwardedTenderFilters = () => {
+export const useAwardedTenderFilters = ({ enabled = true } = {}) => {
   return useQuery({
     queryKey: awardedTenderFiltersKey,
     queryFn: awardedTenderFiltersFn,
-    staleTime: process.env.STALE_TIME,
-    cacheTime: process.env.CACHE_TIME,
+    enabled,
   });
 };

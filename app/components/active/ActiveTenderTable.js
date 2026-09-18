@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useCallback } from "react";
 import MultiSelect from "../ui/multi-select";
 import { Calendar } from "@/components/ui/calendar";
 import {
@@ -24,13 +24,15 @@ import { cn } from "@/lib/utils";
 import { useRouter, useSearchParams } from "next/navigation";
 import Pagination from "../Pagination";
 import TableSkeleton from "../ui/table-skeleton";
+import DataStateMessage from "../DataStateMessage";
 import { useActiveFiltersContext } from "@/app/context/ActiveFiltersContext";
 
 export default function ActiveTenderTable({
   allTenders = [],
   currentPage,
   isLoading,
-  totalItems,
+  isError,
+  onRetry,
   allCategories = [],
   allDepartments = [],
   allProvinces = [],
@@ -39,7 +41,6 @@ export default function ActiveTenderTable({
   const searchParams = useSearchParams();
   const itemsPerPage = 10;
 
-  // Get filters from context
   const {
     filters,
     setCategories,
@@ -47,13 +48,44 @@ export default function ActiveTenderTable({
     setProvinces,
     setAdvertisedDate,
     setClosingDate,
+    resetFilters,
   } = useActiveFiltersContext();
+
+  const resetPage = useCallback(() => {
+    const params = new URLSearchParams(searchParams);
+    params.set("page", "1");
+    router.push(`?${params.toString()}`, { scroll: false });
+  }, [router, searchParams]);
+
+  const withPageReset = useCallback(
+    (setter) => (value) => {
+      setter(value);
+      resetPage();
+    },
+    [resetPage]
+  );
+
+  const hasActiveFilters =
+    filters.categories.length > 0 ||
+    filters.departments.length > 0 ||
+    filters.provinces.length > 0 ||
+    filters.advertisedDate ||
+    filters.closingDate;
 
   if (isLoading) {
     return <TableSkeleton />;
   }
 
-  // Apply filters to full dataset
+  if (isError) {
+    return (
+      <DataStateMessage
+        variant="error"
+        message="Could not load tender table data."
+        onRetry={onRetry}
+      />
+    );
+  }
+
   const filteredTenders = Array.isArray(allTenders)
     ? allTenders.filter((tender) => {
         const matchesCategory =
@@ -86,20 +118,17 @@ export default function ActiveTenderTable({
       })
     : [];
 
-  // Helper function to paginate filtered data
-  const paginateData = (filteredData, currentPage, itemsPerPage) => {
-    const start = (currentPage - 1) * itemsPerPage;
-    const end = start + itemsPerPage;
-    return filteredData.slice(start, end);
+  const paginateData = (filteredData, page, perPage) => {
+    const start = (page - 1) * perPage;
+    return filteredData.slice(start, start + perPage);
   };
 
-  // Get the current page of filtered data
-  const currentPageData = paginateData
-    ? paginateData(filteredTenders, currentPage, itemsPerPage)
-    : allTenders;
-
-  // Calculate total pages from total items
-  const totalPages = Math.ceil(totalItems / itemsPerPage);
+  const totalPages = Math.max(
+    1,
+    Math.ceil(filteredTenders.length / itemsPerPage)
+  );
+  const safePage = Math.min(currentPage, totalPages);
+  const currentPageData = paginateData(filteredTenders, safePage, itemsPerPage);
 
   const handlePageChange = (newPage) => {
     const params = new URLSearchParams(searchParams);
@@ -107,7 +136,11 @@ export default function ActiveTenderTable({
     router.push(`?${params.toString()}`, { scroll: false });
   };
 
-  // Format helpers
+  const handleClearFilters = () => {
+    resetFilters();
+    resetPage();
+  };
+
   const formatDate = (dateString) => {
     if (!dateString) return "";
     const date = new Date(dateString);
@@ -129,37 +162,38 @@ export default function ActiveTenderTable({
 
   return (
     <>
-      <div className="flex flex-wrap gap-4 mb-6">
+      <div className="mb-6 flex flex-wrap items-end gap-4">
         <MultiSelect
           label="Category"
           options={allCategories}
           selected={filters.categories}
-          onSelect={setCategories}
+          onSelect={withPageReset(setCategories)}
           placeholder="Select Category"
         />
         <MultiSelect
           label="Department"
           options={allDepartments}
           selected={filters.departments}
-          onSelect={setDepartments}
+          onSelect={withPageReset(setDepartments)}
           placeholder="Select Department"
         />
         <MultiSelect
           label="Province"
           options={allProvinces}
           selected={filters.provinces}
-          onSelect={setProvinces}
+          onSelect={withPageReset(setProvinces)}
           placeholder="Select Province"
         />
 
         <Popover>
           <PopoverTrigger asChild>
             <Button
-              variant={"outline"}
+              variant="outline"
               className={cn(
-                "w-[240px] justify-start text-left font-normal",
+                "w-full sm:w-[240px] justify-start text-left font-normal",
                 !filters.advertisedDate && "text-muted-foreground"
               )}
+              aria-label="Filter by advertised date"
             >
               <CalendarIcon className="mr-2 h-4 w-4" />
               {filters.advertisedDate
@@ -171,7 +205,7 @@ export default function ActiveTenderTable({
             <Calendar
               mode="single"
               selected={filters.advertisedDate}
-              onSelect={setAdvertisedDate}
+              onSelect={withPageReset(setAdvertisedDate)}
               initialFocus
             />
           </PopoverContent>
@@ -180,11 +214,12 @@ export default function ActiveTenderTable({
         <Popover>
           <PopoverTrigger asChild>
             <Button
-              variant={"outline"}
+              variant="outline"
               className={cn(
-                "w-[240px] justify-start text-left font-normal",
+                "w-full sm:w-[240px] justify-start text-left font-normal",
                 !filters.closingDate && "text-muted-foreground"
               )}
+              aria-label="Filter by closing date"
             >
               <CalendarIcon className="mr-2 h-4 w-4" />
               {filters.closingDate
@@ -196,54 +231,73 @@ export default function ActiveTenderTable({
             <Calendar
               mode="single"
               selected={filters.closingDate}
-              onSelect={setClosingDate}
+              onSelect={withPageReset(setClosingDate)}
               initialFocus
             />
           </PopoverContent>
         </Popover>
+
+        {hasActiveFilters && (
+          <Button variant="ghost" size="sm" onClick={handleClearFilters}>
+            Clear filters
+          </Button>
+        )}
       </div>
 
-      <div className="text-sm text-muted-foreground mb-4">
-        Showing {(currentPage - 1) * itemsPerPage + 1} to{" "}
-        {Math.min(currentPage * itemsPerPage, filteredTenders.length)} of{" "}
+      <div className="mb-4 text-sm text-muted-foreground">
+        Showing{" "}
+        {filteredTenders.length === 0
+          ? 0
+          : (safePage - 1) * itemsPerPage + 1}{" "}
+        to {Math.min(safePage * itemsPerPage, filteredTenders.length)} of{" "}
         {filteredTenders.length} results
       </div>
 
-      <Table className="table-fixed w-full">
-        <TableCaption>List of Available Tenders</TableCaption>
-        <TableHeader>
-          <TableRow>
-            {columns.map((column) => (
-              <TableHead
-                key={column.key}
-                className="whitespace-normal break-words font-bold"
-              >
-                {column.label}
-              </TableHead>
-            ))}
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {currentPageData.map((tender, index) => (
-            <TableRow key={tender._id || index}>
+      {filteredTenders.length === 0 ? (
+        <DataStateMessage
+          message={
+            hasActiveFilters
+              ? "No tenders match your filters. Try adjusting or clearing them."
+              : "No tenders available."
+          }
+        />
+      ) : (
+        <Table className="table-fixed w-full">
+          <TableCaption>List of Available Tenders</TableCaption>
+          <TableHeader>
+            <TableRow>
               {columns.map((column) => (
-                <TableCell
+                <TableHead
                   key={column.key}
-                  className="whitespace-normal break-words"
+                  className="whitespace-normal break-words font-bold"
                 >
-                  {column.key === "advertised" || column.key === "closingDate"
-                    ? formatDate(tender[column.key])
-                    : tender[column.key]}
-                </TableCell>
+                  {column.label}
+                </TableHead>
               ))}
             </TableRow>
-          ))}
-        </TableBody>
-      </Table>
+          </TableHeader>
+          <TableBody>
+            {currentPageData.map((tender, index) => (
+              <TableRow key={tender._id || index} className="hover:bg-muted/50">
+                {columns.map((column) => (
+                  <TableCell
+                    key={column.key}
+                    className="whitespace-normal break-words"
+                  >
+                    {column.key === "advertised" || column.key === "closingDate"
+                      ? formatDate(tender[column.key])
+                      : tender[column.key]}
+                  </TableCell>
+                ))}
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      )}
 
       {totalPages > 1 && (
         <Pagination
-          currentPage={currentPage}
+          currentPage={safePage}
           totalPages={totalPages}
           onPageChange={handlePageChange}
         />

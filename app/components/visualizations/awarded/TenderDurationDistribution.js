@@ -9,6 +9,7 @@ import {
   Tooltip,
 } from "recharts";
 import React from "react";
+import { CHART_HEIGHT } from "@/app/lib/chartHelpers";
 
 // Custom tooltip component
 const CustomTooltip = ({ active, payload }) => {
@@ -41,18 +42,18 @@ export default function TenderDurationDistribution({ data }) {
       <p className="text-sm text-gray-500 mb-2 text-center">
         How long it took for a tender to be awarded
       </p>
-      <ResponsiveContainer width="100%" height={400}>
-        <BarChart data={chartData} barSize={60}>
+      <ResponsiveContainer width="100%" height={CHART_HEIGHT}>
+        <BarChart data={chartData} barSize={48} margin={{ bottom: 8 }}>
           <XAxis
             dataKey="label"
-            tick={false}
-            height={0}
+            tick={{ fontSize: 10 }}
+            height={48}
             axisLine={{ stroke: "transparent" }}
             tickLine={false}
           />
           <YAxis
-            tick={false}
-            width={0}
+            tick={{ fontSize: 10 }}
+            width={36}
             axisLine={{ stroke: "transparent" }}
             tickLine={false}
           />

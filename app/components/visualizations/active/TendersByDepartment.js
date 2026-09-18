@@ -10,6 +10,7 @@ import {
   Tooltip,
   Legend,
 } from "recharts";
+import { truncateLabel, verticalBarChartHeight } from "@/app/lib/chartHelpers";
 
 const COLORS = [
   "#B8C5FF",
@@ -46,6 +47,8 @@ export default function TendersByDepartment({ data }) {
     }));
   }, [data]);
 
+  const chartHeight = verticalBarChartHeight(chartData.length);
+
   return (
     <div className="w-full">
       <h3 className="text-lg font-semibold mb-2 text-center">
@@ -54,22 +57,22 @@ export default function TendersByDepartment({ data }) {
       <p className="text-sm text-gray-500 mb-2 text-center">
         The departments with the most tenders currently advertised
       </p>
-      <ResponsiveContainer width="100%" height={400}>
-        <BarChart data={chartData} layout="vertical" barSize={20}>
+      <ResponsiveContainer width="100%" height={chartHeight}>
+        <BarChart data={chartData} layout="vertical" barSize={20} margin={{ left: 8 }}>
           <XAxis
             type="number"
+            tick={{ fontSize: 10 }}
             tickMargin={8}
-            tick={false}
-            height={0}
             axisLine={{ stroke: "transparent" }}
             tickLine={false}
           />
           <YAxis
             type="category"
             dataKey="department"
-            width={0}
-            tickMargin={8}
-            tick={false}
+            width={96}
+            tick={{ fontSize: 10 }}
+            tickFormatter={(v) => truncateLabel(v, 12)}
+            tickMargin={4}
             axisLine={{ stroke: "transparent" }}
             tickLine={false}
           />

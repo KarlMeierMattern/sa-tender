@@ -1,8 +1,10 @@
 "use client";
 
-export default function BlockSkeleton() {
+export default function BlockSkeleton({ className = "" }) {
   return (
-    <div className="rounded-xl border border-gray-200 bg-white p-6 shadow-sm animate-pulse w-full">
+    <div
+      className={`w-full animate-pulse rounded-xl border border-gray-200 bg-white p-6 shadow-sm ${className}`}
+    >
       {/* Title skeleton */}
       <div className="mx-auto mb-2 w-48 h-5 bg-gray-200 rounded" />
       {/* Subtitle skeleton */}

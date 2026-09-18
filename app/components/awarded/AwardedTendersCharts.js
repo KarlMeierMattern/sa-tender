@@ -1,7 +1,7 @@
 "use client";
 
+import dynamic from "next/dynamic";
 import {
-  ProvinceMap,
   DepartmentByProcurementValue,
   IndustriesByAwardedValue,
   AwardedTenderDistribution,
@@ -9,12 +9,25 @@ import {
   TenderDurationDistribution,
 } from "../visualizations/awarded";
 import BlockSkeleton from "../ui/block-skeleton";
+import ChartContainer from "../visualizations/ChartContainer";
+import DataStateMessage from "../DataStateMessage";
+import { getQueryGroupStatus } from "@/app/lib/queryUtils";
+
+const ProvinceMap = dynamic(
+  () => import("../visualizations/awarded/ProvinceMap"),
+  {
+    ssr: false,
+    loading: () => <BlockSkeleton />,
+  }
+);
 
 export default function AwardedTendersCharts({ chartQueries }) {
-  if (chartQueries.isLoading) {
+  const { isLoading, isError, refetch } = getQueryGroupStatus(chartQueries);
+
+  if (isLoading) {
     return (
-      <div className="grid md:grid-cols-1 lg:grid-cols-2 gap-8">
-        <BlockSkeleton />
+      <div className="grid items-start gap-8 md:grid-cols-1 lg:grid-cols-2">
+        <BlockSkeleton className="lg:col-span-2" />
         <BlockSkeleton />
         <BlockSkeleton />
         <BlockSkeleton />
@@ -24,36 +37,46 @@ export default function AwardedTendersCharts({ chartQueries }) {
     );
   }
 
+  if (isError) {
+    return (
+      <DataStateMessage
+        variant="error"
+        message="Could not load chart data. Please try again."
+        onRetry={refetch}
+      />
+    );
+  }
+
   return (
-    <div className="grid md:grid-cols-1 lg:grid-cols-2 gap-8">
-      <div className="bg-white rounded-xl p-6 border shadow-sm">
+    <div className="grid items-start gap-8 md:grid-cols-1 lg:grid-cols-2">
+      <ChartContainer className="lg:col-span-2">
         <ProvinceMap data={chartQueries.provinceValue.data?.data} />
-      </div>
-      <div className="bg-white rounded-xl p-6 border shadow-sm">
+      </ChartContainer>
+      <ChartContainer>
         <DepartmentByProcurementValue
           data={chartQueries.departmentValue.data?.data}
         />
-      </div>
-      <div className="bg-white rounded-xl p-6 border shadow-sm">
+      </ChartContainer>
+      <ChartContainer>
         <IndustriesByAwardedValue
           data={chartQueries.topCategories.data?.data}
         />
-      </div>
-      <div className="bg-white rounded-xl p-6 border shadow-sm">
+      </ChartContainer>
+      <ChartContainer>
         <AwardedTenderDistribution
           data={chartQueries.valueDistribution.data?.data}
         />
-      </div>
-      <div className="bg-white rounded-xl p-6 border shadow-sm">
+      </ChartContainer>
+      <ChartContainer>
         <ContractorsByAwardedValue
           data={chartQueries.topSuppliers.data?.data}
         />
-      </div>
-      <div className="bg-white rounded-xl p-6 border shadow-sm">
+      </ChartContainer>
+      <ChartContainer>
         <TenderDurationDistribution
           data={chartQueries.awardTiming.data?.data}
         />
-      </div>
+      </ChartContainer>
     </div>
   );
 }

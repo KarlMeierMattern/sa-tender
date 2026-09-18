@@ -58,47 +58,41 @@ export const topCategoriesFn = async (year = "all") => {
 
 // Hook for awarded charts
 // Use () => yourFn(params) to pass arguments safely and defer execution.
-export function useAwardedCharts(selectedYear = "all") {
+export function useAwardedCharts(selectedYear = "all", { enabled = true } = {}) {
   const departmentValue = useQuery({
     queryKey: departmentValueKey(selectedYear),
     queryFn: () => departmentValueFn(selectedYear),
-    staleTime: process.env.STALE_TIME,
-    cacheTime: process.env.CACHE_TIME,
+    enabled,
   });
 
   const provinceValue = useQuery({
     queryKey: provinceValueKey(selectedYear),
     queryFn: () => provinceValueFn(selectedYear),
-    staleTime: process.env.STALE_TIME,
-    cacheTime: process.env.CACHE_TIME,
+    enabled,
   });
 
   const valueDistribution = useQuery({
     queryKey: valueDistributionKey(selectedYear),
     queryFn: () => valueDistributionFn(selectedYear),
-    staleTime: process.env.STALE_TIME,
-    cacheTime: process.env.CACHE_TIME,
+    enabled,
   });
 
   const topSuppliers = useQuery({
     queryKey: topSuppliersKey(selectedYear),
     queryFn: () => topSuppliersFn(selectedYear),
-    staleTime: process.env.STALE_TIME,
-    cacheTime: process.env.CACHE_TIME,
+    enabled,
   });
 
   const awardTiming = useQuery({
     queryKey: awardTimingKey(selectedYear),
     queryFn: () => awardTimingFn(selectedYear),
-    staleTime: process.env.STALE_TIME,
-    cacheTime: process.env.CACHE_TIME,
+    enabled,
   });
 
   const topCategories = useQuery({
     queryKey: topCategoriesKey(selectedYear),
     queryFn: () => topCategoriesFn(selectedYear),
-    staleTime: process.env.STALE_TIME,
-    cacheTime: process.env.CACHE_TIME,
+    enabled,
   });
 
   return {

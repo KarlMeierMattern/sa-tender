@@ -10,29 +10,32 @@ import {
 import { differenceInDays } from "date-fns";
 import { useMemo } from "react";
 import CardSkeleton from "../ui/card-skeleton";
+import DataStateMessage from "../DataStateMessage";
 
 export default function ActiveTendersCard({ allData }) {
+  const tenders = allData?.data?.data;
+
   const calculateClosingSoon = useMemo(() => {
     const now = new Date();
     return (
-      allData?.data?.data?.filter((tender) => {
+      tenders?.filter((tender) => {
         const closingDate = new Date(tender.closingDate);
         const daysUntilClosing = differenceInDays(closingDate, now);
         return daysUntilClosing >= 0 && daysUntilClosing <= 7;
       }).length || 0
     );
-  }, [allData?.data?.data]);
+  }, [tenders]);
 
   const calculateRecentlyAdded = useMemo(() => {
     const now = new Date();
     return (
-      allData?.data?.data?.filter((tender) => {
+      tenders?.filter((tender) => {
         const publishDate = new Date(tender.advertised);
         const daysAgo = differenceInDays(now, publishDate);
         return daysAgo >= 0 && daysAgo <= 7;
       }).length || 0
     );
-  }, [allData?.data?.data]);
+  }, [tenders]);
 
   if (allData.isLoading) {
     return (
@@ -44,6 +47,18 @@ export default function ActiveTendersCard({ allData }) {
     );
   }
 
+  if (allData.isError) {
+    return (
+      <div className="mb-8">
+        <DataStateMessage
+          variant="error"
+          message="Could not load tender summary."
+          onRetry={() => allData.refetch()}
+        />
+      </div>
+    );
+  }
+
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
       <Card>
@@ -51,7 +66,9 @@ export default function ActiveTendersCard({ allData }) {
           <CardTitle>Total Tenders Advertised</CardTitle>
         </CardHeader>
         <CardContent>
-          <p className="text-3xl font-bold">{allData?.data?.data.length}</p>
+          <p className="text-2xl md:text-3xl font-bold tabular-nums">
+            {tenders?.length ?? 0}
+          </p>
         </CardContent>
       </Card>
       <Card>
@@ -60,7 +77,9 @@ export default function ActiveTendersCard({ allData }) {
           <CardDescription>In next 7 days</CardDescription>
         </CardHeader>
         <CardContent>
-          <p className="text-3xl font-bold">{calculateClosingSoon}</p>
+          <p className="text-2xl md:text-3xl font-bold tabular-nums">
+            {calculateClosingSoon}
+          </p>
         </CardContent>
       </Card>
       <Card>
@@ -69,7 +88,9 @@ export default function ActiveTendersCard({ allData }) {
           <CardDescription>In last 7 days</CardDescription>
         </CardHeader>
         <CardContent>
-          <p className="text-3xl font-bold">{calculateRecentlyAdded}</p>
+          <p className="text-2xl md:text-3xl font-bold tabular-nums">
+            {calculateRecentlyAdded}
+          </p>
         </CardContent>
       </Card>
     </div>

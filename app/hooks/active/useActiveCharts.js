@@ -1,77 +1,66 @@
-// Fetches data for the charts on the active tenders page
-
-// ./app/components/active/ActiveTenders -> data fetched
-// ./app/components/active/ActiveTendersCharts.js -> data passed as prop
-
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
 
-export function useActiveCharts() {
-  // Active: Province Count Chart
+export function useActiveCharts({ enabled = true } = {}) {
   const provinceCount = useQuery({
     queryKey: ["province-count-chart"],
     queryFn: async () => {
       const res = await fetch("/api/charts/active/province-count");
+      if (!res.ok) throw new Error("Failed to fetch province data");
       return res.json();
     },
-    staleTime: process.env.STALE_TIME,
-    cacheTime: process.env.CACHE_TIME,
+    enabled,
   });
 
   const departmentCount = useQuery({
     queryKey: ["department-count-active"],
     queryFn: async () => {
       const res = await fetch("/api/charts/active/department-count");
+      if (!res.ok) throw new Error("Failed to fetch department data");
       return res.json();
     },
-    staleTime: process.env.STALE_TIME,
-    cacheTime: process.env.CACHE_TIME,
+    enabled,
   });
 
   const categoryCount = useQuery({
     queryKey: ["category-count-active"],
     queryFn: async () => {
       const res = await fetch("/api/charts/active/category-count");
+      if (!res.ok) throw new Error("Failed to fetch category data");
       return res.json();
     },
-    staleTime: process.env.STALE_TIME,
-    cacheTime: process.env.CACHE_TIME,
+    enabled,
   });
 
   const tenderTypeCount = useQuery({
     queryKey: ["tender-type-count-active"],
     queryFn: async () => {
       const res = await fetch("/api/charts/active/tender-type-count");
+      if (!res.ok) throw new Error("Failed to fetch tender type data");
       return res.json();
     },
-    staleTime: process.env.STALE_TIME,
-    cacheTime: process.env.CACHE_TIME,
+    enabled,
   });
 
-  // Active Timeline Chart
   const activeTimeline = useQuery({
     queryKey: ["activeTimeline"],
     queryFn: async () => {
       const res = await fetch("/api/charts/active/timeline");
+      if (!res.ok) throw new Error("Failed to fetch timeline data");
       return res.json();
     },
-    staleTime: process.env.STALE_TIME,
-    cacheTime: process.env.CACHE_TIME,
+    enabled,
   });
 
-  // Tender Duration Distribution Chart
   const tenderDuration = useQuery({
     queryKey: ["tenderDuration"],
     queryFn: async () => {
       const res = await fetch("/api/charts/active/tender-duration");
-      if (!res.ok) {
-        throw new Error(`HTTP error! status: ${res.status}`);
-      }
+      if (!res.ok) throw new Error("Failed to fetch duration data");
       return res.json();
     },
-    staleTime: process.env.STALE_TIME,
-    cacheTime: process.env.CACHE_TIME,
+    enabled,
   });
 
   return {

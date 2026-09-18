@@ -4,7 +4,7 @@ export default function TableSkeleton() {
   return (
     <div className="mt-8 space-y-4 animate-pulse">
       {/* Filter section skeleton */}
-      <div className="flex flex-row justify-center-safe gap-4 mb-8">
+      <div className="flex flex-row flex-wrap justify-center gap-4 mb-8">
         <div className="h-10 w-48 bg-gray-200 rounded-md" />
         <div className="h-10 w-48 bg-gray-200 rounded-md" />
         <div className="h-10 w-48 bg-gray-200 rounded-md" />

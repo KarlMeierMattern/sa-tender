@@ -9,6 +9,7 @@ import {
   Tooltip,
 } from "recharts";
 import React from "react";
+import { CHART_HEIGHT } from "@/app/lib/chartHelpers";
 
 export default function DailyTenderPublication({ data }) {
   const chartData = React.useMemo(() => {
@@ -34,8 +35,8 @@ export default function DailyTenderPublication({ data }) {
         The number of tenders published in the last 30 days
       </p>
 
-      <ResponsiveContainer width="100%" height={400}>
-        <LineChart data={chartData} margin={{ left: -20, right: 20 }}>
+      <ResponsiveContainer width="100%" height={CHART_HEIGHT}>
+        <LineChart data={chartData} margin={{ left: 0, right: 12, bottom: 8 }}>
           <XAxis
             dataKey="date"
             tickFormatter={formatXAxis}
@@ -47,7 +48,8 @@ export default function DailyTenderPublication({ data }) {
             tickLine={false}
           />
           <YAxis
-            tick={false}
+            tick={{ fontSize: 10 }}
+            width={36}
             axisLine={{ stroke: "transparent" }}
             tickLine={false}
           />

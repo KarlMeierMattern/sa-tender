@@ -1,39 +1,28 @@
-import { Button } from "./ui/button";
+import { Button } from "@/components/ui/button";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 
 export default function Pagination({ currentPage, totalPages, onPageChange }) {
   if (totalPages <= 1) return null;
 
+  const renderPageButton = (pageNum) => (
+    <Button
+      key={pageNum}
+      variant={currentPage === pageNum ? "default" : "outline"}
+      onClick={() => onPageChange(pageNum)}
+      className="h-10 w-10 cursor-pointer"
+      aria-label={`Go to page ${pageNum}`}
+      aria-current={currentPage === pageNum ? "page" : undefined}
+    >
+      {pageNum}
+    </Button>
+  );
+
   const renderPageNumbers = () => {
     const pages = [];
-    const pageWindow = 1; // Number of pages to show before/after current
+    const pageWindow = 1;
 
-    // Always show first page for good UX
-    if (currentPage === 1) {
-      pages.push(
-        <Button
-          key={1}
-          variant="default"
-          onClick={() => onPageChange(1)}
-          className="w-10 h-10 cursor-pointer"
-        >
-          1
-        </Button>
-      );
-    } else {
-      pages.push(
-        <Button
-          key={1}
-          variant="outline"
-          onClick={() => onPageChange(1)}
-          className="w-10 h-10 cursor-pointer"
-        >
-          1
-        </Button>
-      );
-    }
+    pages.push(renderPageButton(1));
 
-    // Show ellipsis if needed
     if (currentPage - pageWindow > 2) {
       pages.push(
         <span key="ellipsis-start" className="px-2 py-2">
@@ -42,26 +31,15 @@ export default function Pagination({ currentPage, totalPages, onPageChange }) {
       );
     }
 
-    // Show window of pages around currentPage
     for (
       let i = Math.max(2, currentPage - pageWindow);
       i <= Math.min(totalPages - 1, currentPage + pageWindow);
       i++
     ) {
-      if (i === 1 || i === totalPages) continue; // Already rendered
-      pages.push(
-        <Button
-          key={i}
-          variant={currentPage === i ? "default" : "outline"}
-          onClick={() => onPageChange(i)}
-          className="w-10 h-10 cursor-pointer"
-        >
-          {i}
-        </Button>
-      );
+      if (i === 1 || i === totalPages) continue;
+      pages.push(renderPageButton(i));
     }
 
-    // Show ellipsis if needed
     if (currentPage + pageWindow < totalPages - 1) {
       pages.push(
         <span key="ellipsis-end" className="px-2 py-2">
@@ -70,32 +48,26 @@ export default function Pagination({ currentPage, totalPages, onPageChange }) {
       );
     }
 
-    // Always show last page if more than 1 page
     if (totalPages > 1) {
-      pages.push(
-        <Button
-          key={totalPages}
-          variant={currentPage === totalPages ? "default" : "outline"}
-          onClick={() => onPageChange(totalPages)}
-          className="w-10 h-10 cursor-pointer"
-        >
-          {totalPages}
-        </Button>
-      );
+      pages.push(renderPageButton(totalPages));
     }
 
     return pages;
   };
 
   return (
-    <div className="flex items-center justify-center space-x-2 py-4 ">
+    <nav
+      className="flex items-center justify-center space-x-2 py-4"
+      aria-label="Pagination"
+    >
       <Button
         variant="outline"
         onClick={() => onPageChange(currentPage - 1)}
         disabled={currentPage === 1}
-        className="w-10 h-10 p-0 cursor-pointer"
+        className="h-10 w-10 p-0 cursor-pointer"
+        aria-label="Previous page"
       >
-        <ChevronLeft className="h-4 w-4 cursor-pointer" />
+        <ChevronLeft className="h-4 w-4" />
       </Button>
 
       {renderPageNumbers()}
@@ -104,10 +76,11 @@ export default function Pagination({ currentPage, totalPages, onPageChange }) {
         variant="outline"
         onClick={() => onPageChange(currentPage + 1)}
         disabled={currentPage === totalPages}
-        className="w-10 h-10 p-0 cursor-pointer"
+        className="h-10 w-10 p-0 cursor-pointer"
+        aria-label="Next page"
       >
-        <ChevronRight className="h-4 w-4 cursor-pointer" />
+        <ChevronRight className="h-4 w-4" />
       </Button>
-    </div>
+    </nav>
   );
 }

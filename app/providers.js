@@ -2,11 +2,21 @@
 
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { useState } from "react";
+import { STALE_TIME, GC_TIME } from "./lib/queryConfig";
 
 export default function Providers({ children }) {
-  // lazy loading ensures the function only runs once when useState first initializes
-  // This is to prevent the query client from being created on every render
-  const [queryClient] = useState(() => new QueryClient());
+  const [queryClient] = useState(
+    () =>
+      new QueryClient({
+        defaultOptions: {
+          queries: {
+            staleTime: STALE_TIME,
+            gcTime: GC_TIME,
+            refetchOnWindowFocus: false,
+          },
+        },
+      })
+  );
 
   return (
     <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>

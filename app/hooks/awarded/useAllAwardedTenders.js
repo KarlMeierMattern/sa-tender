@@ -19,11 +19,10 @@ export const awardedTendersFn = async (year = "all") => {
   return res.json();
 };
 
-export function useAllAwardedTenders(year = "all") {
+export function useAllAwardedTenders(year = "all", { enabled = true } = {}) {
   return useQuery({
     queryKey: awardedTendersKey(year),
     queryFn: () => awardedTendersFn(year),
-    staleTime: process.env.STALE_TIME,
-    cacheTime: process.env.CACHE_TIME,
+    enabled,
   });
 }
