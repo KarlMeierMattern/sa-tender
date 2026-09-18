@@ -80,33 +80,27 @@ export default function TenderLayout() {
           )}
         </TabsContent>
       </Tabs>
-      <footer className="mt-24">
-        <div className="fixed bottom-0 left-0 z-10 w-full bg-slate-700 p-4 text-center text-xs text-white opacity-90">
-          <p>
-            Built by{" "}
-            <a
-              className="text-blue-400 underline"
-              target="_blank"
-              rel="noopener noreferrer"
-              href="https://www.linkedin.com/in/karl-alexander-meier-mattern-ca-sa-16a3b919a/"
-            >
-              Karl-Alexander
-            </a>{" "}
-            with 💜
-          </p>
-          <p className="pt-2 italic text-slate-300">
-            Data provided by{" "}
-            <a
-              href="https://www.etenders.gov.za/"
-              className="text-blue-400 underline"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              eTenders.gov.za
-            </a>
-            , updated monthly
-          </p>
-        </div>
+      <footer className="mt-16 border-t py-6 text-center text-xs text-muted-foreground">
+        <p>
+          Data from{" "}
+          <a
+            href="https://www.etenders.gov.za/"
+            className="hover:text-foreground hover:underline"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            eTenders
+          </a>
+          , updated monthly · Built by{" "}
+          <a
+            href="https://www.linkedin.com/in/karl-alexander-meier-mattern-ca-sa-16a3b919a/"
+            className="hover:text-foreground hover:underline"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            Karl-Alexander
+          </a>
+        </p>
       </footer>
     </div>
   );

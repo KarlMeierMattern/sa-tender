@@ -4,7 +4,7 @@ import BlockSkeleton from "./components/ui/block-skeleton";
 
 export default function TendersPage() {
   return (
-    <div className="mx-auto max-w-7xl px-4 pb-24">
+    <div className="mx-auto max-w-7xl px-4 pb-8">
       <header className="pt-4">
         <h1 className="text-xl font-bold">SA Government Tenders</h1>
         <p className="mt-1 text-sm text-muted-foreground">
